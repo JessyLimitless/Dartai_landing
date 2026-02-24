@@ -1,0 +1,81 @@
+/* DART Insight — CSS Custom Properties (Light / Dark) */
+
+:root {
+  /* Background */
+  --bg-primary: #FAFAFA;
+  --bg-card: #FFFFFF;
+  --bg-dark: #18181B;
+  --bg-dark-hover: #27272A;
+
+  /* Border */
+  --border: #E4E4E7;
+  --border-light: #F4F4F5;
+
+  /* Text */
+  --text-primary: #18181B;
+  --text-secondary: #52525B;
+  --text-muted: #A1A1AA;
+
+  /* Accent */
+  --accent: #DC2626;
+  --positive: #059669;
+  --negative: #2563EB;
+
+  /* Skeleton */
+  --skeleton-base: #F4F4F5;
+  --skeleton-shine: #E4E4E7;
+  --skeleton-card-bg: #fff;
+  --skeleton-card-border: #E4E4E7;
+
+  /* Scrollbar */
+  --scrollbar-thumb: #D4D4D8;
+  --scrollbar-thumb-hover: #A1A1AA;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.06), 0 12px 24px -4px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 16px rgba(0,0,0,0.08), 0 20px 40px -8px rgba(0,0,0,0.12);
+
+  /* Modal overlay */
+  --overlay-bg: rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] {
+  /* Background */
+  --bg-primary: #09090B;
+  --bg-card: #18181B;
+  --bg-dark: #09090B;
+  --bg-dark-hover: #18181B;
+
+  /* Border */
+  --border: #27272A;
+  --border-light: #18181B;
+
+  /* Text */
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-muted: #71717A;
+
+  /* Accent */
+  --accent: #EF4444;
+  --positive: #10B981;
+  --negative: #60A5FA;
+
+  /* Skeleton */
+  --skeleton-base: #18181B;
+  --skeleton-shine: #27272A;
+  --skeleton-card-bg: #18181B;
+  --skeleton-card-border: #27272A;
+
+  /* Scrollbar */
+  --scrollbar-thumb: #3F3F46;
+  --scrollbar-thumb-hover: #52525B;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.4);
+
+  /* Modal overlay */
+  --overlay-bg: rgba(0,0,0,0.7);
+}

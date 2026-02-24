@@ -1,0 +1,533 @@
+/* DART Insight — Premium Responsive + Skeleton CSS */
+
+/* ── Smooth scrolling ── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── TodayPage: 2-column grid layout ── */
+.today-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 32px;
+  align-items: start;
+}
+
+
+.today-weekly-col {
+  position: sticky;
+  top: 76px;
+  align-self: start;
+}
+
+/* ── Skeleton shimmer animation ── */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--skeleton-base, #E2E8F0) 25%, var(--skeleton-shine, #F1F5F9) 50%, var(--skeleton-base, #E2E8F0) 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-text {
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.skeleton-text-sm {
+  height: 10px;
+  margin-bottom: 6px;
+}
+
+.skeleton-title {
+  height: 20px;
+  margin-bottom: 12px;
+  width: 60%;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+.skeleton-card {
+  background: var(--skeleton-card-bg, #FFFFFF);
+  border-radius: 16px;
+  border: 1px solid var(--skeleton-card-border, #E2E8F0);
+  padding: 24px;
+  box-shadow: 0 12px 24px -8px rgba(0,0,0,0.05);
+}
+
+/* ── Toast animations ── */
+@keyframes toastSlideIn {
+  from { transform: translateX(110%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastSlideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(110%); opacity: 0; }
+}
+
+@keyframes toastProgress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* ── Fade / Slide animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in { animation: fadeIn 0.25s ease-out; }
+.animate-slide-in { animation: slideIn 0.2s ease-out; }
+.animate-pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+/* ── Landing page: pulse dot ── */
+@keyframes landingPulse {
+  0% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.landing-pulse-ring {
+  animation: landingPulse 2s ease-out infinite;
+}
+
+/* ── Landing page: spinner ── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Landing page: scroll down arrow bounce ── */
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.landing-scroll-arrow {
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+
+/* ── Landing page: horizontal ticker scroll ── */
+@keyframes tickerScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.landing-ticker-strip:hover .landing-ticker-track {
+  animation-play-state: paused;
+}
+
+/* ── Landing page: grade bar grow animation ── */
+.landing-bar-animate {
+  animation: barGrow 0.8s ease-out forwards;
+  transform-origin: left;
+}
+
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ── Landing page: counters grid mobile ── */
+@media (max-width: 480px) {
+  .landing-counters-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Mobile hamburger menu ── */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: #64748B;
+}
+
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 900;
+}
+
+.mobile-menu-overlay.open {
+  display: block;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 280px;
+  bottom: 0;
+  background: #FFFFFF;
+  z-index: 910;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  padding: 16px 0;
+  border-right: 1px solid #E2E8F0;
+  box-shadow: 8px 0 24px rgba(0,0,0,0.06);
+}
+
+.mobile-menu.open {
+  transform: translateX(0);
+}
+
+.mobile-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  color: #64748B;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mobile-menu button:hover,
+.mobile-menu button.active {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+/* ── Bottom tab bar (hidden by default, shown on mobile) ── */
+.bottom-tab-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: #FFFFFF;
+  border-top: 1px solid #E2E8F0;
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+}
+
+.bottom-tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 6px 0;
+  min-height: 56px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-tab-item span {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.bottom-tab-item.active span {
+  color: #DC2626 !important;
+}
+
+/* ── Detail panel back button (mobile only) ── */
+.detail-back-btn {
+  display: none;
+}
+
+/* ── Responsive: Tablet (768-1024px) ── */
+@media (max-width: 1024px) {
+  .detail-panel {
+    width: 320px !important;
+  }
+
+  .company-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .estimate-range-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .score-row-comment {
+    flex: 0 0 140px !important;
+  }
+
+  /* 3C: val-metrics-grid 3col → 2col */
+  .val-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* 3C: edge-modules-grid 3col → 1col */
+  .edge-modules-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 3C: supply-summary-grid 3col → 1col */
+  .supply-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Today: 1-column on tablet */
+  .today-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .today-weekly-col {
+    position: static !important;
+  }
+}
+
+/* ── Responsive: Mobile (<768px) ── */
+@media (max-width: 768px) {
+  /* 3G: Safe area + overscroll */
+  html, body {
+    overscroll-behavior: none;
+  }
+
+  /* 3A: Show bottom tab bar, hide hamburger + mobile-menu */
+  .bottom-tab-bar {
+    display: flex !important;
+  }
+
+  .hamburger-btn {
+    display: none !important;
+  }
+
+  .mobile-menu,
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+
+  .desktop-nav {
+    display: none !important;
+  }
+
+  /* 3A: main content padding for bottom tab bar */
+  .app-content,
+  .page-container {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Feed: stack layout */
+  .feed-layout {
+    flex-direction: column !important;
+    height: calc(100vh - 60px - 56px - env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .feed-list {
+    border-right: none !important;
+  }
+
+  /* 3B: Feed list items — larger touch targets */
+  .feed-list-item {
+    min-height: 56px !important;
+    padding: 14px 16px !important;
+  }
+
+  /* Detail panel: full-screen overlay on mobile */
+  .detail-panel {
+    position: fixed !important;
+    top: 60px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 56px !important;
+    width: 100% !important;
+    z-index: 800 !important;
+    border-left: none !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
+
+  .detail-panel-empty {
+    display: none !important;
+  }
+
+  /* 3B: Back button larger touch target */
+  .detail-back-btn {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border: none;
+    background: none;
+    color: #DC2626;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Page containers */
+  .page-container {
+    padding: 16px !important;
+  }
+
+  /* Company card grids */
+  .company-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .financial-chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .company-header-layout {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .company-header-layout > div:last-child {
+    text-align: left !important;
+  }
+
+  .estimate-range-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 3C: val-metrics-grid 2col on mobile */
+  .val-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* 3C: edge-modules-grid 1col */
+  .edge-modules-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 3C: supply-summary-grid 1col */
+  .supply-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 3D: Variable section — stack vertically */
+  .variable-layout {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .variable-layout > div:first-child {
+    flex-shrink: 0;
+  }
+
+  .variable-layout > div:last-child {
+    width: 100% !important;
+  }
+
+  /* 3E: Chart heights — smaller on mobile */
+  .chart-area-bar {
+    height: 180px !important;
+  }
+
+  .chart-supply {
+    height: 150px !important;
+  }
+
+  .chart-price,
+  .chart-inst {
+    height: 120px !important;
+  }
+
+  /* Variable dashboard: hide factors + comment in row */
+  .score-row-factors {
+    display: none !important;
+  }
+
+  .score-row-comment {
+    display: none !important;
+  }
+
+  .score-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Toast: above bottom tab bar */
+  .toast-container {
+    top: auto !important;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 50% !important;
+    transform: translateX(50%) !important;
+  }
+
+  .toast-card {
+    width: 340px !important;
+  }
+
+  /* Notification panel: full-width on mobile */
+  .notification-panel {
+    width: calc(100vw - 32px) !important;
+    right: -8px !important;
+  }
+
+  /* Push banner: stack */
+  .push-banner {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 8px !important;
+  }
+
+  .push-banner span {
+    font-size: 13px !important;
+  }
+
+  /* Landing: pulse grid 1col on mobile */
+  .landing-pulse-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Landing: ticker font smaller */
+  .landing-ticker-strip {
+    font-size: 11px !important;
+  }
+
+  /* Landing: table report name hide on mobile */
+  .landing-table-report {
+    display: none !important;
+  }
+
+  /* Today: 1-column + shorter feed on mobile */
+  .today-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .today-weekly-col {
+    position: static !important;
+  }
+
+}
+
+/* ── Small Mobile (<480px) ── */
+@media (max-width: 480px) {
+  /* 3C: val-metrics-grid 1col on very small screens */
+  .val-metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
