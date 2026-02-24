@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { PREMIUM } from '../constants/theme'
+import { API } from '../lib/api'
 
 const DISMISS_KEY = 'dart-push-banner-dismissed'
 
 async function subscribeToPush() {
   try {
-    const res = await fetch('/api/push/vapid-key')
+    const res = await fetch(`${API}/api/push/vapid-key`)
     if (!res.ok) return false
     const { vapid_public_key } = await res.json()
     if (!vapid_public_key) return false
@@ -17,7 +18,7 @@ async function subscribeToPush() {
       applicationServerKey: vapid_public_key,
     })
 
-    const subRes = await fetch('/api/push/subscribe', {
+    const subRes = await fetch(`${API}/api/push/subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(subscription.toJSON()),

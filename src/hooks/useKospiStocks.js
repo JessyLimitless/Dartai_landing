@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API } from '../lib/api'
 
 export function useKospiStocks() {
   const [stocks, setStocks] = useState([])
@@ -6,7 +7,7 @@ export function useKospiStocks() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/kospi-stocks')
+    fetch(`${API}/api/kospi-stocks`)
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (data) {

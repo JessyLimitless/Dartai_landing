@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useError } from '../contexts/ErrorContext'
+import { API } from '../lib/api'
 
 export function useDisclosures() {
   const { showError } = useError()
@@ -20,7 +21,7 @@ export function useDisclosures() {
       if (search.trim()) params.set('search', search.trim())
       params.set('limit', '100')
 
-      const res = await fetch(`/api/disclosures?${params}`)
+      const res = await fetch(`${API}/api/disclosures?${params}`)
       if (!res.ok) throw new Error('fetch failed')
       const data = await res.json()
       setDisclosures(data.disclosures || [])
@@ -37,7 +38,7 @@ export function useDisclosures() {
     setSelectedRceptNo(rceptNo)
     setDetailLoading(true)
     try {
-      const res = await fetch(`/api/disclosures/${rceptNo}`)
+      const res = await fetch(`${API}/api/disclosures/${rceptNo}`)
       if (!res.ok) throw new Error('fetch failed')
       const data = await res.json()
       setDetail(data)

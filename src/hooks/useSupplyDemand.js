@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API } from '../lib/api'
 
 export function useSupplyDemand(stockCode) {
   const [instTrend, setInstTrend] = useState([])
@@ -15,7 +16,7 @@ export function useSupplyDemand(stockCode) {
     let cancelled = false
     setLoading(true)
 
-    fetch(`/api/companies/${stockCode}/supply-demand`)
+    fetch(`${API}/api/companies/${stockCode}/supply-demand`)
       .then((r) => r.ok ? r.json() : { inst_trend: [], foreign_trend: [] })
       .then((data) => {
         if (cancelled) return

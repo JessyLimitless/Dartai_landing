@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useError } from '../contexts/ErrorContext'
+import { API } from '../lib/api'
 
 const PAGE_SIZE = 50
 
@@ -21,7 +22,7 @@ export function useVariableScores() {
     params.set('limit', String(PAGE_SIZE))
     params.set('offset', String((page - 1) * PAGE_SIZE))
 
-    fetch(`/api/variables?${params}`)
+    fetch(`${API}/api/variables?${params}`)
       .then((r) => r.ok ? r.json() : { scores: [], distribution: {}, total: 0 })
       .then((data) => {
         setScores(data.scores || [])
@@ -66,7 +67,7 @@ export function useVariableDetail(corpCode) {
   useEffect(() => {
     if (!corpCode) { setDetail(null); return }
     setLoading(true)
-    fetch(`/api/variables/${corpCode}`)
+    fetch(`${API}/api/variables/${corpCode}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data) => setDetail(data))
       .catch(() => setDetail(null))
@@ -81,7 +82,7 @@ export function useVariableDistribution() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/variables/distribution')
+    fetch(`${API}/api/variables/distribution`)
       .then((r) => r.ok ? r.json() : {})
       .then((data) => setDistribution(data))
       .catch(() => setDistribution({}))

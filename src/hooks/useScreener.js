@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useError } from '../contexts/ErrorContext'
+import { API } from '../lib/api'
 
 export function useScreener() {
   const { showError } = useError()
@@ -34,7 +35,7 @@ export function useScreener() {
     if (liveMode) params.set('live', 'true')
     params.set('limit', '200')
 
-    fetch(`/api/screener?${params}`)
+    fetch(`${API}/api/screener?${params}`)
       .then((r) => r.ok ? r.json() : { results: [], total: 0, filtered: 0, presets: [] })
       .then((data) => {
         setResults(data.results || [])

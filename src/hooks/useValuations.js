@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useError } from '../contexts/ErrorContext'
+import { API } from '../lib/api'
 
 export function useValuations() {
   const { showError } = useError()
@@ -16,7 +17,7 @@ export function useValuations() {
     if (sortKey) params.set('sort', sortKey)
     if (sortOrder) params.set('order', sortOrder)
 
-    fetch(`/api/valuations?${params}`)
+    fetch(`${API}/api/valuations?${params}`)
       .then((r) => r.ok ? r.json() : { companies: [], summary: {} })
       .then((data) => {
         setCompanies(data.companies || [])

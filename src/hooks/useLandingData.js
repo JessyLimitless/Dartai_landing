@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { API } from '../lib/api'
 
 export function useLandingData() {
   const [disclosures, setDisclosures] = useState([])
@@ -11,11 +12,11 @@ export function useLandingData() {
   const fetchAll = useCallback(async () => {
     try {
       const [discRes, statsRes, cardsRes, varRes, flowRes] = await Promise.all([
-        fetch('/api/disclosures?grade=S,A,D&limit=8'),
-        fetch('/api/stats'),
-        fetch('/api/companies/recent?limit=5'),
-        fetch('/api/variables?limit=1'),
-        fetch('/api/foreign-flow?period=week'),
+        fetch(`${API}/api/disclosures?grade=S,A,D&limit=8`),
+        fetch(`${API}/api/stats`),
+        fetch(`${API}/api/companies/recent?limit=5`),
+        fetch(`${API}/api/variables?limit=1`),
+        fetch(`${API}/api/foreign-flow?period=week`),
       ])
       if (discRes.ok) {
         const data = await discRes.json()

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useError } from '../contexts/ErrorContext'
+import { API } from '../lib/api'
 
 export function useCompanyCard(corpCode) {
   const { showError } = useError()
@@ -22,8 +23,8 @@ export function useCompanyCard(corpCode) {
     setError(null)
 
     Promise.all([
-      fetch(`/api/companies/${corpCode}/card`).then((r) => r.ok ? r.json() : null),
-      fetch(`/api/companies/${corpCode}/candles?days=60`).then((r) => r.ok ? r.json() : null),
+      fetch(`${API}/api/companies/${corpCode}/card`).then((r) => r.ok ? r.json() : null),
+      fetch(`${API}/api/companies/${corpCode}/candles?days=60`).then((r) => r.ok ? r.json() : null),
     ])
       .then(([cardData, candleData]) => {
         if (cancelled) return

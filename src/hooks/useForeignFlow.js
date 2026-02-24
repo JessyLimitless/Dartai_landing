@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useError } from '../contexts/ErrorContext'
+import { API } from '../lib/api'
 
 export function useForeignFlow() {
   const { showError } = useError()
@@ -11,8 +12,8 @@ export function useForeignFlow() {
   const fetchData = useCallback(() => {
     setLoading(true)
     const endpoint = tab === 'foreign'
-      ? `/api/foreign-flow?period=${period}`
-      : `/api/institutional-flow?period=${period}`
+      ? `${API}/api/foreign-flow?period=${period}`
+      : `${API}/api/institutional-flow?period=${period}`
 
     fetch(endpoint)
       .then((r) => r.ok ? r.json() : { items: [] })

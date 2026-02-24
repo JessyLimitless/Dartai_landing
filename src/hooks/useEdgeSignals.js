@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API } from '../lib/api'
 
 export function useEdgeSignalDetail(corpCode) {
   const [signal, setSignal] = useState(null)
@@ -7,7 +8,7 @@ export function useEdgeSignalDetail(corpCode) {
   useEffect(() => {
     if (!corpCode) return
     setLoading(true)
-    fetch(`/api/edge/signals/${corpCode}`)
+    fetch(`${API}/api/edge/signals/${corpCode}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data) => setSignal(data))
       .catch(() => setSignal(null))

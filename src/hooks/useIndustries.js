@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useError } from '../contexts/ErrorContext'
+import { API } from '../lib/api'
 
 export function useIndustries() {
   const { showError } = useError()
@@ -17,7 +18,7 @@ export function useIndustries() {
     if (sortKey) params.set('sort', sortKey)
     if (sortOrder) params.set('order', sortOrder)
 
-    fetch(`/api/industries?${params}`)
+    fetch(`${API}/api/industries?${params}`)
       .then((r) => r.ok ? r.json() : { categories: [], total_categories: 0, total_companies: 0 })
       .then((data) => {
         setCategories(data.categories || [])
