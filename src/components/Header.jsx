@@ -2,13 +2,14 @@ import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import NotificationBell from './NotificationBell'
 import { useTheme } from '../contexts/ThemeContext'
-import { FONTS, PREMIUM } from '../constants/theme'
+import { FONTS, PREMIUM, PREMIUM_GOLD } from '../constants/theme'
 
 const TABS = [
   { key: '/today', label: 'Today', icon: 'today' },
   { key: '/deep-dive', label: 'Deep Dive', icon: 'deepdive' },
   { key: '/discover', label: 'Discover', icon: 'discover' },
   { key: '/market', label: 'Market', icon: 'market' },
+  { key: '/premium', label: 'Premium', icon: 'premium', premium: true },
 ]
 
 const TAB_ICONS = {
@@ -31,6 +32,11 @@ const TAB_ICONS = {
   market: (color) => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  ),
+  premium: (color) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
   ),
 }
@@ -127,7 +133,9 @@ export default function Header({
         }}>
           {TABS.map((tab) => {
             const active = isActive(tab.key)
-            const iconColor = active ? PREMIUM.accent : colors.textMuted
+            const isPremium = tab.premium
+            const activeColor = isPremium ? PREMIUM_GOLD.primary : PREMIUM.accent
+            const iconColor = active ? activeColor : colors.textMuted
             const IconFn = TAB_ICONS[tab.icon]
             return (
               <button
@@ -144,25 +152,37 @@ export default function Header({
                   fontSize: '13px',
                   fontWeight: active ? 600 : 500,
                   backgroundColor: active ? colors.bgCard : 'transparent',
-                  color: active ? PREMIUM.accent : colors.textSecondary,
+                  color: active ? activeColor : (isPremium ? PREMIUM_GOLD.primary : colors.textSecondary),
                   boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                   transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
                     e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'
-                    e.currentTarget.style.color = colors.textPrimary
+                    e.currentTarget.style.color = isPremium ? PREMIUM_GOLD.primary : colors.textPrimary
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!active) {
                     e.currentTarget.style.backgroundColor = 'transparent'
-                    e.currentTarget.style.color = colors.textSecondary
+                    e.currentTarget.style.color = isPremium ? PREMIUM_GOLD.primary : colors.textSecondary
                   }
                 }}
               >
                 {IconFn && IconFn(iconColor)}
                 {tab.label}
+                {isPremium && (
+                  <span style={{
+                    fontSize: '9px',
+                    fontWeight: 800,
+                    padding: '1px 5px',
+                    borderRadius: '4px',
+                    background: PREMIUM_GOLD.gradient,
+                    color: '#FFFFFF',
+                    letterSpacing: '0.5px',
+                    lineHeight: '14px',
+                  }}>PRO</span>
+                )}
               </button>
             )
           })}
@@ -225,12 +245,14 @@ export default function Header({
       <nav className="bottom-tab-bar">
         {TABS.map((tab) => {
           const active = isActive(tab.key)
-          const iconColor = active ? PREMIUM.accent : '#94A3B8'
+          const isPremium = tab.premium
+          const activeCol = isPremium ? PREMIUM_GOLD.primary : PREMIUM.accent
+          const iconColor = active ? activeCol : '#94A3B8'
           const IconFn = TAB_ICONS[tab.icon]
           return (
             <button
               key={tab.key}
-              className={`bottom-tab-item ${active ? 'active' : ''}`}
+              className={`bottom-tab-item ${active ? 'active' : ''} ${isPremium ? 'premium-tab' : ''}`}
               onClick={() => handleNav(tab.key)}
             >
               {IconFn && IconFn(iconColor)}

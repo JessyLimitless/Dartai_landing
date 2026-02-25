@@ -47,6 +47,20 @@ export const PREMIUM = {
   borderLight: '#E4E4E7',
 }
 
+export const PREMIUM_GOLD = {
+  primary: '#D4A017',
+  light: '#F5E6B8',
+  dark: '#A67C00',
+  gradient: 'linear-gradient(135deg, #D4A017 0%, #F5E6B8 50%, #D4A017 100%)',
+  glow: 'rgba(212, 160, 23, 0.3)',
+  glowLight: 'rgba(212, 160, 23, 0.1)',
+  glowDark: 'rgba(212, 160, 23, 0.12)',
+  bgLight: '#FAFAF5',
+  bgDark: '#0A0908',
+  badgeBgLight: 'rgba(212, 160, 23, 0.03)',
+  badgeBgDark: 'rgba(212, 160, 23, 0.04)',
+}
+
 export const COLORS = {
   bgPrimary: '#FAFAFA',
   bgCard: '#FFFFFF',

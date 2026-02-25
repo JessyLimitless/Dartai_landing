@@ -5,6 +5,7 @@ import TodayPage from './components/TodayPage'
 import DeepDivePage from './components/DeepDivePage'
 import DiscoveryPage from './components/DiscoveryPage'
 import MarketPage from './components/MarketPage'
+import PremiumPage from './components/PremiumPage'
 import PushSubscribeBanner from './components/PushSubscribeBanner'
 import ToastContainer from './components/ToastContainer'
 import NotificationDetailModal from './components/NotificationDetailModal'
@@ -80,6 +81,7 @@ export default function App() {
               <Route path="/deep-dive/:corpCode" element={<DeepDivePage onViewCard={navigateToCard} />} />
               <Route path="/discover" element={<DiscoveryPage onViewCard={navigateToCard} />} />
               <Route path="/market" element={<MarketPage onViewCard={navigateToCard} />} />
+              <Route path="/premium" element={<PremiumPage />} />
               {/* Legacy redirects */}
               <Route path="/dashboard" element={<Navigate to="/today" replace />} />
               <Route path="/filings" element={<Navigate to="/today" replace />} />

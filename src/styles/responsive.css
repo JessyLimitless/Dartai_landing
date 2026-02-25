@@ -522,6 +522,25 @@ html {
     position: static !important;
   }
 
+  /* Premium: 3-card grid → 1-col on mobile */
+  .prem-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Premium: stats wrap on narrow screens */
+  .prem-stats {
+    gap: 16px !important;
+  }
+
+  /* 5-tab bottom bar: smaller font */
+  .bottom-tab-item span {
+    font-size: 9px !important;
+  }
+
+  /* Premium tab gold active color */
+  .bottom-tab-item.premium-tab.active span {
+    color: #D4A017 !important;
+  }
 }
 
 /* ── Small Mobile (<480px) ── */
