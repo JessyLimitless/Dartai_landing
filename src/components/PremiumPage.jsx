@@ -11,7 +11,7 @@ const VALUE_CARDS = [
   {
     num: '02',
     title: 'AI 투자 상담',
-    desc: '7대 변수 분석, Edge-Finder 시그널, 밸류에이션까지 통합된 컨텍스트로 깊이 있는 대화를 나눕니다.',
+    desc: '버핏의 가치투자 원칙을 학습한 AI가 7대 변수 분석, Edge-Finder 시그널까지 통합하여 깊이 있는 대화를 나눕니다.',
   },
   {
     num: '03',
@@ -23,7 +23,7 @@ const VALUE_CARDS = [
 const CHAT_MESSAGES = [
   {
     role: 'assistant',
-    text: '안녕하세요. Grok Heavy AI 투자 상담입니다.\n종목명이나 투자 주제를 말씀해주세요.',
+    text: '안녕하세요. 저는 워런 버핏의 투자 철학을 학습한 AI 투자 상담사입니다.\n종목명이나 투자 주제를 말씀해주세요.',
   },
   {
     role: 'user',
@@ -47,7 +47,6 @@ export default function PremiumPage() {
   const [toast, setToast] = useState(null)
   const [visibleMsgs, setVisibleMsgs] = useState(0)
 
-  // Staggered chat message reveal
   useEffect(() => {
     if (visibleMsgs < CHAT_MESSAGES.length) {
       const timer = setTimeout(() => setVisibleMsgs((v) => v + 1), 600)
@@ -60,22 +59,21 @@ export default function PremiumPage() {
     setTimeout(() => setToast(null), 3000)
   }
 
-  // Colors
-  const bg = dark ? PREMIUM_GOLD.bgDark : PREMIUM_GOLD.bgLight
-  const textPrimary = dark ? '#F5F5F0' : '#1A1A18'
-  const textSecondary = dark ? '#A8A89A' : '#6B6B60'
-  const textMuted = dark ? '#6B6B60' : '#A8A89A'
-  const cardBg = dark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.7)'
-  const cardBorder = dark ? 'rgba(212,160,23,0.15)' : 'rgba(212,160,23,0.12)'
-  const chatBg = dark ? '#111110' : '#FFFFFF'
-  const chatBubbleAi = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'
-  const chatBubbleUser = dark ? 'rgba(212,160,23,0.15)' : 'rgba(212,160,23,0.08)'
-  const dividerColor = dark ? 'rgba(212,160,23,0.25)' : 'rgba(212,160,23,0.35)'
+  // Always dark — Grok-style
+  const textPrimary = '#F5F5F0'
+  const textSecondary = '#A8A89A'
+  const textMuted = '#6B6B60'
+  const cardBg = 'rgba(255,255,255,0.03)'
+  const cardBorder = 'rgba(212,160,23,0.15)'
+  const chatBg = '#111110'
+  const chatBubbleAi = 'rgba(255,255,255,0.05)'
+  const chatBubbleUser = 'rgba(212,160,23,0.15)'
+  const dividerColor = 'rgba(212,160,23,0.25)'
 
   return (
     <div style={{
       minHeight: 'calc(100vh - 60px)',
-      backgroundColor: bg,
+      backgroundColor: '#0A0908',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -100,21 +98,46 @@ export default function PremiumPage() {
           from { opacity: 0; transform: translateX(-50%) translateY(20px); }
           to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
+        @keyframes premAvatarGlow {
+          0%, 100% { box-shadow: 0 0 20px rgba(212,160,23,0.15), 0 0 60px rgba(212,160,23,0.05); }
+          50% { box-shadow: 0 0 30px rgba(212,160,23,0.25), 0 0 80px rgba(212,160,23,0.1); }
+        }
         .prem-card:hover {
           transform: translateY(-2px) !important;
           box-shadow: 0 8px 32px rgba(212,160,23,0.10) !important;
         }
       `}</style>
 
-      {/* ── Section 1: Hero ── */}
+      {/* ── Section 1: Hero with Buffett Avatar ── */}
       <section style={{
         width: '100%',
         maxWidth: '720px',
         textAlign: 'center',
-        paddingTop: '64px',
+        paddingTop: '56px',
         paddingBottom: '48px',
         animation: 'premFadeIn 0.6s ease-out both',
       }}>
+        {/* Buffett avatar */}
+        <div style={{
+          width: '96px',
+          height: '96px',
+          borderRadius: '50%',
+          margin: '0 auto 24px',
+          overflow: 'hidden',
+          border: '2px solid rgba(212,160,23,0.3)',
+          animation: 'premAvatarGlow 3s ease-in-out infinite',
+        }}>
+          <img
+            src="/bufit.png"
+            alt="AI Investment Advisor"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        </div>
+
         {/* Gold line divider */}
         <div style={{
           width: '48px',
@@ -160,7 +183,7 @@ export default function PremiumPage() {
           fontWeight: 500,
           fontFamily: FONTS.body,
         }}>
-          AI 투자 상담 · 리포트 자동 생성
+          버핏처럼 투자하는 AI · 리포트 자동 생성
         </p>
 
         {/* Description */}
@@ -172,8 +195,9 @@ export default function PremiumPage() {
           lineHeight: 1.7,
           fontFamily: FONTS.body,
         }}>
-          DART 공시 데이터와 키움증권 실시간 시세, 재무제표, 7대 변수 분석 등
-          고급 정보 API가 연결된 최고 성능 AI가 투자 상담 후 맞춤 리포트를 생성합니다.
+          워런 버핏의 가치투자 원칙을 학습한 AI가 DART 공시, 키움증권 실시간 시세,
+          재무제표, 7대 변수 분석 등 고급 데이터를 기반으로
+          투자 상담과 맞춤 리포트를 제공합니다.
         </p>
 
         {/* 3 Stats */}
@@ -283,7 +307,6 @@ export default function PremiumPage() {
         marginBottom: '56px',
         animation: 'premFadeIn 0.6s ease-out 0.4s both',
       }}>
-        {/* Section subtitle */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{
             fontSize: '12px',
@@ -311,27 +334,30 @@ export default function PremiumPage() {
           borderRadius: '16px',
           border: `1px solid ${cardBorder}`,
           overflow: 'hidden',
-          boxShadow: dark
-            ? '0 8px 40px rgba(0,0,0,0.3)'
-            : '0 8px 40px rgba(212,160,23,0.06)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
           background: chatBg,
         }}>
-          {/* Chat header */}
+          {/* Chat header with bufit avatar */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
             padding: '14px 20px',
-            borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-            background: dark ? 'rgba(212,160,23,0.04)' : 'rgba(212,160,23,0.02)',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            background: 'rgba(212,160,23,0.04)',
           }}>
-            <div style={{
-              width: '10px',
-              height: '10px',
-              borderRadius: '50%',
-              background: PREMIUM_GOLD.primary,
-              flexShrink: 0,
-            }} />
+            <img
+              src="/bufit.png"
+              alt=""
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '1.5px solid rgba(212,160,23,0.3)',
+                flexShrink: 0,
+              }}
+            />
             <span style={{
               fontSize: '14px',
               fontWeight: 700,
@@ -370,15 +396,31 @@ export default function PremiumPage() {
                   }}
                 >
                   {!isUser && (
-                    <span style={{
-                      fontSize: '11px',
-                      color: PREMIUM_GOLD.primary,
-                      fontWeight: 600,
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
                       marginBottom: '6px',
-                      fontFamily: FONTS.mono,
                     }}>
-                      AI
-                    </span>
+                      <img
+                        src="/bufit.png"
+                        alt=""
+                        style={{
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                      <span style={{
+                        fontSize: '11px',
+                        color: PREMIUM_GOLD.primary,
+                        fontWeight: 600,
+                        fontFamily: FONTS.mono,
+                      }}>
+                        AI
+                      </span>
+                    </div>
                   )}
                   <div style={{
                     maxWidth: '88%',
@@ -392,7 +434,7 @@ export default function PremiumPage() {
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-word',
                     border: isUser
-                      ? `1px solid ${dark ? 'rgba(212,160,23,0.2)' : 'rgba(212,160,23,0.12)'}`
+                      ? '1px solid rgba(212,160,23,0.2)'
                       : 'none',
                   }}>
                     {msg.text}
@@ -405,9 +447,7 @@ export default function PremiumPage() {
                           padding: '8px 18px',
                           borderRadius: '8px',
                           border: `1px solid ${PREMIUM_GOLD.primary}`,
-                          background: dark
-                            ? 'rgba(212,160,23,0.1)'
-                            : 'rgba(212,160,23,0.06)',
+                          background: 'rgba(212,160,23,0.1)',
                           color: PREMIUM_GOLD.primary,
                           fontSize: '12.5px',
                           fontWeight: 700,
@@ -417,14 +457,10 @@ export default function PremiumPage() {
                           letterSpacing: '0.02em',
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.background = dark
-                            ? 'rgba(212,160,23,0.18)'
-                            : 'rgba(212,160,23,0.12)'
+                          e.target.style.background = 'rgba(212,160,23,0.18)'
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.background = dark
-                            ? 'rgba(212,160,23,0.1)'
-                            : 'rgba(212,160,23,0.06)'
+                          e.target.style.background = 'rgba(212,160,23,0.1)'
                         }}
                       >
                         리포트 생성
@@ -439,16 +475,16 @@ export default function PremiumPage() {
           {/* Disabled input bar */}
           <div style={{
             padding: '12px 20px',
-            borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-            background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            background: 'rgba(255,255,255,0.02)',
           }}>
             <div
               onClick={() => showToast('서비스 준비 중입니다. 곧 만나보실 수 있습니다.')}
               style={{
                 padding: '11px 16px',
                 borderRadius: '10px',
-                border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
-                background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.03)',
                 color: textMuted,
                 fontSize: '13px',
                 fontFamily: FONTS.body,
@@ -468,7 +504,6 @@ export default function PremiumPage() {
         textAlign: 'center',
         animation: 'premFadeIn 0.6s ease-out 0.6s both',
       }}>
-        {/* Gold divider */}
         <div style={{
           width: '32px',
           height: '1px',
@@ -498,7 +533,6 @@ export default function PremiumPage() {
           곧 최고 수준의 AI 투자 상담을 경험하실 수 있습니다.
         </p>
 
-        {/* Disclaimer */}
         <p style={{
           margin: 0,
           fontSize: '11px',
@@ -522,11 +556,11 @@ export default function PremiumPage() {
           transform: 'translateX(-50%)',
           padding: '14px 28px',
           borderRadius: '14px',
-          backgroundColor: dark ? '#1A1A18' : '#FFFFFF',
+          backgroundColor: '#1A1A18',
           color: textPrimary,
           fontSize: '14px',
           fontWeight: 600,
-          boxShadow: `0 8px 32px rgba(0,0,0,0.15), 0 0 0 1px ${cardBorder}`,
+          boxShadow: `0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px ${cardBorder}`,
           zIndex: 9999,
           animation: 'premToastIn 0.3s ease-out',
           display: 'flex',
