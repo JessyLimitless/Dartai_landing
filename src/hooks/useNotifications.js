@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { API } from '../lib/api'
 
 const API_BASE = `${API}/api`
-const POLL_INTERVAL = 30000 // 30초
+const POLL_INTERVAL = 60000 // 60초
 
 export function useNotifications({ onNewNotifications } = {}) {
   const [notifications, setNotifications] = useState([])
