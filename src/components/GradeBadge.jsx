@@ -15,6 +15,7 @@ export default function GradeBadge({ grade, size = 'sm' }) {
 
   return (
     <span
+      className="badge-pop"
       style={{
         display: 'inline-block',
         padding: px,

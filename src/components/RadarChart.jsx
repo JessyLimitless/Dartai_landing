@@ -4,11 +4,12 @@ import {
   PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip,
 } from 'recharts'
 import { useTheme } from '../contexts/ThemeContext'
+import { tooltipStyle } from './ChartPrimitives'
 
 const LABELS = ['CCC', '레버리지', '희석리스크', '안전마진', '모멘텀']
 
 export default function RadarChart({ factors = [], size = 200 }) {
-  const { colors } = useTheme()
+  const { colors, dark } = useTheme()
   const scores = factors.length >= 5 ? factors : [5, 5, 5, 5, 5]
 
   const data = LABELS.map((label, i) => ({
@@ -34,15 +35,17 @@ export default function RadarChart({ factors = [], size = 200 }) {
           />
           <Tooltip
             formatter={(value) => [value.toFixed(1), '점수']}
-            contentStyle={{ backgroundColor: colors.bgCard, border: `1px solid ${colors.border}`, borderRadius: '6px', fontSize: '11px' }}
+            contentStyle={tooltipStyle(colors, dark)}
           />
           <Radar
             dataKey="value"
             stroke={colors.accent}
             fill={colors.accent}
-            fillOpacity={0.15}
-            strokeWidth={1.5}
+            fillOpacity={0.2}
+            strokeWidth={2}
             dot={{ r: 3, fill: colors.accent }}
+            animationDuration={800}
+            animationEasing="ease-out"
           />
         </RechartsRadarChart>
       </ResponsiveContainer>

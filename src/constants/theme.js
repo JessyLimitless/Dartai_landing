@@ -76,6 +76,15 @@ export const COLORS = {
   negative: '#2563EB',
 }
 
+export const SPACING = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 }
+export const RADIUS = { sm: 6, md: 10, lg: 14, xl: 20 }
+export const TIMING = { fast: '0.15s', base: '0.2s', slow: '0.3s', slower: '0.5s' }
+export const ELEVATION = {
+  sm: PREMIUM.shadowSm,
+  md: PREMIUM.shadowMd,
+  lg: PREMIUM.shadowLg,
+}
+
 export function formatKoreanNumber(value) {
   if (value == null || isNaN(value)) return '-'
   const abs = Math.abs(value)

@@ -1,8 +1,13 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { tooltipStyle, chartAxis } from './ChartPrimitives'
+import EmptyState from './EmptyState'
 import GradeBadge from './GradeBadge'
 import WeeklySummary from './WeeklySummary'
 import FeedSkeleton from './skeletons/FeedSkeleton'
 import { useDisclosures } from '../hooks/useDisclosures'
+import { useFavorites } from '../hooks/useFavorites'
+import { API } from '../lib/api'
 import { FONTS, GRADE_COLORS, MARKET_LABELS, PREMIUM } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
 
@@ -13,6 +18,7 @@ export default function TodayPage({ onViewCard }) {
     gradeFilter, setGradeFilter,
     search, setSearch,
   } = useDisclosures()
+  const { favorites, toggle: toggleFavorite, isFavorite } = useFavorites()
 
   /* ── S등급 하이라이트 (최대 3개) ── */
   const sHighlights = disclosures.filter(d => d.grade === 'S').slice(0, 3)
@@ -71,58 +77,42 @@ export default function TodayPage({ onViewCard }) {
             {loading ? (
               <div style={{ padding: '16px' }}><FeedSkeleton /></div>
             ) : disclosures.length === 0 ? (
-              <div style={{
-                padding: '80px 24px', textAlign: 'center',
-                borderRadius: '12px',
-                backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
-              }}>
-                {(gradeFilter || search) ? (
-                  <>
-                    <div style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 600, marginBottom: '6px' }}>
-                      조건에 맞는 공시가 없습니다
-                    </div>
-                    <div style={{ fontSize: '12px', color: colors.textMuted, marginBottom: '12px' }}>
-                      {gradeFilter && `등급 필터: ${gradeFilter}`}{gradeFilter && search && ' · '}{search && `검색: "${search}"`}
-                    </div>
-                    <button
-                      onClick={() => { setGradeFilter(null); setSearch('') }}
-                      style={{
-                        padding: '6px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer',
-                        fontSize: '12px', fontWeight: 600,
-                        backgroundColor: PREMIUM.accent, color: '#fff',
-                      }}
-                    >
-                      필터 초기화
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 600, marginBottom: '6px' }}>
-                      오늘 수집된 공시가 없습니다
-                    </div>
-                    <div style={{ fontSize: '12px', color: colors.textMuted }}>
-                      장 운영 시간(09:00~18:00)에 자동으로 수집됩니다
-                    </div>
-                  </>
-                )}
-              </div>
+              (gradeFilter || search) ? (
+                <EmptyState
+                  icon="search"
+                  title="조건에 맞는 공시가 없습니다"
+                  description={`${gradeFilter ? `등급 필터: ${gradeFilter}` : ''}${gradeFilter && search ? ' · ' : ''}${search ? `검색: "${search}"` : ''}`}
+                  action="필터 초기화"
+                  onAction={() => { setGradeFilter(null); setSearch('') }}
+                />
+              ) : (
+                <EmptyState
+                  icon="calendar"
+                  title="오늘 수집된 공시가 없습니다"
+                  description="장 운영 시간(09:00~18:00)에 자동으로 수집됩니다"
+                />
+              )
             ) : (
               grouped.map((item, i) =>
                 item.type === 'divider' ? (
                   <TimeDivider key={`div-${item.label}`} label={item.label} colors={colors} dark={dark} />
                 ) : (
-                  <FeedRow key={item.data.rcept_no} d={item.data} delay={i * 20} onViewCard={onViewCard} colors={colors} dark={dark} />
+                  <FeedRow key={item.data.rcept_no} d={item.data} delay={i * 20} onViewCard={onViewCard} colors={colors} dark={dark} isFav={isFavorite(item.data.corp_code)} onToggleFav={() => toggleFavorite(item.data)} />
                 )
               )
             )}
           </div>
         </div>
 
-        {/* ── Right: Highlight + Weekly (sticky) ── */}
+        {/* ── Right: Highlight + Pinned + Weekly (sticky) ── */}
         <div className="today-weekly-col">
           {sHighlights.length > 0 && (
             <HighlightCard highlights={sHighlights} onViewCard={onViewCard} colors={colors} dark={dark} />
           )}
+          {favorites.length > 0 && (
+            <PinnedWidget favorites={favorites} onViewCard={onViewCard} colors={colors} dark={dark} />
+          )}
+          <TrendMiniChart colors={colors} dark={dark} />
           <WeeklySummary onViewCard={onViewCard} />
         </div>
       </div>
@@ -411,21 +401,151 @@ function HighlightItem({ d, isLast, onViewCard, colors, dark }) {
   )
 }
 
+/* ── TrendMiniChart: 14일 공시 트렌드 ── */
+function TrendMiniChart({ colors, dark }) {
+  const [data, setData] = useState([])
+
+  useEffect(() => {
+    fetch(`${API}/api/stats/trend?days=14`)
+      .then((r) => r.ok ? r.json() : { trend: [] })
+      .then((d) => setData((d.trend || []).map((t) => ({
+        ...t,
+        label: t.date ? t.date.slice(5) : '',
+      }))))
+      .catch(() => {})
+  }, [])
+
+  if (data.length === 0) return null
+
+  return (
+    <div style={{
+      backgroundColor: colors.bgCard,
+      border: `1px solid ${colors.border}`,
+      borderRadius: '12px',
+      overflow: 'hidden',
+      marginBottom: '16px',
+      padding: '14px 16px',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px',
+      }}>
+        <span style={{
+          width: '3px', height: '12px', borderRadius: '1.5px',
+          backgroundColor: PREMIUM.accent, display: 'inline-block',
+        }} />
+        <span style={{
+          fontSize: '12px', fontWeight: 700, color: colors.textSecondary,
+          fontFamily: FONTS.serif, letterSpacing: '0.02em',
+        }}>
+          14-Day Trend
+        </span>
+      </div>
+      <ResponsiveContainer width="100%" height={120}>
+        <BarChart data={data} barCategoryGap="20%">
+          <XAxis
+            dataKey="label" tick={{ fontSize: 9, fill: colors.textMuted }}
+            axisLine={false} tickLine={false}
+          />
+          <YAxis hide />
+          <Tooltip
+            contentStyle={tooltipStyle(colors, dark)}
+            formatter={(val, name) => [val, name]}
+          />
+          <Bar dataKey="S" stackId="a" fill={GRADE_COLORS.S.bg} radius={[0, 0, 0, 0]} animationDuration={600} animationEasing="ease-out" />
+          <Bar dataKey="A" stackId="a" fill={GRADE_COLORS.A.bg} radius={[0, 0, 0, 0]} animationDuration={600} animationEasing="ease-out" />
+          <Bar dataKey="D" stackId="a" fill={GRADE_COLORS.D.bg} radius={[0, 0, 0, 0]} animationDuration={600} animationEasing="ease-out" />
+          <Bar dataKey="C" stackId="a" fill="#94A3B8" radius={[3, 3, 0, 0]} animationDuration={600} animationEasing="ease-out" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+/* ── PinnedWidget: 즐겨찾기 위젯 ── */
+function PinnedWidget({ favorites, onViewCard, colors, dark }) {
+  return (
+    <div style={{
+      backgroundColor: colors.bgCard,
+      border: `1px solid ${colors.border}`,
+      borderRadius: '12px',
+      overflow: 'hidden',
+      marginBottom: '16px',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        padding: '12px 16px',
+        backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#FFFBEB',
+        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#FDE68A'}`,
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" strokeWidth="1.5">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+        <span style={{
+          fontSize: '12px', fontWeight: 700, color: dark ? '#FCD34D' : '#92400E',
+          fontFamily: FONTS.serif,
+        }}>
+          Pinned
+        </span>
+        <span style={{
+          fontSize: '10px', fontWeight: 600, fontFamily: FONTS.mono,
+          color: dark ? 'rgba(255,255,255,0.4)' : '#D97706', marginLeft: 'auto',
+        }}>
+          {favorites.length}
+        </span>
+      </div>
+      <div style={{ padding: '4px 0' }}>
+        {favorites.slice(0, 10).map((f, i) => (
+          <div
+            key={f.corp_code}
+            onClick={() => onViewCard(f.corp_code)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '8px 16px', cursor: 'pointer',
+              borderBottom: i < Math.min(favorites.length, 10) - 1
+                ? `1px solid ${dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5'}` : 'none',
+              transition: 'background-color 0.15s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.04)' : '#FFFBEB' }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+          >
+            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textPrimary }}>
+              {f.corp_name || f.corp_code}
+            </span>
+            {f.stock_code && (
+              <span style={{ fontSize: '10px', color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 'auto' }}>
+                {f.stock_code}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /* ── FeedRow: 공시 피드 행 ── */
-function FeedRow({ d, delay, onViewCard, colors, dark }) {
+function FeedRow({ d, delay, onViewCard, colors, dark, isFav, onToggleFav }) {
   const [hovered, setHovered] = React.useState(false)
+  const [starAnim, setStarAnim] = React.useState(false)
   const market = MARKET_LABELS[d.corp_cls] || ''
   const time = d.created_at ? d.created_at.substring(11, 16) : ''
+
+  const handleStarClick = (e) => {
+    e.stopPropagation()
+    setStarAnim(true)
+    onToggleFav()
+    setTimeout(() => setStarAnim(false), 250)
+  }
 
   return (
     <div
       onClick={() => onViewCard(d.corp_code)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="animate-fade-in"
+      className="animate-fade-in card-lift"
       style={{
         display: 'flex', gap: '10px', padding: '11px 16px',
-        cursor: 'pointer', transition: 'background-color 0.15s ease',
+        cursor: 'pointer', transition: 'background-color 0.15s ease, transform 0.2s ease, box-shadow 0.2s ease',
         backgroundColor: hovered ? (dark ? 'rgba(255,255,255,0.04)' : '#F8F8FC') : 'transparent',
         borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5'}`,
         animationDelay: `${delay}ms`, animationFillMode: 'both',
@@ -478,6 +598,26 @@ function FeedRow({ d, delay, onViewCard, colors, dark }) {
           </span>
         )}
       </div>
+
+      {/* Favorite star */}
+      <button
+        onClick={handleStarClick}
+        className={starAnim ? 'star-pop' : ''}
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          padding: '4px', flexShrink: 0, lineHeight: 1,
+          color: isFav ? '#F59E0B' : colors.textMuted,
+          opacity: isFav ? 1 : 0.3,
+          transition: 'all 0.15s',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1' }}
+        onMouseLeave={(e) => { e.currentTarget.style.opacity = isFav ? '1' : '0.3' }}
+        title={isFav ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill={isFav ? '#F59E0B' : 'none'} stroke={isFav ? '#F59E0B' : 'currentColor'} strokeWidth="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      </button>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { useVariableScores } from '../hooks/useVariableScores'
 import VariableSkeleton from './skeletons/VariableSkeleton'
+import EmptyState from './EmptyState'
 import { useTheme } from '../contexts/ThemeContext'
 import { VARIABLE_GRADE_COLORS, FONTS, PREMIUM } from '../constants/theme'
 
@@ -136,18 +137,11 @@ export default function VariableDashboard({ onViewCard }) {
 
           {/* Empty */}
           {scores.length === 0 && (
-            <div style={{
-              padding: '80px 20px', textAlign: 'center',
-              borderRadius: '16px', backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
-              border: `1px dashed ${colors.border}`,
-            }}>
-              <div style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '6px' }}>
-                {search ? `"${search}"에 대한 결과 없음` : '데이터가 없습니다'}
-              </div>
-              <div style={{ fontSize: '12px', color: colors.textMuted }}>
-                배치 처리 후 데이터가 표시됩니다
-              </div>
-            </div>
+            <EmptyState
+              icon={search ? 'search' : 'chart'}
+              title={search ? `"${search}"에 대한 결과 없음` : '데이터가 없습니다'}
+              description="배치 처리 후 데이터가 표시됩니다"
+            />
           )}
 
           {/* Score Table */}
@@ -237,7 +231,7 @@ function ScoreRow({ score, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="var-score-row"
+      className="var-score-row card-lift"
       style={{
         display: 'grid',
         gridTemplateColumns: '44px 1fr 60px minmax(180px, 260px) 1fr',
@@ -245,7 +239,7 @@ function ScoreRow({ score, onClick }) {
         alignItems: 'center',
         borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.05)' : '#F4F4F5'}`,
         cursor: 'pointer',
-        transition: 'background-color 0.15s',
+        transition: 'background-color 0.15s, transform 0.2s ease, box-shadow 0.2s ease',
       }}
       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA'}
       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}

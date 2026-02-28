@@ -9,6 +9,8 @@ import {
 import GradeBadge from './GradeBadge'
 import RadarChart from './RadarChart'
 import CompanyCardSkeleton from './skeletons/CompanyCardSkeleton'
+import { tooltipStyle, chartGrid, chartAxis } from './ChartPrimitives'
+import EmptyState from './EmptyState'
 import { useCompanyCard } from '../hooks/useCompanyCard'
 import { useCompanyCards } from '../hooks/useCompanyCards'
 import { useVariableDetail } from '../hooks/useVariableScores'
@@ -20,12 +22,20 @@ import {
   FONTS, formatKoreanNumber, formatPercent,
 } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
+import { API } from '../lib/api'
 
 // YYYYMMDD → MM.DD 변환
 const fmtDate = (dt) => {
   if (!dt || dt.length < 8) return dt || ''
   return `${dt.slice(4, 6)}.${dt.slice(6, 8)}`
 }
+
+const CARD_TABS = [
+  { key: 'summary', label: '요약' },
+  { key: 'financials', label: '재무' },
+  { key: 'market', label: '시장' },
+  { key: 'filings', label: '공시' },
+]
 
 export default function CompanyCard({ corpCode, onBack, onViewCard }) {
   const { colors, dark } = useTheme()
@@ -35,6 +45,7 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
   const stockCode = card?.card_data?.header?.stock_code || ''
   const { instTrend, foreignTrend, loading: supplyLoading } = useSupplyDemand(stockCode)
   const navigate = useNavigate()
+  const [mobileTab, setMobileTab] = React.useState('summary')
 
   if (!corpCode) {
     return <CardListView onSelectCard={onViewCard} />
@@ -46,11 +57,14 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
 
   if (error || !card) {
     return (
-      <div style={{ padding: '60px 24px', textAlign: 'center', color: colors.textSecondary }}>
-        <div style={{ fontSize: '14px', marginBottom: '12px', fontWeight: 600 }}>
-          {error || '기업 카드를 찾을 수 없습니다'}
-        </div>
-        <button onClick={onBack} style={getLinkBtnStyle(colors)}>공시 피드로 돌아가기</button>
+      <div style={{ padding: '40px 24px' }}>
+        <EmptyState
+          icon="chart"
+          title={error || '기업 카드를 찾을 수 없습니다'}
+          description="데이터가 아직 생성되지 않았거나 오류가 발생했습니다"
+          action="목록으로 돌아가기"
+          onAction={onBack}
+        />
       </div>
     )
   }
@@ -68,17 +82,20 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
   }
 
   return (
-    <div className="page-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px' }}>
-      {/* 뒤로가기 */}
-      <button onClick={handleBack} style={{
-        ...getLinkBtnStyle(colors), marginBottom: '14px', fontSize: '12px',
-        display: 'flex', alignItems: 'center', gap: '4px',
-      }}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-        목록으로
-      </button>
+    <div className="page-container content-fade-in" style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px' }}>
+      {/* 뒤로가기 + 비교 버튼 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+        <button onClick={handleBack} style={{
+          ...getLinkBtnStyle(colors), fontSize: '12px',
+          display: 'flex', alignItems: 'center', gap: '4px',
+        }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          목록으로
+        </button>
+        {corpCode && <CompareButton corpCode={corpCode} colors={colors} dark={dark} />}
+      </div>
 
       {/* 코스닥 종목 안내 */}
       {header.corp_cls && header.corp_cls !== 'Y' && (
@@ -97,65 +114,185 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
         </div>
       )}
 
+      {/* Mobile tab bar */}
+      <div className="card-mobile-tabs">
+        {CARD_TABS.map((t) => (
+          <button
+            key={t.key}
+            className={mobileTab === t.key ? 'active' : ''}
+            onClick={() => setMobileTab(t.key)}
+            style={{
+              flex: 1, padding: '8px 0', border: 'none', cursor: 'pointer',
+              fontSize: '12px', fontWeight: mobileTab === t.key ? 700 : 500,
+              backgroundColor: 'transparent',
+              color: mobileTab === t.key ? PREMIUM.accent : colors.textMuted,
+              borderBottom: mobileTab === t.key ? `2px solid ${PREMIUM.accent}` : '2px solid transparent',
+              transition: 'all 0.15s',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* 1. 헤더 */}
+        {/* 1. 헤더 — always visible */}
         <CompanyHeader header={header} market={market} />
 
-        {/* 1.5 기업 개황 */}
-        {overview && Object.values(overview).some(v => v) && (
-          <Section title="기업 개황">
-            <CompanyOverview overview={overview} header={header} />
-          </Section>
-        )}
-
-        {/* 2. 밸류에이션 분석 */}
-        <Section title="밸류에이션 분석">
-          <ValuationSection cardData={cardData} />
-        </Section>
-
-        {/* 3. 재무 현황 */}
-        <Section title="재무 현황">
-          <FinancialChart financials={financials} sector={header.sector} />
-        </Section>
-
-        {/* 4. 주가 / 주주 */}
-        <div className="company-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          <Section title="60일 주가 추이">
-            <PriceChart candles={candles} />
-          </Section>
-          <Section title="주요주주 현황">
-            <ShareholderChart shareholders={shareholders} />
+        {/* Tab: 요약 */}
+        <div className={`card-tab-section card-tab-summary ${mobileTab === 'summary' ? 'card-tab-active' : ''}`}>
+          {overview && Object.values(overview).some(v => v) && (
+            <Section title="기업 개황">
+              <CompanyOverview overview={overview} header={header} />
+            </Section>
+          )}
+          <Section title="밸류에이션 분석">
+            <ValuationSection cardData={cardData} />
           </Section>
         </div>
 
-        {/* 5. 기관/외국인 수급 */}
-        {(foreignTrend.length > 0 || instTrend.length > 0) && (
-          <Section title="기관/외국인 수급 현황">
-            <SupplyDemandSection foreignTrend={foreignTrend} instTrend={instTrend} market={market} loading={supplyLoading} />
+        {/* Tab: 재무 */}
+        <div className={`card-tab-section card-tab-financials ${mobileTab === 'financials' ? 'card-tab-active' : ''}`}>
+          <Section title="재무 현황">
+            <FinancialChart financials={financials} sector={header.sector} />
           </Section>
-        )}
+          <div className="company-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <Section title="60일 주가 추이">
+              <PriceChart candles={candles} />
+            </Section>
+            <Section title="주요주주 현황">
+              <ShareholderChart shareholders={shareholders} />
+            </Section>
+          </div>
+        </div>
 
-        {/* 7. 5대 변수 분석 */}
-        {variableScore && (
-          <Section title="5대 변수 분석">
-            <VariableSection score={variableScore} />
-          </Section>
-        )}
+        {/* Tab: 시장 */}
+        <div className={`card-tab-section card-tab-market ${mobileTab === 'market' ? 'card-tab-active' : ''}`}>
+          {(foreignTrend.length > 0 || instTrend.length > 0) && (
+            <Section title="기관/외국인 수급 현황">
+              <SupplyDemandSection foreignTrend={foreignTrend} instTrend={instTrend} market={market} loading={supplyLoading} />
+            </Section>
+          )}
+          {variableScore && (
+            <Section title="5대 변수 분석">
+              <VariableSection score={variableScore} />
+            </Section>
+          )}
+        </div>
 
-        {/* 9. 트리거 공시 */}
-        {timeline.trigger && timeline.trigger.report_nm && (
-          <Section title="트리거 공시">
-            <TriggerInfo trigger={timeline.trigger} />
-          </Section>
-        )}
-
-        {/* 10. 최근 공시 이력 */}
-        {timeline.history && timeline.history.length > 0 && (
-          <Section title="최근 공시 이력">
-            <DisclosureHistory history={timeline.history} colors={colors} dark={dark} />
-          </Section>
-        )}
+        {/* Tab: 공시 */}
+        <div className={`card-tab-section card-tab-filings ${mobileTab === 'filings' ? 'card-tab-active' : ''}`}>
+          {timeline.trigger && timeline.trigger.report_nm && (
+            <Section title="트리거 공시">
+              <TriggerInfo trigger={timeline.trigger} />
+            </Section>
+          )}
+          {timeline.history && timeline.history.length > 0 && (
+            <Section title="최근 공시 이력">
+              <DisclosureHistory history={timeline.history} colors={colors} dark={dark} />
+            </Section>
+          )}
+        </div>
       </div>
+    </div>
+  )
+}
+
+
+// ── 비교 버튼 ─────────────────────────────────────────────────────
+
+function CompareButton({ corpCode, colors, dark }) {
+  const navigate = useNavigate()
+  const [open, setOpen] = React.useState(false)
+  const [query, setQuery] = React.useState('')
+  const [results, setResults] = React.useState([])
+
+  React.useEffect(() => {
+    if (!query || query.length < 2) { setResults([]); return }
+    const timer = setTimeout(() => {
+      fetch(`${API}/api/companies/search?q=${encodeURIComponent(query)}&limit=5`)
+        .then((r) => r.ok ? r.json() : { results: [] })
+        .then((d) => setResults(d.results || d.stocks || []))
+        .catch(() => setResults([]))
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  const selectCompare = (cc) => {
+    setOpen(false)
+    setQuery('')
+    navigate(`/deep-dive/${corpCode}?compare=${cc}`)
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '5px',
+          padding: '5px 12px', borderRadius: '6px',
+          border: `1px solid ${colors.border}`,
+          background: 'transparent', cursor: 'pointer',
+          fontSize: '11px', fontWeight: 600, color: colors.textSecondary,
+          transition: 'all 0.15s',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = PREMIUM.accent; e.currentTarget.style.color = PREMIUM.accent }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.color = colors.textSecondary }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <rect x="2" y="3" width="8" height="18" rx="1" />
+          <rect x="14" y="3" width="8" height="18" rx="1" />
+        </svg>
+        비교
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', right: 0, marginTop: '6px',
+          width: '260px', backgroundColor: colors.bgCard,
+          border: `1px solid ${colors.border}`,
+          borderRadius: '10px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          zIndex: 200, padding: '8px',
+        }}>
+          <input
+            autoFocus
+            placeholder="기업명 검색..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{
+              width: '100%', padding: '8px 10px', fontSize: '12px',
+              border: `1px solid ${colors.border}`, borderRadius: '6px',
+              backgroundColor: dark ? 'rgba(255,255,255,0.04)' : '#FAFAFA',
+              color: colors.textPrimary, outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+          {results.length > 0 && (
+            <div style={{ marginTop: '4px' }}>
+              {results.map((r) => (
+                <div
+                  key={r.corp_code}
+                  onClick={() => selectCompare(r.corp_code)}
+                  style={{
+                    padding: '7px 10px', cursor: 'pointer', borderRadius: '6px',
+                    fontSize: '12px', color: colors.textPrimary,
+                    transition: 'background-color 0.1s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.06)' : '#F4F4F5' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+                >
+                  <span style={{ fontWeight: 600 }}>{r.corp_name}</span>
+                  {r.stock_code && (
+                    <span style={{ marginLeft: '8px', color: colors.textMuted, fontFamily: FONTS.mono, fontSize: '10px' }}>
+                      {r.stock_code}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -528,7 +665,7 @@ function FinancialChart({ financials, sector }) {
         <div style={{ width: '100%', height: 220 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} barCategoryGap="20%" barGap={3}>
-              <CartesianGrid strokeDasharray="3 3" stroke={dark ? 'rgba(255,255,255,0.06)' : '#F0F0F0'} vertical={false} />
+              <CartesianGrid {...chartGrid(dark)} />
               <XAxis
                 dataKey="year"
                 tick={{ fontSize: 11, fill: colors.textMuted, fontWeight: 600 }}
@@ -548,11 +685,7 @@ function FinancialChart({ financials, sector }) {
               />
               <Tooltip
                 formatter={(value, name) => [formatKoreanNumber(value), name]}
-                contentStyle={{
-                  backgroundColor: colors.bgCard,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: '8px', fontSize: '12px',
-                }}
+                contentStyle={tooltipStyle(colors, dark)}
               />
               {plMetrics.map(m => (
                 <Bar
@@ -562,6 +695,8 @@ function FinancialChart({ financials, sector }) {
                   shape={(props) => <EstimateBar {...props} fill={m.color} />}
                   radius={[3, 3, 0, 0]}
                   label={<BarLabel />}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 />
               ))}
             </BarChart>
@@ -714,20 +849,19 @@ function PriceChart({ candles }) {
             <YAxis domain={['dataMin', 'dataMax']} hide />
             <Tooltip
               formatter={(value) => [`${Number(value).toLocaleString()}원`, '종가']}
-              contentStyle={{
-                backgroundColor: colors.bgCard, border: `1px solid ${colors.border}`,
-                borderRadius: '8px', fontSize: '12px',
-              }}
+              contentStyle={tooltipStyle(colors, dark)}
               labelStyle={{ color: colors.textPrimary, fontWeight: 600, fontSize: '11px' }}
             />
             <Area
               type="monotone"
               dataKey="price"
               stroke={trendColor}
-              strokeWidth={2}
+              strokeWidth={2.5}
               fill={`url(#${gradientId})`}
               dot={false}
-              activeDot={{ r: 4, fill: trendColor }}
+              activeDot={{ r: 5, fill: trendColor }}
+              animationDuration={1000}
+              animationEasing="ease-out"
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -768,8 +902,11 @@ function ShareholderChart({ shareholders }) {
             <Pie
               data={pieData}
               cx="50%" cy="50%"
-              innerRadius={28} outerRadius={52}
+              innerRadius={30} outerRadius={56}
               dataKey="value" strokeWidth={0}
+              animationDuration={800}
+              animationBegin={200}
+              animationEasing="ease-out"
             >
               {pieData.map((entry, i) => (
                 <Cell key={i} fill={entry.color} />
@@ -777,10 +914,7 @@ function ShareholderChart({ shareholders }) {
             </Pie>
             <Tooltip
               formatter={(value, name) => [`${Number(value).toFixed(1)}%`, name]}
-              contentStyle={{
-                backgroundColor: colors.bgCard, border: `1px solid ${colors.border}`,
-                borderRadius: '8px', fontSize: '11px',
-              }}
+              contentStyle={tooltipStyle(colors, dark)}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -902,15 +1036,15 @@ function SupplyDemandSection({ foreignTrend, instTrend, market, loading }) {
           <div className="chart-supply" style={{ width: '100%', height: 150 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} barCategoryGap="20%">
-                <CartesianGrid strokeDasharray="3 3" stroke={dark ? 'rgba(255,255,255,0.06)' : '#F0F0F0'} vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: colors.textMuted }} axisLine={{ stroke: colors.border }} tickLine={false} />
-                <YAxis tickFormatter={formatKoreanNumber} tick={{ fontSize: 10, fill: colors.textMuted }} axisLine={false} tickLine={false} width={65} />
+                <CartesianGrid {...chartGrid(dark)} />
+                <XAxis dataKey="date" {...chartAxis(colors)} axisLine={{ stroke: colors.border }} />
+                <YAxis tickFormatter={formatKoreanNumber} {...chartAxis(colors)} width={65} />
                 <Tooltip
                   formatter={(value) => [formatKoreanNumber(value), '순매수']}
-                  contentStyle={{ backgroundColor: colors.bgCard, border: `1px solid ${colors.border}`, borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={tooltipStyle(colors, dark)}
                   labelStyle={{ color: colors.textPrimary, fontWeight: 600 }}
                 />
-                <Bar dataKey="net" radius={[3, 3, 0, 0]}>
+                <Bar dataKey="net" radius={[4, 4, 0, 0]} animationDuration={600} animationEasing="ease-out">
                   {chartData.map((entry, i) => (
                     <Cell key={i} fill={entry.net >= 0 ? '#16A34A' : '#2563EB'} />
                   ))}
@@ -933,19 +1067,27 @@ function SupplyDemandSection({ foreignTrend, instTrend, market, loading }) {
           <div className="chart-inst" style={{ width: '100%', height: 120 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={instChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={dark ? 'rgba(255,255,255,0.06)' : '#F0F0F0'} vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: colors.textMuted }} axisLine={{ stroke: colors.border }} tickLine={false} />
-                <YAxis tickFormatter={formatKoreanNumber} tick={{ fontSize: 10, fill: colors.textMuted }} axisLine={false} tickLine={false} width={65} />
+                <defs>
+                  <linearGradient id="instGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#6366F1" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid {...chartGrid(dark)} />
+                <XAxis dataKey="date" {...chartAxis(colors)} axisLine={{ stroke: colors.border }} />
+                <YAxis tickFormatter={formatKoreanNumber} {...chartAxis(colors)} width={65} />
                 <Tooltip
                   formatter={(value) => [formatKoreanNumber(value), '누적 순매수']}
-                  contentStyle={{ backgroundColor: colors.bgCard, border: `1px solid ${colors.border}`, borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={tooltipStyle(colors, dark)}
                   labelStyle={{ color: colors.textPrimary, fontWeight: 600 }}
                 />
                 <Area
                   type="monotone" dataKey="cumul"
                   stroke="#6366F1" strokeWidth={2}
-                  fill="#6366F140" dot={false}
-                  activeDot={{ r: 3, fill: '#6366F1' }}
+                  fill="url(#instGradient)" dot={false}
+                  activeDot={{ r: 4, fill: '#6366F1' }}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>

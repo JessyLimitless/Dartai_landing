@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import Header from './components/Header'
 import TodayPage from './components/TodayPage'
 import CompanyCard from './components/CompanyCard'
@@ -24,6 +24,26 @@ function FilingsCorpRedirect() {
 
 function DeepDiveWrapper({ onViewCard }) {
   const { corpCode } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const compareCode = searchParams.get('compare')
+
+  const removeCompare = useCallback(() => {
+    setSearchParams({})
+  }, [setSearchParams])
+
+  if (compareCode) {
+    return (
+      <div style={{ display: 'flex', gap: '16px', padding: '0 16px', maxWidth: '2200px', margin: '0 auto' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <CompanyCard corpCode={corpCode} onBack={() => window.history.back()} onViewCard={onViewCard} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <CompanyCard corpCode={compareCode} onBack={removeCompare} onViewCard={onViewCard} />
+        </div>
+      </div>
+    )
+  }
+
   return <CompanyCard corpCode={corpCode} onBack={() => window.history.back()} onViewCard={onViewCard} />
 }
 

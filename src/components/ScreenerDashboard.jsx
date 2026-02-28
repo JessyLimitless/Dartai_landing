@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useScreener } from '../hooks/useScreener'
 import Skeleton from './Skeleton'
+import EmptyState from './EmptyState'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM, formatKoreanNumber } from '../constants/theme'
 
@@ -229,18 +230,13 @@ export default function ScreenerDashboard({ onViewCard }) {
 
           {/* Empty State */}
           {results.length === 0 && !loading ? (
-            <div style={{
-              padding: '80px 20px', textAlign: 'center',
-              borderRadius: '16px', backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
-              border: `1px dashed ${colors.border}`,
-            }}>
-              <div style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '6px' }}>
-                {summary.total > 0 ? '현재 필터에 해당하는 종목이 없습니다' : '스크리닝 데이터가 없습니다'}
-              </div>
-              <div style={{ fontSize: '12px', color: colors.textMuted }}>
-                {summary.total > 0 ? '필터 조건을 조정해보세요' : '기업 카드 생성 후 데이터가 표시됩니다'}
-              </div>
-            </div>
+            <EmptyState
+              icon={summary.total > 0 ? 'search' : 'chart'}
+              title={summary.total > 0 ? '현재 필터에 해당하는 종목이 없습니다' : '스크리닝 데이터가 없습니다'}
+              description={summary.total > 0 ? '필터 조건을 조정해보세요' : '기업 카드 생성 후 데이터가 표시됩니다'}
+              action={summary.total > 0 ? 'Reset' : undefined}
+              onAction={summary.total > 0 ? clearFilters : undefined}
+            />
           ) : (
             /* Main Table */
             <div style={{
