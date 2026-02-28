@@ -97,19 +97,48 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
         {corpCode && <CompareButton corpCode={corpCode} colors={colors} dark={dark} />}
       </div>
 
-      {/* 코스닥 종목 안내 */}
+      {/* 코스닥 종목: 준비중 팝업 오버레이 */}
       {header.corp_cls && header.corp_cls !== 'Y' && (
         <div style={{
-          padding: '14px 18px', borderRadius: '12px', marginBottom: '14px',
-          backgroundColor: dark ? 'rgba(251,191,36,0.08)' : '#FFFBEB',
-          border: `1px solid ${dark ? 'rgba(251,191,36,0.2)' : '#FDE68A'}`,
-          display: 'flex', alignItems: 'center', gap: '10px',
-          fontSize: '13px', color: dark ? '#FCD34D' : '#92400E',
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: dark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '24px',
         }}>
-          <span style={{ fontSize: '14px', flexShrink: 0 }}>{'⚠'}</span>
-          <div>
-            <div style={{ fontWeight: 600, marginBottom: '2px' }}>코스닥 종목은 현재 지원하지 않습니다</div>
-            <div style={{ fontSize: '11px', opacity: 0.8 }}>코스피 종목만 조회 가능합니다. 코스닥은 추후 업데이트 예정입니다.</div>
+          <div style={{
+            backgroundColor: colors.bgCard,
+            borderRadius: '16px', padding: '32px 28px', textAlign: 'center',
+            maxWidth: '360px', width: '100%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+            border: `1px solid ${colors.border}`,
+          }}>
+            <div style={{
+              width: '56px', height: '56px', borderRadius: '50%', margin: '0 auto 16px',
+              backgroundColor: dark ? 'rgba(251,191,36,0.12)' : '#FEF3C7',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={dark ? '#FCD34D' : '#D97706'} strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" />
+              </svg>
+            </div>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif, marginBottom: '8px' }}>
+              준비중입니다
+            </div>
+            <div style={{ fontSize: '13px', color: colors.textSecondary, lineHeight: '1.6', marginBottom: '24px' }}>
+              코스닥 종목은 현재 지원하지 않습니다.<br />코스피 종목만 조회 가능하며, 코스닥은 추후 업데이트 예정입니다.
+            </div>
+            <button
+              onClick={handleBack}
+              style={{
+                padding: '10px 32px', borderRadius: '10px', border: 'none',
+                backgroundColor: PREMIUM.accent, color: '#fff', fontSize: '13px',
+                fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.15s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+            >
+              목록으로 돌아가기
+            </button>
           </div>
         </div>
       )}
