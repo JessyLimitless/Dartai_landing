@@ -5,11 +5,11 @@ import {
 } from 'recharts'
 import { useTheme } from '../contexts/ThemeContext'
 
-const LABELS = ['CCC', '레버리지', '희석리스크', '생산성', '가격결정력', '안전마진', '모멘텀']
+const LABELS = ['CCC', '레버리지', '희석리스크', '안전마진', '모멘텀']
 
 export default function RadarChart({ factors = [], size = 200 }) {
   const { colors } = useTheme()
-  const scores = factors.length >= 7 ? factors : [5, 5, 5, 5, 5, 5, 5]
+  const scores = factors.length >= 5 ? factors : [5, 5, 5, 5, 5]
 
   const data = LABELS.map((label, i) => ({
     subject: label,

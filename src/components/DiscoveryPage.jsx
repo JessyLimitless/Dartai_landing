@@ -7,7 +7,7 @@ import { PREMIUM } from '../constants/theme'
 
 const TABS = [
   { key: 'screener', label: 'Screener' },
-  { key: '7factor', label: '7-Factor' },
+  { key: '5factor', label: '5-Factor' },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)
@@ -74,7 +74,7 @@ export default function DiscoveryPage({ onViewCard }) {
 
       {/* Content */}
       {activeTab === 'screener' && <ScreenerDashboard onViewCard={onViewCard} />}
-      {activeTab === '7factor' && <VariableDashboard onViewCard={onViewCard} />}
+      {activeTab === '5factor' && <VariableDashboard onViewCard={onViewCard} />}
     </div>
   )
 }

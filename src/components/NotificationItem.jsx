@@ -14,9 +14,9 @@ function timeAgo(dateStr) {
 }
 
 export default function NotificationItem({ notification, onRead, onSelect }) {
-  const { id, grade, corp_name, report_nm, ai_summary, gemini_comment, is_read, created_at, parsed_data } = notification
+  const { id, grade, corp_name, report_nm, is_read, created_at, parsed_data } = notification
 
-  const summary = gemini_comment || ai_summary || ''
+  const summary = notification.message || ''
   const preview = summary.length > 80 ? summary.slice(0, 80) + '...' : summary
 
   // 주가 추적 알림

@@ -9,21 +9,27 @@ const SORT_COLUMNS = [
   { key: 'per', label: 'PER' },
   { key: 'pbr', label: 'PBR' },
   { key: 'roe', label: 'ROE' },
-  { key: 'op_margin', label: 'OP Margin', hideOnMobile: true },
-  { key: 'debt_ratio', label: 'Debt Ratio', hideOnMobile: true },
+  { key: 'op_margin', label: 'OPM', hideOnMobile: true },
+  { key: 'debt_ratio', label: 'Debt', hideOnMobile: true },
 ]
 
 const VERDICT_STYLE = {
-  '저평가': { bg: '#DCFCE7', color: '#16A34A', label: 'Undervalued' },
-  '고평가': { bg: '#DBEAFE', color: '#2563EB', label: 'Overvalued' },
-  '적정': { bg: '#F3F4F6', color: '#6B7280', label: 'Fair' },
+  '저평가': { bg: '#DCFCE7', color: '#166534', border: '#BBF7D0', label: 'Undervalued' },
+  '고평가': { bg: '#DBEAFE', color: '#1E40AF', border: '#BFDBFE', label: 'Overvalued' },
+  '적정': { bg: '#F4F4F5', color: '#52525B', border: '#E4E4E7', label: 'Fair' },
+}
+
+const VERDICT_STYLE_DARK = {
+  '저평가': { bg: 'rgba(74,222,128,0.12)', color: '#86EFAC', border: 'rgba(74,222,128,0.2)', label: 'Undervalued' },
+  '고평가': { bg: 'rgba(96,165,250,0.12)', color: '#93C5FD', border: 'rgba(96,165,250,0.2)', label: 'Overvalued' },
+  '적정': { bg: 'rgba(255,255,255,0.06)', color: '#A1A1AA', border: 'rgba(255,255,255,0.1)', label: 'Fair' },
 }
 
 const SEVERITY_ICON = {
-  CRITICAL: { icon: '\u26A0', color: '#1D4ED8' },
-  WARNING: { icon: '\u26A0', color: '#D97706' },
-  CAUTION: { icon: '\u25CB', color: '#CA8A04' },
-  WATCH: { icon: '\u25CB', color: '#6B7280' },
+  CRITICAL: { icon: '!', color: '#DC2626', bg: '#FEE2E2' },
+  WARNING: { icon: '!', color: '#D97706', bg: '#FEF3C7' },
+  CAUTION: { icon: '-', color: '#CA8A04', bg: '#FEF9C3' },
+  WATCH: { icon: '-', color: '#6B7280', bg: '#F4F4F5' },
 }
 
 export default function ValuationDashboard({ onViewCard }) {
@@ -39,93 +45,97 @@ export default function ValuationDashboard({ onViewCard }) {
   ).length
 
   return (
-    <div className="page-container" style={{ maxWidth: '960px', margin: '0 auto', padding: '24px' }}>
+    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 20px' }}>
       {/* Header */}
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ display: 'inline-block', width: '4px', height: '22px', background: PREMIUM.accent, borderRadius: '2px' }} />
+      <div style={{ marginBottom: '24px' }}>
+        <h2 style={{
+          fontSize: '20px', fontWeight: 700, color: colors.textPrimary,
+          fontFamily: FONTS.serif, margin: 0, letterSpacing: '-0.02em',
+        }}>
           Valuation Screening
         </h2>
-        <div style={{ fontSize: '13px', color: colors.textMuted, marginTop: '4px' }}>
-          PER / PBR / ROE based — Undervalued & Overvalued verdict vs. sector peers + risk alerts
-        </div>
+        <p style={{ fontSize: '13px', color: colors.textMuted, margin: '4px 0 0' }}>
+          PER / PBR / ROE peer comparison + risk alerts
+        </p>
       </div>
 
       {loading ? (
-        <ValuationSkeleton />
+        <ValuationSkeleton colors={colors} dark={dark} />
       ) : (
         <>
-          {/* 요약 카드 4개 */}
-          <div className="val-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
-            <SummaryCard label="Total Stocks" value={summary.total} unit="" color={PREMIUM.accent} />
-            <SummaryCard label="Undervalued" value={summary.undervalued_count} unit="" color={colors.positive} />
-            <SummaryCard label="Overvalued" value={summary.overvalued_count} unit="" color={colors.negative} />
-            <SummaryCard label="Risk Alerts" value={summary.risk_count} unit="" color="#D97706" />
+          {/* Summary cards */}
+          <div className="val-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
+            <SummaryCard label="Total" value={summary.total} color={colors.textPrimary} colors={colors} dark={dark} />
+            <SummaryCard label="Undervalued" value={summary.undervalued_count} color={colors.positive} colors={colors} dark={dark} />
+            <SummaryCard label="Overvalued" value={summary.overvalued_count} color={dark ? '#93C5FD' : '#2563EB'} colors={colors} dark={dark} />
+            <SummaryCard label="Risk" value={summary.risk_count} color="#D97706" colors={colors} dark={dark} />
           </div>
 
-          {/* CRITICAL 배너 */}
+          {/* Critical banner */}
           {criticalCount > 0 && (
             <div style={{
-              padding: '10px 16px',
-              borderRadius: '8px',
-              backgroundColor: dark ? '#1E3A5F' : '#EFF6FF',
-              border: `1px solid ${dark ? '#1E40AF' : '#BFDBFE'}`,
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#1D4ED8',
+              padding: '8px 14px', borderRadius: '8px', marginBottom: '16px',
+              backgroundColor: dark ? 'rgba(220,38,38,0.08)' : '#FEF2F2',
+              border: `1px solid ${dark ? 'rgba(220,38,38,0.2)' : '#FECACA'}`,
+              display: 'flex', alignItems: 'center', gap: '8px',
+              fontSize: '12px', fontWeight: 600,
+              color: dark ? '#FCA5A5' : '#991B1B',
             }}>
-              <span style={{ fontSize: '16px' }}>{'\u26A0'}</span>
-              {criticalCount} stock(s) with capital impairment detected
+              <span style={{
+                width: '16px', height: '16px', borderRadius: '50%',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '9px', fontWeight: 800,
+                backgroundColor: dark ? 'rgba(220,38,38,0.15)' : '#FEE2E2',
+                color: dark ? '#F87171' : '#DC2626',
+              }}>!</span>
+              {criticalCount} stock(s) with capital impairment
             </div>
           )}
 
-          {/* 리스크 필터 토글 */}
+          {/* Filter bar */}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            marginBottom: '12px',
+            marginBottom: '8px', padding: '0 2px',
           }}>
-            <div style={{ fontSize: '12px', color: colors.textMuted }}>
+            <span style={{ fontSize: '12px', color: colors.textMuted }}>
               {companies.length} stocks
-            </div>
+            </span>
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px', color: colors.textSecondary }}>
               <input
-                type="checkbox"
-                checked={riskOnly}
+                type="checkbox" checked={riskOnly}
                 onChange={toggleRiskOnly}
                 style={{ accentColor: '#D97706' }}
               />
-              Risk stocks only
+              Risk only
             </label>
           </div>
 
           {companies.length === 0 ? (
-            <div style={{ padding: '60px', textAlign: 'center', color: colors.textMuted }}>
-              <div style={{ fontSize: '15px', marginBottom: '8px' }}>
-                {riskOnly ? 'No risk-flagged stocks found' : 'No valuation data available'}
+            <div style={{
+              padding: '80px 20px', textAlign: 'center',
+              borderRadius: '12px', backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
+              border: `1px dashed ${colors.border}`,
+            }}>
+              <div style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '6px' }}>
+                {riskOnly ? 'No risk-flagged stocks' : 'No valuation data'}
               </div>
-              <div style={{ fontSize: '13px' }}>Data will appear after company cards are generated</div>
+              <div style={{ fontSize: '12px', color: colors.textMuted }}>
+                Data appears after company cards are generated
+              </div>
             </div>
           ) : (
-            /* 메인 테이블 */
-            <div style={{ borderRadius: '16px', border: `1px solid ${colors.border}`, overflow: 'hidden', boxShadow: PREMIUM.shadowMd }}>
-              {/* 테이블 헤더 */}
+            <div style={{ borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.border}` }}>
+              {/* Table header */}
               <div className="val-table-header" style={{
                 display: 'grid',
-                gridTemplateColumns: '1.5fr repeat(5, 1fr) 80px',
+                gridTemplateColumns: '1.5fr repeat(5, 1fr) 76px',
                 padding: '10px 16px',
-                backgroundColor: dark ? '#09090B' : '#18181B',
-                color: '#fff',
-                fontSize: '12px',
-                fontWeight: 600,
-                position: 'sticky',
-                top: 0,
-                zIndex: 10,
+                backgroundColor: dark ? 'rgba(255,255,255,0.04)' : '#F9FAFB',
+                borderBottom: `1px solid ${colors.border}`,
+                fontSize: '11px', fontWeight: 600, color: colors.textMuted,
+                textTransform: 'uppercase', letterSpacing: '0.04em',
               }}>
-                <div>Stock</div>
+                <div>Name</div>
                 {SORT_COLUMNS.map((col) => (
                   <div
                     key={col.key}
@@ -134,52 +144,33 @@ export default function ValuationDashboard({ onViewCard }) {
                     style={{ textAlign: 'right', cursor: 'pointer', userSelect: 'none' }}
                   >
                     {col.label}
-                    {sortKey === col.key && (
-                      <span style={{ marginLeft: '4px', fontSize: '10px' }}>
-                        {sortOrder === 'desc' ? '\u25BC' : '\u25B2'}
-                      </span>
-                    )}
+                    {sortKey === col.key && <SortArrow order={sortOrder} />}
                   </div>
                 ))}
                 <div style={{ textAlign: 'center' }}>Verdict</div>
               </div>
 
-              {/* 테이블 바디 */}
-              {companies.map((c) => {
-                const val = c.valuation || {}
-                const peer = c.peer || {}
-                const flags = c.risk_flags || []
-                const vs = VERDICT_STYLE[peer.verdict] || VERDICT_STYLE['적정']
-                const hasCritical = flags.some((f) => f.severity === 'CRITICAL')
-
-                return (
-                  <ValuationRow
-                    key={c.corp_code}
-                    company={c}
-                    val={val}
-                    peer={peer}
-                    flags={flags}
-                    vs={vs}
-                    hasCritical={hasCritical}
-                    onClick={() => onViewCard ? onViewCard(c.corp_code) : navigate(`/deep-dive/${c.corp_code}`)}
-                  />
-                )
-              })}
+              {companies.map((c, i) => (
+                <ValuationRow
+                  key={c.corp_code}
+                  company={c}
+                  even={i % 2 === 0}
+                  dark={dark}
+                  onClick={() => onViewCard ? onViewCard(c.corp_code) : navigate(`/deep-dive/${c.corp_code}`)}
+                />
+              ))}
             </div>
           )}
         </>
       )}
 
-      {/* 반응형 CSS */}
       <style>{`
         @media (max-width: 640px) {
           .val-hide-mobile { display: none !important; }
           .val-table-header, .val-table-row {
             grid-template-columns: 1.5fr repeat(3, 1fr) 70px !important;
           }
-          .val-summary-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
+          .val-summary-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>
     </div>
@@ -187,31 +178,33 @@ export default function ValuationDashboard({ onViewCard }) {
 }
 
 
-function SummaryCard({ label, value, unit, color }) {
-  const { colors } = useTheme()
+function SummaryCard({ label, value, color, colors, dark }) {
   return (
     <div style={{
-      padding: '16px',
-      borderRadius: '16px',
-      backgroundColor: colors.bgCard,
+      padding: '14px 16px', borderRadius: '10px',
+      backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA',
       border: `1px solid ${colors.border}`,
-      boxShadow: PREMIUM.shadowSm,
     }}>
-      <div style={{ fontSize: '12px', color: colors.textMuted, marginBottom: '6px' }}>{label}</div>
-      <div style={{ fontSize: '22px', fontWeight: 700, fontFamily: FONTS.mono, color }}>
+      <div style={{ fontSize: '11px', color: colors.textMuted, marginBottom: '4px', fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: FONTS.mono, color, letterSpacing: '-0.02em' }}>
         {value != null ? value : 0}
-        <span style={{ fontSize: '12px', fontWeight: 400, color: colors.textMuted, marginLeft: '2px' }}>{unit}</span>
       </div>
     </div>
   )
 }
 
 
-function ValuationRow({ company: c, val, peer, flags, vs, hasCritical, onClick }) {
-  const { colors, dark } = useTheme()
+function ValuationRow({ company: c, even, dark, onClick }) {
+  const { colors } = useTheme()
+  const val = c.valuation || {}
+  const peer = c.peer || {}
+  const flags = c.risk_flags || []
+  const verdictStyles = dark ? VERDICT_STYLE_DARK : VERDICT_STYLE
+  const vs = verdictStyles[peer.verdict] || verdictStyles['적정']
+  const hasCritical = flags.some((f) => f.severity === 'CRITICAL')
 
-  const criticalBg = dark ? '#1E3A5F' : '#EFF6FF'
-  const criticalHoverBg = dark ? '#1E3A8A' : '#DBEAFE'
+  const stripeBg = even ? 'transparent' : (dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA')
+  const criticalBg = dark ? 'rgba(220,38,38,0.06)' : '#FEF2F2'
 
   return (
     <div
@@ -219,76 +212,77 @@ function ValuationRow({ company: c, val, peer, flags, vs, hasCritical, onClick }
       onClick={onClick}
       style={{
         display: 'grid',
-        gridTemplateColumns: '1.5fr repeat(5, 1fr) 80px',
-        padding: '12px 16px',
-        backgroundColor: hasCritical ? criticalBg : colors.bgCard,
-        borderTop: `1px solid ${colors.border}`,
-        cursor: 'pointer',
-        transition: 'background-color 0.15s',
+        gridTemplateColumns: '1.5fr repeat(5, 1fr) 76px',
+        padding: '10px 16px',
+        backgroundColor: hasCritical ? criticalBg : stripeBg,
+        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5'}`,
+        cursor: 'pointer', transition: 'background-color 0.15s',
         alignItems: 'center',
       }}
-      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hasCritical ? criticalHoverBg : colors.borderLight}
-      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = hasCritical ? criticalBg : colors.bgCard}
+      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.05)' : '#F0F0F5'}
+      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = hasCritical ? criticalBg : stripeBg}
     >
-      {/* 종목명 + 리스크 아이콘 */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      {/* Name */}
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textPrimary }}>
             {c.corp_name}
           </span>
-          {flags.map((f, i) => {
+          {flags.slice(0, 2).map((f, i) => {
             const si = SEVERITY_ICON[f.severity] || SEVERITY_ICON.WATCH
             return (
-              <span
-                key={i}
-                title={`${f.flag}: ${f.detail}`}
-                style={{ fontSize: '12px', color: si.color, cursor: 'help' }}
-              >
+              <span key={i} title={`${f.flag}: ${f.detail}`} style={{
+                fontSize: '8px', fontWeight: 800, width: '14px', height: '14px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: '4px', backgroundColor: si.bg, color: si.color,
+              }}>
                 {si.icon}
               </span>
             )
           })}
         </div>
-        <div style={{ fontSize: '11px', color: colors.textMuted, fontFamily: FONTS.mono }}>
+        <div style={{ fontSize: '10px', color: colors.textMuted, fontFamily: FONTS.mono, marginTop: '1px' }}>
           {c.stock_code || ''}
+          {c.sector_name && ` \u00B7 ${c.sector_name}`}
         </div>
       </div>
 
       {/* PER */}
-      <MetricCell value={val.per} vs={peer.per_vs_sector} format="f1" />
+      <MetricCell value={val.per} vs={peer.per_vs_sector} format="f1" colors={colors} />
       {/* PBR */}
-      <MetricCell value={val.pbr} vs={peer.pbr_vs_sector} format="f2" />
+      <MetricCell value={val.pbr} vs={peer.pbr_vs_sector} format="f2" colors={colors} />
       {/* ROE */}
-      <MetricCell value={val.roe} vs={peer.roe_vs_sector} format="f1" unit="%" invertColor />
+      <MetricCell value={val.roe} vs={peer.roe_vs_sector} format="f1" unit="%" invertColor colors={colors} />
 
-      {/* 영업이익률 */}
+      {/* OPM */}
       <div className="val-hide-mobile" style={{ textAlign: 'right' }}>
-        <div style={{
-          fontSize: '13px', fontFamily: FONTS.mono, fontWeight: 600,
+        <span style={{
+          fontSize: '12px', fontFamily: FONTS.mono, fontWeight: 600,
           color: val.op_margin != null ? (val.op_margin >= 0 ? colors.textPrimary : colors.negative) : colors.textMuted,
         }}>
           {val.op_margin != null ? `${val.op_margin.toFixed(1)}%` : '-'}
-        </div>
+        </span>
       </div>
 
-      {/* 부채비율 */}
+      {/* Debt */}
       <div className="val-hide-mobile" style={{ textAlign: 'right' }}>
-        <div style={{
-          fontSize: '13px', fontFamily: FONTS.mono, fontWeight: 600,
+        <span style={{
+          fontSize: '12px', fontFamily: FONTS.mono, fontWeight: 600,
           color: val.debt_ratio != null
             ? (val.debt_ratio > 200 ? colors.negative : val.debt_ratio > 100 ? '#D97706' : colors.textPrimary)
             : colors.textMuted,
         }}>
-          {val.debt_ratio != null ? `${val.debt_ratio.toFixed(1)}%` : '-'}
-        </div>
+          {val.debt_ratio != null ? `${val.debt_ratio.toFixed(0)}%` : '-'}
+        </span>
       </div>
 
-      {/* 판정 */}
+      {/* Verdict */}
       <div style={{ textAlign: 'center' }}>
         <span style={{
-          fontSize: '11px', fontWeight: 700,
-          padding: '2px 8px', borderRadius: '4px',
+          fontSize: '10px', fontWeight: 700, letterSpacing: '0.02em',
+          padding: '3px 8px', borderRadius: '6px',
           backgroundColor: vs.bg, color: vs.color,
+          border: `1px solid ${vs.border}`,
         }}>
           {vs.label}
         </span>
@@ -298,13 +292,9 @@ function ValuationRow({ company: c, val, peer, flags, vs, hasCritical, onClick }
 }
 
 
-function MetricCell({ value, vs, format, unit, invertColor }) {
-  const { colors } = useTheme()
-
-  if (value == null) {
-    return (
-      <div style={{ textAlign: 'right', fontSize: '13px', color: colors.textMuted }}>-</div>
-    )
+function MetricCell({ value, vs, format, unit, invertColor, colors }) {
+  if (value == null || value === 0) {
+    return <div style={{ textAlign: 'right', fontSize: '12px', color: colors.textMuted, fontFamily: FONTS.mono }}>-</div>
   }
 
   const formatted = format === 'f2' ? value.toFixed(2) : value.toFixed(1)
@@ -313,23 +303,20 @@ function MetricCell({ value, vs, format, unit, invertColor }) {
   let arrow = ''
   let arrowColor = colors.textMuted
   if (vs != null) {
-    if (invertColor) {
-      arrow = vs > 0 ? '\u2191' : '\u2193'
-      arrowColor = vs > 0 ? colors.positive : colors.negative
-    } else {
-      arrow = vs > 0 ? '\u2191' : '\u2193'
-      arrowColor = vs < 0 ? colors.positive : colors.negative
-    }
+    arrow = vs > 0 ? '\u2191' : '\u2193'
+    arrowColor = invertColor
+      ? (vs > 0 ? colors.positive : colors.negative)
+      : (vs < 0 ? colors.positive : colors.negative)
   }
 
   return (
     <div style={{ textAlign: 'right' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
-        <span style={{ fontSize: '13px', fontFamily: FONTS.mono, fontWeight: 600, color: colors.textPrimary }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '2px' }}>
+        <span style={{ fontSize: '12px', fontFamily: FONTS.mono, fontWeight: 600, color: colors.textPrimary }}>
           {formatted}{suffix}
         </span>
         {arrow && (
-          <span style={{ fontSize: '11px', fontWeight: 700, color: arrowColor }}>{arrow}</span>
+          <span style={{ fontSize: '9px', fontWeight: 700, color: arrowColor }}>{arrow}</span>
         )}
       </div>
     </div>
@@ -337,31 +324,40 @@ function MetricCell({ value, vs, format, unit, invertColor }) {
 }
 
 
-function ValuationSkeleton() {
+function SortArrow({ order }) {
+  return (
+    <span style={{ marginLeft: '2px', fontSize: '8px', opacity: 0.8 }}>
+      {order === 'desc' ? '\u25BC' : '\u25B2'}
+    </span>
+  )
+}
+
+
+function ValuationSkeleton({ colors, dark }) {
   return (
     <div>
-      <div className="val-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+      <div className="val-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="skeleton-card">
-            <Skeleton width="80px" height="12px" style={{ marginBottom: '6px' }} />
-            <Skeleton width="60px" height="22px" />
+          <div key={i} style={{ padding: '14px 16px', borderRadius: '10px', border: `1px solid ${colors?.border || '#E4E4E7'}` }}>
+            <Skeleton width="60px" height="11px" style={{ marginBottom: '6px' }} />
+            <Skeleton width="40px" height="20px" />
           </div>
         ))}
       </div>
-      <Skeleton width="80px" height="12px" style={{ marginBottom: '12px' }} />
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-        <div key={i} style={{
-          display: 'flex', alignItems: 'center', gap: '16px',
-          padding: '12px 16px', borderBottom: '1px solid var(--border, #e2e8f0)',
-        }}>
-          <Skeleton width="120px" height="14px" />
-          <Skeleton width="50px" height="14px" />
-          <Skeleton width="50px" height="14px" />
-          <Skeleton width="50px" height="14px" />
-          <Skeleton width="60px" height="14px" />
-          <Skeleton width="50px" height="14px" />
+      <div style={{ borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors?.border || '#E4E4E7'}` }}>
+        <div style={{ padding: '10px 16px', backgroundColor: dark ? 'rgba(255,255,255,0.04)' : '#F9FAFB' }}>
+          <Skeleton width="100%" height="14px" />
         </div>
-      ))}
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <div key={i} style={{ display: 'flex', gap: '16px', padding: '12px 16px', borderBottom: '1px solid #F4F4F5' }}>
+            <Skeleton width="120px" height="14px" />
+            <Skeleton width="50px" height="14px" />
+            <Skeleton width="50px" height="14px" />
+            <Skeleton width="50px" height="14px" />
+            <Skeleton width="60px" height="14px" />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

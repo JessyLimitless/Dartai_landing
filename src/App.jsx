@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom'
 import Header from './components/Header'
 import TodayPage from './components/TodayPage'
-import DeepDivePage from './components/DeepDivePage'
+import CompanyCard from './components/CompanyCard'
 import DiscoveryPage from './components/DiscoveryPage'
 import MarketPage from './components/MarketPage'
 import PremiumPage from './components/PremiumPage'
@@ -20,6 +20,11 @@ import { FONTS } from './constants/theme'
 function FilingsCorpRedirect() {
   const { corpCode } = useParams()
   return <Navigate to={`/deep-dive/${corpCode}`} replace />
+}
+
+function DeepDiveWrapper({ onViewCard }) {
+  const { corpCode } = useParams()
+  return <CompanyCard corpCode={corpCode} onBack={() => window.history.back()} onViewCard={onViewCard} />
 }
 
 export default function App() {
@@ -77,8 +82,8 @@ export default function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/today" element={<TodayPage onViewCard={navigateToCard} />} />
-              <Route path="/deep-dive" element={<DeepDivePage onViewCard={navigateToCard} />} />
-              <Route path="/deep-dive/:corpCode" element={<DeepDivePage onViewCard={navigateToCard} />} />
+              <Route path="/deep-dive" element={<CompanyCard onViewCard={navigateToCard} />} />
+              <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
               <Route path="/discover" element={<DiscoveryPage onViewCard={navigateToCard} />} />
               <Route path="/market" element={<MarketPage onViewCard={navigateToCard} />} />
               <Route path="/premium" element={<PremiumPage />} />

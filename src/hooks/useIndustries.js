@@ -11,12 +11,15 @@ export function useIndustries() {
   const [sortKey, setSortKey] = useState(null)
   const [sortOrder, setSortOrder] = useState('desc')
   const [activeCategory, setActiveCategory] = useState(null)
+  const [period, setPeriod] = useState('annual')
+  const [periodLabel, setPeriodLabel] = useState('')
 
   const fetchIndustries = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams()
     if (sortKey) params.set('sort', sortKey)
     if (sortOrder) params.set('order', sortOrder)
+    params.set('period', period)
 
     fetch(`${API}/api/industries?${params}`)
       .then((r) => r.ok ? r.json() : { categories: [], total_categories: 0, total_companies: 0 })
@@ -24,6 +27,7 @@ export function useIndustries() {
         setCategories(data.categories || [])
         setTotalCategories(data.total_categories || 0)
         setTotalCompanies(data.total_companies || 0)
+        setPeriodLabel(data.period_label || '')
       })
       .catch(() => {
         setCategories([])
@@ -32,7 +36,7 @@ export function useIndustries() {
         showError('업종 데이터를 불러올 수 없습니다')
       })
       .finally(() => setLoading(false))
-  }, [sortKey, sortOrder, showError])
+  }, [sortKey, sortOrder, period, showError])
 
   useEffect(() => { fetchIndustries() }, [fetchIndustries])
 
@@ -57,6 +61,9 @@ export function useIndustries() {
     sortKey,
     sortOrder,
     activeCategory,
+    period,
+    periodLabel,
+    setPeriod,
     toggleSort,
     selectCategory,
     refresh: fetchIndustries,

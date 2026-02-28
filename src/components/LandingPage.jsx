@@ -234,7 +234,7 @@ export default function LandingPage() {
               DART <span style={{ color: PREMIUM.accent }}>Insight</span>
             </span>
             <span style={{ fontSize: '11px', color: '#52525B' }}>
-              DART API &middot; 키움 REST &middot; Gemini 2.5
+              DART API &middot; 키움 REST
             </span>
           </div>
           <button onClick={go} style={{

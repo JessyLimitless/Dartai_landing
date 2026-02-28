@@ -7,8 +7,8 @@ const AUTO_DISMISS_MS = 7000
 
 export default function NotificationToast({ notification, onDismiss, onClick }) {
   const { colors } = useTheme()
-  const { id, grade, corp_name, report_nm, ai_summary, gemini_comment, exiting } = notification
-  const preview = gemini_comment || ai_summary || ''
+  const { id, grade, corp_name, report_nm, exiting } = notification
+  const preview = notification.message || ''
   const previewText = preview.length > 60 ? preview.slice(0, 60) + '...' : preview
 
   const borderColor = grade === 'error' ? '#991B1B' : (GRADE_COLORS[grade]?.bg || '#94A3B8')

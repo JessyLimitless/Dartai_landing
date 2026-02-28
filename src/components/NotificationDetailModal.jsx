@@ -55,9 +55,9 @@ export default function NotificationDetailModal({ notification, onClose }) {
   const { colors } = useTheme()
   if (!notification) return null
 
-  const { grade, corp_name, stock_code, report_nm, message, ai_summary, created_at, type } = notification
+  const { grade, corp_name, stock_code, report_nm, message, created_at, type } = notification
   const borderColor = GRADE_COLORS[grade]?.bg || '#94A3B8'
-  const content = message || ai_summary || ''
+  const content = message || ''
 
   return (
     <div

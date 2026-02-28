@@ -17,7 +17,7 @@ export function ErrorProvider({ addToast, children }) {
         grade: 'error',
         corp_name: '오류',
         report_nm: message,
-        ai_summary: detail || '',
+        message: detail || '',
       })
     } else {
       console.error(`[DART Insight] ${message}`, detail)

@@ -202,20 +202,6 @@ function DisclosureRow({ disclosure, isSelected, onClick, delay }) {
         }}>
           {d.report_nm}
         </div>
-        {d.ai_summary && (
-          <div style={{
-            fontSize: '11px',
-            color: colors.textMuted,
-            marginTop: '4px',
-            lineHeight: '1.5',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}>
-            {d.ai_summary.replace(/\*\*/g, '').split('\n')[0].slice(0, 120)}
-          </div>
-        )}
       </div>
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
         <div style={{ fontSize: '11px', color: colors.textMuted, fontFamily: FONTS.mono }}>
@@ -357,22 +343,6 @@ function DetailPanel({ detail, loading, selectedRceptNo, onClose, onViewCard }) 
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* AI Summary */}
-      {detail.ai_summary && (
-        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}` }}>
-          <div style={{
-            fontSize: '13px', fontWeight: 700, color: colors.textPrimary, marginBottom: '10px',
-            fontFamily: FONTS.serif, display: 'flex', alignItems: 'center', gap: '6px',
-          }}>
-            <span style={{ display: 'inline-block', width: '3px', height: '14px', background: PREMIUM.accent, borderRadius: '2px' }} />
-            AI Summary
-          </div>
-          <div style={{ fontSize: '13px', lineHeight: '1.7', color: colors.textPrimary, whiteSpace: 'pre-wrap' }}>
-            <SimpleMarkdown text={detail.ai_summary} />
           </div>
         </div>
       )}
