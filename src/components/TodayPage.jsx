@@ -76,12 +76,35 @@ export default function TodayPage({ onViewCard }) {
                 borderRadius: '12px',
                 backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
               }}>
-                <div style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 600, marginBottom: '6px' }}>
-                  No disclosure data available
-                </div>
-                <div style={{ fontSize: '12px', color: colors.textMuted }}>
-                  공시 수집이 시작되면 데이터가 표시됩니다
-                </div>
+                {(gradeFilter || search) ? (
+                  <>
+                    <div style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 600, marginBottom: '6px' }}>
+                      조건에 맞는 공시가 없습니다
+                    </div>
+                    <div style={{ fontSize: '12px', color: colors.textMuted, marginBottom: '12px' }}>
+                      {gradeFilter && `등급 필터: ${gradeFilter}`}{gradeFilter && search && ' · '}{search && `검색: "${search}"`}
+                    </div>
+                    <button
+                      onClick={() => { setGradeFilter(null); setSearch('') }}
+                      style={{
+                        padding: '6px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer',
+                        fontSize: '12px', fontWeight: 600,
+                        backgroundColor: PREMIUM.accent, color: '#fff',
+                      }}
+                    >
+                      필터 초기화
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 600, marginBottom: '6px' }}>
+                      오늘 수집된 공시가 없습니다
+                    </div>
+                    <div style={{ fontSize: '12px', color: colors.textMuted }}>
+                      장 운영 시간(09:00~18:00)에 자동으로 수집됩니다
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               grouped.map((item, i) =>

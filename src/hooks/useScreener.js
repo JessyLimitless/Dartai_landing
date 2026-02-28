@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useError } from '../contexts/ErrorContext'
 import { API } from '../lib/api'
 
@@ -14,6 +14,8 @@ export function useScreener() {
   const [sortKey, setSortKey] = useState('market_cap')
   const [sortOrder, setSortOrder] = useState('desc')
   const [liveMode, setLiveMode] = useState(false)
+
+  const debounceRef = useRef(null)
 
   const fetchScreener = useCallback(() => {
     setLoading(true)
@@ -52,7 +54,18 @@ export function useScreener() {
       .finally(() => setLoading(false))
   }, [activePreset, customFilters, sortKey, sortOrder, liveMode, showError])
 
-  useEffect(() => { fetchScreener() }, [fetchScreener])
+  // 디바운스: 필터/정렬 변경 시 500ms 후 fetch (프리셋/정렬은 즉시)
+  useEffect(() => {
+    const hasCustomFilters = Object.keys(customFilters).length > 0
+    const delay = hasCustomFilters ? 500 : 0
+
+    if (delay > 0) {
+      clearTimeout(debounceRef.current)
+      debounceRef.current = setTimeout(fetchScreener, delay)
+      return () => clearTimeout(debounceRef.current)
+    }
+    fetchScreener()
+  }, [fetchScreener])
 
   const selectPreset = useCallback((key) => {
     setActivePreset(key === activePreset ? null : key)
