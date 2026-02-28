@@ -686,7 +686,7 @@ function VariableDistCard({ dist, navigate }) {
   return (
     <CardShell>
       <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 14px', fontFamily: FONTS.serif }}>
-        7대 변수
+        5대 변수
       </h3>
       <HorizBar
         total={total}
@@ -708,7 +708,7 @@ function VariableDistCard({ dist, navigate }) {
           </div>
         ))}
       </div>
-      <CardLink label="자세히 보기" onClick={() => navigate('/discover?tab=7factor')} />
+      <CardLink label="자세히 보기" onClick={() => navigate('/discover?tab=5factor')} />
     </CardShell>
   )
 }
