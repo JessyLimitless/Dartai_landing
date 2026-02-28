@@ -289,11 +289,21 @@ function FlowRow({ item, rank, tab, gridCols, colors, dark, onClick }) {
         </div>
       )}
 
-      <div style={{
-        textAlign: 'right', fontSize: '12px', fontWeight: 600,
-        fontFamily: FONTS.mono, color: colors.textPrimary,
-      }}>
-        {item.price ? Number(item.price).toLocaleString() : '-'}
+      <div style={{ textAlign: 'right' }}>
+        <div style={{
+          fontSize: '12px', fontWeight: 600,
+          fontFamily: FONTS.mono, color: colors.textPrimary,
+        }}>
+          {item.price ? Number(item.price).toLocaleString() : '-'}
+        </div>
+        {item.change !== 0 && (
+          <div style={{
+            fontSize: '10px', fontFamily: FONTS.mono, marginTop: '1px',
+            color: item.change > 0 ? colors.positive : item.change < 0 ? colors.negative : colors.textMuted,
+          }}>
+            {item.change > 0 ? '+' : ''}{item.change.toFixed(2)}%
+          </div>
+        )}
       </div>
     </div>
   )
