@@ -621,30 +621,45 @@ function FinancialChart({ financials, sector }) {
   const pickValue = (key, idx) => items[key]?.[pickIndices[idx]] ?? null
   const isEstimate = (yr) => yr.endsWith('E')
 
+  // 최신년도 (2025E 또는 마지막 연도)
+  const latestIdx = displayYears.length - 1
+  const latestYear = displayYears[latestIdx]
+
   const chartData = displayYears.map((yr, i) => {
-    const row = { year: yr.replace('E', ' E'), _isEstimate: isEstimate(yr) }
+    const row = { year: yr.replace('E', ' E'), _isEstimate: isEstimate(yr), _isLatest: i === latestIdx }
     plMetrics.forEach(m => { row[m.label] = pickValue(m.key, i) })
     return row
   })
 
-  const EstimateBar = (props) => {
+  // 최신년도 강조 바 (full opacity), 이전년도 반투명
+  const SmartBar = (props) => {
     const { x, y, width, height, fill, payload } = props
-    const op = payload?._isEstimate ? 0.55 : 1.0
-    return <rect x={x} y={y} width={width} height={Math.max(0, height)} fill={fill} opacity={op} rx={3} ry={3} />
+    if (!height) return null
+    const absH = Math.abs(height)
+    const isLatest = payload?._isLatest
+    return (
+      <rect
+        x={x} y={y} width={width} height={absH}
+        fill={fill}
+        opacity={isLatest ? 1.0 : 0.38}
+        rx={isLatest ? 4 : 2} ry={isLatest ? 4 : 2}
+      />
+    )
   }
 
-  const confirmedIdx = displayYears.reduce((acc, yr, i) => isEstimate(yr) ? acc : i, 0)
-
-  const BarLabel = ({ x, y, width, value }) => {
-    if (value == null || isNaN(value)) return null
+  // 최신년도 바에만 레이블 표시
+  const LatestBarLabel = (props) => {
+    const { x, y, width, value, height, index } = props
+    if (index !== latestIdx || value == null || isNaN(value)) return null
     const abs = Math.abs(value)
     let text = ''
-    if (abs >= 1e12) text = Math.round(value / 1e12) + '조'
+    if (abs >= 1e12) text = (value / 1e12).toFixed(1) + '조'
     else if (abs >= 1e8) text = Math.round(value / 1e8) + '억'
     else if (abs >= 1e4) text = Math.round(value / 1e4) + '만'
     else text = value.toLocaleString()
+    const labelY = (height < 0) ? y + Math.abs(height) + 12 : y - 5
     return (
-      <text x={x + width / 2} y={y - 4} textAnchor="middle" fontSize={9} fontWeight={600} fill={colors.textMuted}>
+      <text x={x + width / 2} y={labelY} textAnchor="middle" fontSize={9} fontWeight={700} fill={colors.textMuted}>
         {text}
       </text>
     )
@@ -652,53 +667,98 @@ function FinancialChart({ financials, sector }) {
 
   return (
     <div>
-      {/* 연도별 그룹 바 차트 */}
-      <div style={{
-        backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
-        borderRadius: '10px', padding: '12px 14px 8px', marginBottom: '10px',
-      }}>
-        {/* 범례 */}
-        <div style={{ display: 'flex', gap: '14px', marginBottom: '8px', flexWrap: 'wrap' }}>
-          {plMetrics.map(m => {
-            const latest = pickValue(m.key, confirmedIdx)
-            const yoy = items[m.yoyKey]
-            return (
-              <div key={m.key} style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
-                <span style={{
-                  display: 'inline-block', width: '8px', height: '8px',
-                  borderRadius: '2px', backgroundColor: m.color, flexShrink: 0,
-                }} />
-                <span style={{ fontSize: '11px', fontWeight: 600, color: m.color }}>{m.label}</span>
-                {latest != null && (
-                  <span style={{
-                    fontSize: '11px', fontWeight: 700, fontFamily: FONTS.mono,
-                    color: colors.textPrimary,
-                  }}>
-                    {formatKoreanNumber(latest)}
-                  </span>
-                )}
-                {yoy != null && (
-                  <span style={{
-                    fontSize: '9px', fontWeight: 700, fontFamily: FONTS.mono,
-                    padding: '1px 6px', borderRadius: '10px',
-                    backgroundColor: yoy >= 0 ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                    color: yoy >= 0 ? colors.positive : colors.negative,
-                  }}>
-                    {yoy >= 0 ? '+' : ''}{yoy.toFixed(1)}%
-                  </span>
-                )}
+      {/* ① 최신년도 KPI 요약 카드 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
+        {plMetrics.map(m => {
+          const latestVal = pickValue(m.key, latestIdx)
+          const yoy = items[m.yoyKey]?.[pickIndices[latestIdx]]
+          return (
+            <div key={m.key} style={{
+              borderRadius: '10px',
+              border: `1px solid ${colors.border}`,
+              backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA',
+              padding: '10px 12px',
+              borderTop: `2.5px solid ${m.color}`,
+            }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                marginBottom: '5px',
+              }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: colors.textMuted, letterSpacing: '0.04em' }}>
+                  {m.label}
+                </span>
+                <span style={{ fontSize: '9px', color: colors.textMuted, opacity: 0.65 }}>
+                  {isEstimate(latestYear) ? `${latestYear}(추정)` : latestYear}
+                </span>
               </div>
-            )
-          })}
+              <div style={{
+                fontSize: '17px', fontWeight: 700, fontFamily: FONTS.mono, lineHeight: 1,
+                color: latestVal != null ? (latestVal < 0 ? colors.negative : colors.textPrimary) : colors.textMuted,
+              }}>
+                {latestVal != null ? formatKoreanNumber(latestVal) : '-'}
+              </div>
+              {yoy != null && (
+                <div style={{
+                  marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '2px',
+                  fontSize: '10px', fontWeight: 700, fontFamily: FONTS.mono,
+                  padding: '2px 7px', borderRadius: '20px',
+                  backgroundColor: yoy >= 0 ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                  color: yoy >= 0 ? colors.positive : colors.negative,
+                }}>
+                  {yoy >= 0 ? '▲' : '▼'} {Math.abs(yoy).toFixed(1)}% YoY
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ② 연도별 추이 바 차트 (최신년도 강조) */}
+      <div style={{
+        borderRadius: '10px',
+        border: `1px solid ${colors.border}`,
+        backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
+        padding: '12px 14px 8px',
+        marginBottom: '12px',
+      }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: '8px',
+        }}>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: colors.textMuted, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            연도별 추이
+          </span>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {plMetrics.map(m => (
+              <div key={m.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: m.color }} />
+                <span style={{ fontSize: '10px', color: colors.textSecondary }}>{m.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div style={{ width: '100%', height: 220 }}>
+        <div style={{ width: '100%', height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} barCategoryGap="20%" barGap={3}>
+            <BarChart data={chartData} barCategoryGap="22%" barGap={2}>
               <CartesianGrid {...chartGrid(dark)} />
               <XAxis
                 dataKey="year"
-                tick={{ fontSize: 11, fill: colors.textMuted, fontWeight: 600 }}
                 axisLine={false} tickLine={false}
+                tick={(tickProps) => {
+                  const { x, y, payload } = tickProps
+                  const isEst = payload.value.includes('E')
+                  const dataItem = chartData.find(d => d.year === payload.value)
+                  const isLat = dataItem?._isLatest
+                  return (
+                    <g transform={`translate(${x},${y})`}>
+                      <text textAnchor="middle" dy={14} fontSize={11}
+                        fontWeight={isLat ? 800 : 600}
+                        fill={isEst ? '#F59E0B' : isLat ? colors.textPrimary : colors.textMuted}>
+                        {payload.value}
+                      </text>
+                    </g>
+                  )
+                }}
               />
               <YAxis
                 tick={{ fontSize: 9, fill: colors.textMuted }}
@@ -706,7 +766,7 @@ function FinancialChart({ financials, sector }) {
                 tickFormatter={(v) => {
                   if (v == null || isNaN(v)) return ''
                   const abs = Math.abs(v)
-                  if (abs >= 1e12) return Math.round(v / 1e12) + '조'
+                  if (abs >= 1e12) return (v / 1e12).toFixed(1) + '조'
                   if (abs >= 1e8) return Math.round(v / 1e8) + '억'
                   return ''
                 }}
@@ -721,10 +781,10 @@ function FinancialChart({ financials, sector }) {
                   key={m.key}
                   dataKey={m.label}
                   fill={m.color}
-                  shape={(props) => <EstimateBar {...props} fill={m.color} />}
+                  shape={(props) => <SmartBar {...props} fill={m.color} />}
                   radius={[3, 3, 0, 0]}
-                  label={<BarLabel />}
-                  animationDuration={800}
+                  label={<LatestBarLabel />}
+                  animationDuration={700}
                   animationEasing="ease-out"
                 />
               ))}
@@ -733,7 +793,105 @@ function FinancialChart({ financials, sector }) {
         </div>
       </div>
 
-      {/* 재무상태 테이블 */}
+      {/* ③ P&L 테이블 */}
+      <div style={{ marginBottom: '10px' }}>
+        <div style={{
+          fontSize: '10px', fontWeight: 700, color: colors.textMuted,
+          marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase',
+        }}>
+          P&amp;L (단위: 억원)
+        </div>
+        <div style={{ borderRadius: '10px', border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
+          {/* 헤더 */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: `90px repeat(${displayYears.length}, 1fr)`,
+            backgroundColor: dark ? 'rgba(255,255,255,0.04)' : '#F9FAFB',
+            padding: '8px 14px', gap: '8px',
+            borderBottom: `1px solid ${colors.border}`,
+          }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: colors.textMuted, textTransform: 'uppercase' }}>항목</div>
+            {displayYears.map((yr, i) => (
+              <div key={yr} style={{
+                fontSize: '10px', fontWeight: 700, textAlign: 'right',
+                color: isEstimate(yr) ? '#F59E0B' : (i === latestIdx ? colors.textPrimary : colors.textMuted),
+                fontStyle: isEstimate(yr) ? 'italic' : 'normal',
+                letterSpacing: '0.04em',
+                opacity: i === latestIdx ? 1 : 0.65,
+              }}>
+                {yr}{isEstimate(yr) ? ' (추정)' : ''}
+              </div>
+            ))}
+          </div>
+          {/* P&L 행 */}
+          {plMetrics.map((m, mi) => {
+            const opMargins = displayYears.map((_, i) => {
+              if (m.key !== 'operating_income') return null
+              const rev = pickValue('revenue', i)
+              const oi = pickValue('operating_income', i)
+              return (rev && oi != null) ? (oi / rev * 100) : null
+            })
+            return (
+              <React.Fragment key={m.key}>
+                <div style={{
+                  display: 'grid', gridTemplateColumns: `90px repeat(${displayYears.length}, 1fr)`,
+                  padding: '8px 14px', gap: '8px',
+                  borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5'}`,
+                  backgroundColor: mi % 2 === 0 ? 'transparent' : (dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA'),
+                }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: m.color, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: m.color }} />
+                    {m.label}
+                  </div>
+                  {displayYears.map((yr, i) => {
+                    const val = pickValue(m.key, i)
+                    const isLat = i === latestIdx
+                    return (
+                      <div key={yr} style={{
+                        fontSize: isLat ? '13px' : '12px',
+                        fontFamily: FONTS.mono, textAlign: 'right',
+                        fontWeight: isLat ? 700 : 500,
+                        color: val != null
+                          ? (val < 0 ? colors.negative : isLat ? colors.textPrimary : colors.textSecondary)
+                          : colors.textMuted,
+                        fontStyle: isEstimate(yr) ? 'italic' : 'normal',
+                        opacity: isLat ? 1 : 0.75,
+                      }}>
+                        {val != null ? formatKoreanNumber(val) : '-'}
+                      </div>
+                    )
+                  })}
+                </div>
+                {/* 영업이익률 행 */}
+                {m.key === 'operating_income' && opMargins.some(v => v != null) && (
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: `90px repeat(${displayYears.length}, 1fr)`,
+                    padding: '5px 14px 5px 28px', gap: '8px',
+                    backgroundColor: dark ? 'rgba(255,255,255,0.015)' : '#F7F7F8',
+                  }}>
+                    <div style={{ fontSize: '11px', color: colors.textMuted }}>영업이익률</div>
+                    {opMargins.map((r, i) => {
+                      const isLat = i === latestIdx
+                      return (
+                        <div key={i} style={{
+                          fontSize: '11px', fontFamily: FONTS.mono, textAlign: 'right',
+                          fontWeight: isLat ? 700 : 500,
+                          color: r != null ? (r < 0 ? colors.negative : colors.positive) : colors.textMuted,
+                          fontStyle: isEstimate(displayYears[i]) ? 'italic' : 'normal',
+                          opacity: isLat ? 1 : 0.7,
+                        }}>
+                          {r != null ? `${r.toFixed(1)}%` : '-'}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </React.Fragment>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ④ Balance Sheet */}
       {bsMetrics.length > 0 && (
         <div>
           <div style={{
@@ -742,11 +900,7 @@ function FinancialChart({ financials, sector }) {
           }}>
             Balance Sheet
           </div>
-          <div style={{
-            borderRadius: '10px',
-            border: `1px solid ${colors.border}`,
-            overflow: 'hidden',
-          }}>
+          <div style={{ borderRadius: '10px', border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
             {/* 헤더 */}
             <div style={{
               display: 'grid', gridTemplateColumns: `100px repeat(${displayYears.length}, 1fr)`,
@@ -755,12 +909,12 @@ function FinancialChart({ financials, sector }) {
               borderBottom: `1px solid ${colors.border}`,
             }}>
               <div style={{ fontSize: '10px', fontWeight: 700, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>항목</div>
-              {displayYears.map(yr => (
+              {displayYears.map((yr, i) => (
                 <div key={yr} style={{
                   fontSize: '10px', fontWeight: 700, textAlign: 'right',
-                  color: isEstimate(yr) ? colors.textMuted : colors.textSecondary,
+                  color: isEstimate(yr) ? colors.textMuted : (i === latestIdx ? colors.textPrimary : colors.textSecondary),
                   fontStyle: isEstimate(yr) ? 'italic' : 'normal',
-                  opacity: isEstimate(yr) ? 0.7 : 1,
+                  opacity: i === latestIdx ? 1 : 0.6,
                   textTransform: 'uppercase', letterSpacing: '0.04em',
                 }}>{yr}</div>
               ))}
@@ -780,16 +934,21 @@ function FinancialChart({ financials, sector }) {
                   <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: m.color }} />
                   {m.label}
                 </div>
-                {displayYears.map((yr, i) => (
-                  <div key={yr} style={{
-                    fontSize: '12px', fontFamily: FONTS.mono, textAlign: 'right',
-                    color: colors.textSecondary, fontWeight: 500,
-                    fontStyle: isEstimate(yr) ? 'italic' : 'normal',
-                    opacity: isEstimate(yr) ? 0.7 : 1,
-                  }}>
-                    {pickValue(m.key, i) != null ? formatKoreanNumber(pickValue(m.key, i)) : '-'}
-                  </div>
-                ))}
+                {displayYears.map((yr, i) => {
+                  const isLat = i === latestIdx
+                  return (
+                    <div key={yr} style={{
+                      fontSize: isLat ? '13px' : '12px',
+                      fontFamily: FONTS.mono, textAlign: 'right',
+                      color: isLat ? colors.textPrimary : colors.textSecondary,
+                      fontWeight: isLat ? 700 : 500,
+                      fontStyle: isEstimate(yr) ? 'italic' : 'normal',
+                      opacity: isLat ? 1 : 0.7,
+                    }}>
+                      {pickValue(m.key, i) != null ? formatKoreanNumber(pickValue(m.key, i)) : '-'}
+                    </div>
+                  )
+                })}
               </div>
             ))}
             {/* 부채비율 행 */}
@@ -807,16 +966,20 @@ function FinancialChart({ financials, sector }) {
                   backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#F9FAFB',
                 }}>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: colors.textSecondary }}>부채비율</div>
-                  {ratios.map((r, i) => (
-                    <div key={i} style={{
-                      fontSize: '12px', fontFamily: FONTS.mono, textAlign: 'right', fontWeight: 700,
-                      color: r != null ? (r > 200 ? colors.negative : r > 100 ? '#D97706' : colors.positive) : colors.textMuted,
-                      fontStyle: isEstimate(displayYears[i]) ? 'italic' : 'normal',
-                      opacity: isEstimate(displayYears[i]) ? 0.7 : 1,
-                    }}>
-                      {r != null ? `${r.toFixed(1)}%` : '-'}
-                    </div>
-                  ))}
+                  {ratios.map((r, i) => {
+                    const isLat = i === latestIdx
+                    return (
+                      <div key={i} style={{
+                        fontSize: isLat ? '13px' : '12px',
+                        fontFamily: FONTS.mono, textAlign: 'right', fontWeight: isLat ? 700 : 600,
+                        color: r != null ? (r > 200 ? colors.negative : r > 100 ? '#D97706' : colors.positive) : colors.textMuted,
+                        fontStyle: isEstimate(displayYears[i]) ? 'italic' : 'normal',
+                        opacity: isLat ? 1 : 0.7,
+                      }}>
+                        {r != null ? `${r.toFixed(1)}%` : '-'}
+                      </div>
+                    )
+                  })}
                 </div>
               )
             })()}
@@ -1378,7 +1541,7 @@ function ValuationSection({ cardData }) {
   if (pbr != null && pbr > 0 && pbr < 0.3) risks.push({ flag: '극저PBR', severity: 'WATCH' })
 
   const metrics = [
-    { label: 'PER', value: per, fmt: (v) => v.toFixed(1), good: true },
+    { label: 'PER', value: per, fmt: (v) => v.toFixed(1), good: per != null && per > 0 },
     { label: 'PBR', value: pbr, fmt: (v) => v.toFixed(2), good: true },
     { label: 'ROE', value: roe, fmt: (v) => v.toFixed(1) + '%', good: roe != null && roe > 0 },
     { label: 'OPM', value: opMargin, fmt: (v) => v.toFixed(1) + '%', good: opMargin != null && opMargin > 0 },
