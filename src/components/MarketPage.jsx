@@ -28,10 +28,9 @@ export default function MarketPage({ onViewCard }) {
   return (
     <div>
       {/* Sub-tab bar */}
-      <div style={{
+      <div className="sub-tab-bar" style={{
         display: 'flex',
         justifyContent: 'center',
-        padding: '12px 2rem',
         borderBottom: `1px solid ${colors.border}`,
         backgroundColor: colors.bgCard,
       }}>
@@ -48,8 +47,9 @@ export default function MarketPage({ onViewCard }) {
               <button
                 key={t.key}
                 onClick={() => setActiveTab(t.key)}
+                className="sub-tab-btn"
                 style={{
-                  padding: '7px 20px',
+                  padding: '11px 20px',
                   borderRadius: '7px',
                   border: 'none',
                   cursor: 'pointer',
@@ -59,6 +59,7 @@ export default function MarketPage({ onViewCard }) {
                   color: active ? PREMIUM.accent : colors.textSecondary,
                   boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                   transition: 'all 0.2s ease',
+                  WebkitTapHighlightColor: 'transparent',
                 }}
                 onMouseEnter={(e) => {
                   if (!active) e.currentTarget.style.color = colors.textPrimary

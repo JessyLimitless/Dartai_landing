@@ -188,6 +188,17 @@ html { scroll-behavior: smooth; }
 /* ═══ Detail Panel Back Button — hidden by default ══════════════════════ */
 .detail-back-btn { display: none; }
 
+/* ═══ Sub-tab Bar ════════════════════════════════════════════════════════ */
+.sub-tab-bar { padding: 12px 2rem; }
+.sub-tab-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+/* ═══ Financial Table Scroll ═════════════════════════════════════════════ */
+.fin-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+}
+
 /* ═══ Desktop Layouts ════════════════════════════════════════════════════ */
 .today-grid {
   display: grid;
@@ -347,6 +358,18 @@ html { scroll-behavior: smooth; }
 
   /* ── Premium ── */
   .prem-stats { gap: 16px !important; }
+
+  /* ── Sub-tab bar ── */
+  .sub-tab-bar { padding: 8px 12px !important; }
+
+  /* ── CompanyCard: P&L KPI 카드 2열 (3열 → 2열) ── */
+  .fin-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* ── 뒤로가기 버튼 터치 타겟 확대 ── */
+  .detail-back-btn { min-height: 44px !important; }
+
+  /* ── 공통 작은 버튼 터치 타겟 ── */
+  .sub-tab-btn { min-height: 44px !important; padding-top: 11px !important; padding-bottom: 11px !important; }
 }
 
 /* ═══ Small Mobile (≤480px) ════════════════════════════════════════════ */

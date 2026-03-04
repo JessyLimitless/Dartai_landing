@@ -150,12 +150,13 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
             className={mobileTab === t.key ? 'active' : ''}
             onClick={() => setMobileTab(t.key)}
             style={{
-              flex: 1, padding: '8px 0', border: 'none', cursor: 'pointer',
-              fontSize: '12px', fontWeight: mobileTab === t.key ? 700 : 500,
+              flex: 1, padding: '12px 0', border: 'none', cursor: 'pointer',
+              fontSize: '13px', fontWeight: mobileTab === t.key ? 700 : 500,
               backgroundColor: 'transparent',
               color: mobileTab === t.key ? PREMIUM.accent : colors.textMuted,
               borderBottom: mobileTab === t.key ? `2px solid ${PREMIUM.accent}` : '2px solid transparent',
               transition: 'all 0.15s',
+              WebkitTapHighlightColor: 'transparent',
             }}
           >
             {t.label}
@@ -531,7 +532,7 @@ function FinancialChart({ financials, sector }) {
   return (
     <div>
       {/* ① 최신년도 KPI 요약 카드 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
+      <div className="fin-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
         {plMetrics.map(m => {
           const latestVal = pickValue(m.key, latestIdx)
           const yoy = items[m.yoyKey]?.[pickIndices[latestIdx]]
@@ -664,7 +665,8 @@ function FinancialChart({ financials, sector }) {
         }}>
           P&amp;L (단위: 억원)
         </div>
-        <div style={{ borderRadius: '10px', border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '10px' }}>
+        <div style={{ minWidth: `${90 + displayYears.length * 90}px`, borderRadius: '10px', border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
           {/* 헤더 */}
           <div style={{
             display: 'grid', gridTemplateColumns: `90px repeat(${displayYears.length}, 1fr)`,
@@ -752,6 +754,7 @@ function FinancialChart({ financials, sector }) {
             )
           })}
         </div>
+        </div>
       </div>
 
       {/* ④ Balance Sheet */}
@@ -763,7 +766,8 @@ function FinancialChart({ financials, sector }) {
           }}>
             Balance Sheet
           </div>
-          <div style={{ borderRadius: '10px', border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '10px' }}>
+          <div style={{ minWidth: `${100 + displayYears.length * 90}px`, borderRadius: '10px', border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
             {/* 헤더 */}
             <div style={{
               display: 'grid', gridTemplateColumns: `100px repeat(${displayYears.length}, 1fr)`,
@@ -846,6 +850,7 @@ function FinancialChart({ financials, sector }) {
                 </div>
               )
             })()}
+          </div>
           </div>
         </div>
       )}
