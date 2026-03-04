@@ -83,8 +83,8 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
 
   return (
     <div className="page-container content-fade-in" style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px' }}>
-      {/* 뒤로가기 + 비교 버튼 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+      {/* 뒤로가기 */}
+      <div style={{ marginBottom: '14px' }}>
         <button onClick={handleBack} style={{
           ...getLinkBtnStyle(colors), fontSize: '12px',
           display: 'flex', alignItems: 'center', gap: '4px',
@@ -94,7 +94,6 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
           </svg>
           목록으로
         </button>
-        {corpCode && <CompareButton corpCode={corpCode} colors={colors} dark={dark} />}
       </div>
 
       {/* 코스닥 종목: 준비중 팝업 오버레이 */}
@@ -227,104 +226,6 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
   )
 }
 
-
-// ── 비교 버튼 ─────────────────────────────────────────────────────
-
-function CompareButton({ corpCode, colors, dark }) {
-  const navigate = useNavigate()
-  const [open, setOpen] = React.useState(false)
-  const [query, setQuery] = React.useState('')
-  const [results, setResults] = React.useState([])
-
-  React.useEffect(() => {
-    if (!query || query.length < 2) { setResults([]); return }
-    const timer = setTimeout(() => {
-      fetch(`${API}/api/companies/search?q=${encodeURIComponent(query)}&limit=5`)
-        .then((r) => r.ok ? r.json() : { results: [] })
-        .then((d) => setResults(d.results || d.stocks || []))
-        .catch(() => setResults([]))
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [query])
-
-  const selectCompare = (cc) => {
-    setOpen(false)
-    setQuery('')
-    navigate(`/deep-dive/${corpCode}?compare=${cc}`)
-  }
-
-  return (
-    <div style={{ position: 'relative' }}>
-      <button
-        onClick={() => setOpen(!open)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: '5px',
-          padding: '5px 12px', borderRadius: '6px',
-          border: `1px solid ${colors.border}`,
-          background: 'transparent', cursor: 'pointer',
-          fontSize: '11px', fontWeight: 600, color: colors.textSecondary,
-          transition: 'all 0.15s',
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.borderColor = PREMIUM.accent; e.currentTarget.style.color = PREMIUM.accent }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.color = colors.textSecondary }}
-      >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <rect x="2" y="3" width="8" height="18" rx="1" />
-          <rect x="14" y="3" width="8" height="18" rx="1" />
-        </svg>
-        비교
-      </button>
-
-      {open && (
-        <div style={{
-          position: 'absolute', top: '100%', right: 0, marginTop: '6px',
-          width: '260px', backgroundColor: colors.bgCard,
-          border: `1px solid ${colors.border}`,
-          borderRadius: '10px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-          zIndex: 200, padding: '8px',
-        }}>
-          <input
-            autoFocus
-            placeholder="기업명 검색..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            style={{
-              width: '100%', padding: '8px 10px', fontSize: '12px',
-              border: `1px solid ${colors.border}`, borderRadius: '6px',
-              backgroundColor: dark ? 'rgba(255,255,255,0.04)' : '#FAFAFA',
-              color: colors.textPrimary, outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-          {results.length > 0 && (
-            <div style={{ marginTop: '4px' }}>
-              {results.map((r) => (
-                <div
-                  key={r.corp_code}
-                  onClick={() => selectCompare(r.corp_code)}
-                  style={{
-                    padding: '7px 10px', cursor: 'pointer', borderRadius: '6px',
-                    fontSize: '12px', color: colors.textPrimary,
-                    transition: 'background-color 0.1s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.06)' : '#F4F4F5' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
-                >
-                  <span style={{ fontWeight: 600 }}>{r.corp_name}</span>
-                  {r.stock_code && (
-                    <span style={{ marginLeft: '8px', color: colors.textMuted, fontFamily: FONTS.mono, fontSize: '10px' }}>
-                      {r.stock_code}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
 
 
 // ── 공통 래퍼 ─────────────────────────────────────────────────────

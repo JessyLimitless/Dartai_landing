@@ -11,23 +11,6 @@ import { API } from '../lib/api'
 import { FONTS, GRADE_COLORS, MARKET_LABELS, PREMIUM } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
 
-/* ── UTC → KST 변환 헬퍼 ── */
-function utcToKST(utcStr) {
-  if (!utcStr) return null
-  const d = new Date(utcStr.replace(' ', 'T') + 'Z')
-  return new Date(d.getTime() + 9 * 60 * 60 * 1000)
-}
-function kstTimeStr(utcStr) {
-  const kst = utcToKST(utcStr)
-  if (!kst) return ''
-  const h = String(kst.getUTCHours()).padStart(2, '0')
-  const m = String(kst.getUTCMinutes()).padStart(2, '0')
-  return `${h}:${m}`
-}
-function kstHour(utcStr) {
-  const kst = utcToKST(utcStr)
-  return kst ? kst.getUTCHours() : 0
-}
 
 export default function TodayPage({ onViewCard }) {
   const { colors, dark } = useTheme()
@@ -41,38 +24,11 @@ export default function TodayPage({ onViewCard }) {
   /* ── S등급 하이라이트 (최대 3개) ── */
   const sHighlights = disclosures.filter(d => d.grade === 'S').slice(0, 3)
 
-  /* ── 오전/오후 그룹핑 (KST 기준) ── */
-  const grouped = React.useMemo(() => {
-    if (!disclosures.length) return []
-    const pm = []
-    const am = []
-    disclosures.forEach(d => {
-      if (kstHour(d.created_at) >= 12) pm.push(d)
-      else am.push(d)
-    })
-    const result = []
-    if (pm.length > 0) {
-      result.push({ type: 'divider', label: '오후' })
-      pm.forEach(d => result.push({ type: 'row', data: d }))
-    }
-    if (am.length > 0) {
-      result.push({ type: 'divider', label: '오전' })
-      am.forEach(d => result.push({ type: 'row', data: d }))
-    }
-    return result
-  }, [disclosures])
-
-  /* ── 갱신 시각: 최신 공시 기준 (KST) ── */
-  const lastUpdated = disclosures.length > 0 && disclosures[0].created_at
-    ? kstTimeStr(disclosures[0].created_at)
-    : null
-
   return (
     <div className="page-container" style={{ padding: '24px 20px', maxWidth: '1400px', margin: '0 auto' }}>
       {/* ── DateHeader ── */}
       <DateHeader
         counts={counts}
-        lastUpdated={lastUpdated}
         gradeFilter={gradeFilter}
         setGradeFilter={setGradeFilter}
         colors={colors}
@@ -110,13 +66,9 @@ export default function TodayPage({ onViewCard }) {
                 />
               )
             ) : (
-              grouped.map((item, i) =>
-                item.type === 'divider' ? (
-                  <TimeDivider key={`div-${item.label}`} label={item.label} colors={colors} dark={dark} />
-                ) : (
-                  <FeedRow key={item.data.rcept_no} d={item.data} delay={i * 20} onViewCard={onViewCard} colors={colors} dark={dark} isFav={isFavorite(item.data.corp_code)} onToggleFav={() => toggleFavorite(item.data)} />
-                )
-              )
+              disclosures.map((d, i) => (
+                <FeedRow key={d.rcept_no} d={d} delay={i * 20} onViewCard={onViewCard} colors={colors} dark={dark} isFav={isFavorite(d.corp_code)} onToggleFav={() => toggleFavorite(d)} />
+              ))
             )}
           </div>
         </div>
@@ -137,8 +89,8 @@ export default function TodayPage({ onViewCard }) {
   )
 }
 
-/* ── DateHeader: 날짜 + 갱신 시각 + GradeBlocks ── */
-function DateHeader({ counts, lastUpdated, gradeFilter, setGradeFilter, colors, dark }) {
+/* ── DateHeader: 날짜 + GradeBlocks ── */
+function DateHeader({ counts, gradeFilter, setGradeFilter, colors, dark }) {
   const now = new Date()
   const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
   const dateStr = `${now.getMonth() + 1}월 ${now.getDate()}일 ${dayNames[now.getDay()]}`
@@ -165,37 +117,11 @@ function DateHeader({ counts, lastUpdated, gradeFilter, setGradeFilter, colors, 
           </p>
         </div>
 
-        {lastUpdated && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '5px 12px', borderRadius: '16px',
-            backgroundColor: dark ? 'rgba(255,255,255,0.05)' : '#F0FDF4',
-            border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : '#BBF7D0'}`,
-          }}>
-            <span style={{
-              width: '6px', height: '6px', borderRadius: '50%',
-              backgroundColor: '#22C55E', display: 'inline-block',
-              animation: 'today-pulse 2s ease-in-out infinite',
-            }} />
-            <span style={{
-              fontSize: '11px', color: dark ? '#86EFAC' : '#15803D',
-              fontFamily: FONTS.mono, fontWeight: 600,
-            }}>
-              {lastUpdated}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Line 2: GradeBlocks */}
       <GradeBlocks counts={counts} gradeFilter={gradeFilter} setGradeFilter={setGradeFilter} colors={colors} dark={dark} />
 
-      <style>{`
-        @keyframes today-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
     </div>
   )
 }
@@ -306,26 +232,6 @@ function SearchBar({ search, setSearch, colors, dark }) {
   )
 }
 
-/* ── TimeDivider: 오전/오후 구분선 ── */
-function TimeDivider({ label, colors, dark }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '10px',
-      padding: '6px 16px',
-      backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
-      borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5'}`,
-    }}>
-      <span style={{
-        fontSize: '10px', fontWeight: 700, color: colors.textMuted,
-        fontFamily: FONTS.mono, letterSpacing: '0.06em',
-        textTransform: 'uppercase', flexShrink: 0,
-      }}>
-        {label}
-      </span>
-      <div style={{ flex: 1, height: '1px', backgroundColor: colors.border, opacity: 0.5 }} />
-    </div>
-  )
-}
 
 /* ── HighlightCard: 오늘의 핵심 (S등급) ── */
 function HighlightCard({ highlights, onViewCard, colors, dark }) {
