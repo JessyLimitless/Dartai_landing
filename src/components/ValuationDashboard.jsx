@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useValuations } from '../hooks/useValuations'
 import Skeleton from './Skeleton'
@@ -35,12 +35,12 @@ const SEVERITY_ICON = {
 export default function ValuationDashboard({ onViewCard }) {
   const { colors, dark } = useTheme()
   const {
-    companies, summary, loading, sortKey, sortOrder,
-    toggleSort, riskOnly, toggleRiskOnly,
+    companies, allCompanies, summary, loading, sortKey, sortOrder,
+    toggleSort, activeFilter, setFilter,
   } = useValuations()
   const navigate = useNavigate()
 
-  const criticalCount = companies.filter((c) =>
+  const criticalCount = allCompanies.filter((c) =>
     c.risk_flags?.some((f) => f.severity === 'CRITICAL')
   ).length
 
@@ -55,7 +55,7 @@ export default function ValuationDashboard({ onViewCard }) {
           Valuation Screening
         </h2>
         <p style={{ fontSize: '13px', color: colors.textMuted, margin: '4px 0 0' }}>
-          PER / PBR / ROE peer comparison + risk alerts
+          PER / PBR / ROE peer comparison + risk alerts · 카드 클릭 시 필터
         </p>
       </div>
 
@@ -65,10 +65,39 @@ export default function ValuationDashboard({ onViewCard }) {
         <>
           {/* Summary cards */}
           <div className="val-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
-            <SummaryCard label="Total" value={summary.total} color={colors.textPrimary} colors={colors} dark={dark} />
-            <SummaryCard label="Undervalued" value={summary.undervalued_count} color={colors.positive} colors={colors} dark={dark} />
-            <SummaryCard label="Overvalued" value={summary.overvalued_count} color={dark ? '#93C5FD' : '#2563EB'} colors={colors} dark={dark} />
-            <SummaryCard label="Risk" value={summary.risk_count} color="#D97706" colors={colors} dark={dark} />
+            <SummaryCard
+              label="Total" value={summary.total} color={colors.textPrimary}
+              colors={colors} dark={dark}
+              active={activeFilter === null}
+              onClick={() => setFilter(null)}
+            />
+            <SummaryCard
+              label="Undervalued" value={summary.undervalued_count} color={colors.positive}
+              colors={colors} dark={dark}
+              active={activeFilter === 'undervalued'}
+              activeColor={dark ? 'rgba(74,222,128,0.15)' : '#DCFCE7'}
+              activeBorder={dark ? 'rgba(74,222,128,0.35)' : '#86EFAC'}
+              onClick={() => setFilter('undervalued')}
+              guideType="undervalued"
+            />
+            <SummaryCard
+              label="Overvalued" value={summary.overvalued_count} color={dark ? '#93C5FD' : '#2563EB'}
+              colors={colors} dark={dark}
+              active={activeFilter === 'overvalued'}
+              activeColor={dark ? 'rgba(96,165,250,0.15)' : '#DBEAFE'}
+              activeBorder={dark ? 'rgba(96,165,250,0.35)' : '#93C5FD'}
+              onClick={() => setFilter('overvalued')}
+              guideType="overvalued"
+            />
+            <SummaryCard
+              label="Risk" value={summary.risk_count} color="#D97706"
+              colors={colors} dark={dark}
+              active={activeFilter === 'risk'}
+              activeColor={dark ? 'rgba(217,119,6,0.15)' : '#FEF3C7'}
+              activeBorder={dark ? 'rgba(217,119,6,0.35)' : '#FCD34D'}
+              onClick={() => setFilter('risk')}
+              guideType="risk"
+            />
           </div>
 
           {/* Critical banner */}
@@ -99,15 +128,29 @@ export default function ValuationDashboard({ onViewCard }) {
           }}>
             <span style={{ fontSize: '12px', color: colors.textMuted }}>
               {companies.length} stocks
+              {activeFilter && (
+                <span style={{
+                  marginLeft: '6px', padding: '1px 7px', borderRadius: '10px',
+                  fontSize: '10px', fontWeight: 600,
+                  backgroundColor: dark ? 'rgba(255,255,255,0.08)' : '#F4F4F5',
+                  color: colors.textSecondary,
+                }}>
+                  {activeFilter === 'undervalued' ? 'Undervalued' : activeFilter === 'overvalued' ? 'Overvalued' : 'Risk'} 필터 중
+                </span>
+              )}
             </span>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px', color: colors.textSecondary }}>
-              <input
-                type="checkbox" checked={riskOnly}
-                onChange={toggleRiskOnly}
-                style={{ accentColor: '#D97706' }}
-              />
-              Risk only
-            </label>
+            {activeFilter && (
+              <button
+                onClick={() => setFilter(null)}
+                style={{
+                  fontSize: '11px', color: colors.textMuted, background: 'none',
+                  border: 'none', cursor: 'pointer', padding: '2px 6px',
+                  borderRadius: '4px',
+                }}
+              >
+                ✕ 필터 해제
+              </button>
+            )}
           </div>
 
           {companies.length === 0 ? (
@@ -178,14 +221,156 @@ export default function ValuationDashboard({ onViewCard }) {
 }
 
 
-function SummaryCard({ label, value, color, colors, dark }) {
+// ── 판단 기준 가이드 데이터 ──────────────────────────────────────
+const GUIDE = {
+  undervalued: {
+    title: '저평가 판단 기준',
+    color: '#166534',
+    items: [
+      { icon: '①', text: 'PER < 업종 평균 × 0.7', sub: '동일 업종 대비 30% 이상 저렴' },
+      { icon: '②', text: 'PBR < 1.0', sub: '주가가 순자산(청산가치) 이하 거래' },
+      { icon: '', text: '두 조건 동시 충족 시 저평가 판정', sub: '' },
+    ],
+  },
+  overvalued: {
+    title: '고평가 판단 기준',
+    color: '#1E40AF',
+    items: [
+      { icon: '①', text: 'PER > 업종 평균 × 1.5', sub: '동일 업종 대비 50% 이상 고가' },
+      { icon: '', text: 'PBR 조건 없이 PER만으로 판정', sub: '성장주도 포함될 수 있음' },
+    ],
+  },
+  risk: {
+    title: 'Risk 판단 기준',
+    color: '#B45309',
+    items: [
+      { icon: '🔴', text: '완전자본잠식', sub: '자본총계 ≤ 0 (CRITICAL)' },
+      { icon: '🟠', text: '부채비율 > 200%', sub: '자기자본 대비 부채 과다 (WARNING)' },
+      { icon: '🟠', text: '영업적자', sub: '영업이익 < 0 (WARNING)' },
+      { icon: '🟡', text: '순손실 / PER > 100', sub: '순이익 < 0 또는 PER 과열 (CAUTION)' },
+    ],
+  },
+}
+
+function InfoTooltip({ type, dark, colors }) {
+  const [open, setOpen] = useState(false)
+  const guide = GUIDE[type]
+  if (!guide) return null
+
   return (
-    <div style={{
-      padding: '14px 16px', borderRadius: '10px',
-      backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA',
-      border: `1px solid ${colors.border}`,
-    }}>
-      <div style={{ fontSize: '11px', color: colors.textMuted, marginBottom: '4px', fontWeight: 500 }}>{label}</div>
+    <span
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <span
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
+        style={{
+          fontSize: '11px', lineHeight: 1,
+          color: dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)',
+          cursor: 'pointer', userSelect: 'none',
+          marginLeft: '4px',
+        }}
+        title="판단 기준 보기"
+      >
+        ⓘ
+      </span>
+
+      {open && (
+        <div style={{
+          position: 'absolute',
+          bottom: 'calc(100% + 8px)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '230px',
+          backgroundColor: dark ? '#1E2533' : '#ffffff',
+          border: `1px solid ${dark ? 'rgba(255,255,255,0.12)' : '#E4E4E7'}`,
+          borderRadius: '10px',
+          padding: '12px 14px',
+          zIndex: 200,
+          boxShadow: dark
+            ? '0 8px 24px rgba(0,0,0,0.5)'
+            : '0 8px 24px rgba(0,0,0,0.12)',
+          pointerEvents: 'none',
+        }}>
+          {/* 말풍선 꼭짓점 */}
+          <div style={{
+            position: 'absolute', bottom: '-6px', left: '50%',
+            transform: 'translateX(-50%) rotate(45deg)',
+            width: '10px', height: '10px',
+            backgroundColor: dark ? '#1E2533' : '#ffffff',
+            border: `1px solid ${dark ? 'rgba(255,255,255,0.12)' : '#E4E4E7'}`,
+            borderTop: 'none', borderLeft: 'none',
+          }} />
+
+          <div style={{
+            fontSize: '11px', fontWeight: 700,
+            color: guide.color,
+            marginBottom: '8px', letterSpacing: '0.01em',
+          }}>
+            {guide.title}
+          </div>
+
+          {guide.items.map((item, i) => (
+            <div key={i} style={{ marginBottom: i < guide.items.length - 1 ? '7px' : 0 }}>
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'flex-start' }}>
+                {item.icon && (
+                  <span style={{ fontSize: '10px', flexShrink: 0, marginTop: '1px' }}>
+                    {item.icon}
+                  </span>
+                )}
+                <span style={{ fontSize: '11px', fontWeight: 600, color: dark ? '#E4E4E7' : '#18181B' }}>
+                  {item.text}
+                </span>
+              </div>
+              {item.sub && (
+                <div style={{
+                  fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#71717A',
+                  marginLeft: item.icon ? '15px' : '0', marginTop: '1px',
+                }}>
+                  {item.sub}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </span>
+  )
+}
+
+function SummaryCard({ label, value, color, colors, dark, active, activeColor, activeBorder, onClick, guideType }) {
+  const isClickable = !!onClick
+  const bg = active && activeColor
+    ? activeColor
+    : (dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA')
+  const border = active && activeBorder
+    ? `1.5px solid ${activeBorder}`
+    : `1px solid ${colors.border}`
+
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        padding: '14px 16px', borderRadius: '10px',
+        backgroundColor: bg,
+        border,
+        cursor: isClickable ? 'pointer' : 'default',
+        transition: 'background-color 0.15s, border-color 0.15s',
+        position: 'relative',
+      }}
+      onMouseEnter={(e) => {
+        if (isClickable && !active) e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.06)' : '#F0F0F5'
+      }}
+      onMouseLeave={(e) => {
+        if (isClickable && !active) e.currentTarget.style.backgroundColor = bg
+      }}
+    >
+      <div style={{ fontSize: '11px', color: colors.textMuted, marginBottom: '4px', fontWeight: 500, display: 'flex', alignItems: 'center' }}>
+        {label}
+        {active && <span style={{ marginLeft: '4px', fontSize: '9px', opacity: 0.7 }}>●</span>}
+        {guideType && <InfoTooltip type={guideType} dark={dark} colors={colors} />}
+      </div>
       <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: FONTS.mono, color, letterSpacing: '-0.02em' }}>
         {value != null ? value : 0}
       </div>

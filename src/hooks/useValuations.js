@@ -9,7 +9,7 @@ export function useValuations() {
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey] = useState('market_cap')
   const [sortOrder, setSortOrder] = useState('desc')
-  const [riskOnly, setRiskOnly] = useState(false)
+  const [activeFilter, setActiveFilter] = useState(null) // null | 'undervalued' | 'overvalued' | 'risk'
 
   const fetchValuations = useCallback(() => {
     setLoading(true)
@@ -42,13 +42,17 @@ export function useValuations() {
     }
   }, [sortKey])
 
-  const toggleRiskOnly = useCallback(() => {
-    setRiskOnly((prev) => !prev)
+  const setFilter = useCallback((filter) => {
+    setActiveFilter((prev) => prev === filter ? null : filter)
   }, [])
 
-  const filtered = riskOnly
-    ? companies.filter((c) => c.risk_flags && c.risk_flags.length > 0)
-    : companies
+  const filtered = companies.filter((c) => {
+    if (!activeFilter) return true
+    if (activeFilter === 'risk') return c.risk_flags && c.risk_flags.length > 0
+    if (activeFilter === 'undervalued') return c.peer?.verdict === '저평가'
+    if (activeFilter === 'overvalued') return c.peer?.verdict === '고평가'
+    return true
+  })
 
   return {
     companies: filtered,
@@ -58,8 +62,8 @@ export function useValuations() {
     sortKey,
     sortOrder,
     toggleSort,
-    riskOnly,
-    toggleRiskOnly,
+    activeFilter,
+    setFilter,
     refresh: fetchValuations,
   }
 }
