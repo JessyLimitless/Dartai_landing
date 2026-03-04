@@ -207,15 +207,6 @@ export default function ValuationDashboard({ onViewCard }) {
         </>
       )}
 
-      <style>{`
-        @media (max-width: 640px) {
-          .val-hide-mobile { display: none !important; }
-          .val-table-header, .val-table-row {
-            grid-template-columns: 1.5fr repeat(3, 1fr) 70px !important;
-          }
-          .val-summary-grid { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-      `}</style>
     </div>
   )
 }

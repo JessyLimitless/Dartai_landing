@@ -7,7 +7,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM, formatKoreanNumber } from '../constants/theme'
 
 const SORT_COLUMNS = [
-  { key: 'market_cap', label: 'Mkt Cap' },
+  { key: 'market_cap', label: 'Mkt Cap', hideOnMobile: true },
   { key: 'per', label: 'PER' },
   { key: 'pbr', label: 'PBR', hideOnMobile: true },
   { key: 'roe', label: 'ROE', hideOnMobile: true },
@@ -148,6 +148,7 @@ export default function ScreenerDashboard({ onViewCard }) {
 
           {/* Advanced Filters Toggle */}
           <button
+            className="scr-filter-btn"
             onClick={() => setFilterOpen(!filterOpen)}
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
@@ -173,7 +174,7 @@ export default function ScreenerDashboard({ onViewCard }) {
 
           {/* Filter Panel */}
           {filterOpen && (
-            <div style={{
+            <div className="scr-filter-panel" style={{
               padding: '16px 18px', borderRadius: '12px',
               backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA',
               border: `1px solid ${colors.border}`,
@@ -288,23 +289,6 @@ export default function ScreenerDashboard({ onViewCard }) {
         </>
       )}
 
-      {/* Responsive CSS */}
-      <style>{`
-        @media (max-width: 640px) {
-          .scr-hide-mobile { display: none !important; }
-          .scr-table-header, .scr-table-row {
-            grid-template-columns: 1.8fr 0.8fr 0.8fr 0.7fr 72px !important;
-          }
-          .screener-filter-grid {
-            grid-template-columns: 1fr 1fr !important;
-          }
-          .scr-guide-row { padding-left: 12px !important; padding-right: 12px !important; }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
     </div>
   )
 }
@@ -474,7 +458,7 @@ function ScreenerRow({ company: c, even, activePreset, onClick }) {
         </div>
 
         {/* Mkt Cap */}
-        <div style={{ textAlign: 'right' }}>
+        <div className="scr-hide-mobile" style={{ textAlign: 'right' }}>
           <span style={{
             fontSize: '12px', fontWeight: 600, fontFamily: FONTS.mono,
             color: colors.textPrimary,

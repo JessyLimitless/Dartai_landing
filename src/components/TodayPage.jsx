@@ -11,6 +11,24 @@ import { API } from '../lib/api'
 import { FONTS, GRADE_COLORS, MARKET_LABELS, PREMIUM } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
 
+/* ── UTC → KST 변환 헬퍼 ── */
+function utcToKST(utcStr) {
+  if (!utcStr) return null
+  const d = new Date(utcStr.replace(' ', 'T') + 'Z')
+  return new Date(d.getTime() + 9 * 60 * 60 * 1000)
+}
+function kstTimeStr(utcStr) {
+  const kst = utcToKST(utcStr)
+  if (!kst) return ''
+  const h = String(kst.getUTCHours()).padStart(2, '0')
+  const m = String(kst.getUTCMinutes()).padStart(2, '0')
+  return `${h}:${m}`
+}
+function kstHour(utcStr) {
+  const kst = utcToKST(utcStr)
+  return kst ? kst.getUTCHours() : 0
+}
+
 export default function TodayPage({ onViewCard }) {
   const { colors, dark } = useTheme()
   const {
@@ -23,14 +41,13 @@ export default function TodayPage({ onViewCard }) {
   /* ── S등급 하이라이트 (최대 3개) ── */
   const sHighlights = disclosures.filter(d => d.grade === 'S').slice(0, 3)
 
-  /* ── 오전/오후 그룹핑 ── */
+  /* ── 오전/오후 그룹핑 (KST 기준) ── */
   const grouped = React.useMemo(() => {
     if (!disclosures.length) return []
     const pm = []
     const am = []
     disclosures.forEach(d => {
-      const hour = d.created_at ? parseInt(d.created_at.substring(11, 13), 10) : 0
-      if (hour >= 12) pm.push(d)
+      if (kstHour(d.created_at) >= 12) pm.push(d)
       else am.push(d)
     })
     const result = []
@@ -45,9 +62,9 @@ export default function TodayPage({ onViewCard }) {
     return result
   }, [disclosures])
 
-  /* ── 갱신 시각: 최신 공시 기준 ── */
+  /* ── 갱신 시각: 최신 공시 기준 (KST) ── */
   const lastUpdated = disclosures.length > 0 && disclosures[0].created_at
-    ? disclosures[0].created_at.substring(11, 16)
+    ? kstTimeStr(disclosures[0].created_at)
     : null
 
   return (
@@ -528,7 +545,7 @@ function FeedRow({ d, delay, onViewCard, colors, dark, isFav, onToggleFav }) {
   const [hovered, setHovered] = React.useState(false)
   const [starAnim, setStarAnim] = React.useState(false)
   const market = MARKET_LABELS[d.corp_cls] || ''
-  const time = d.created_at ? d.created_at.substring(11, 16) : ''
+  const time = kstTimeStr(d.created_at)
 
   const handleStarClick = (e) => {
     e.stopPropagation()

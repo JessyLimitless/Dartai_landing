@@ -269,15 +269,6 @@ export default function FlowDashboard({ onViewCard }) {
         </div>
       )}
 
-      <style>{`
-        @keyframes flow-spin { to { transform: rotate(360deg); } }
-        @media (max-width: 640px) {
-          .flow-hide-mobile { display: none !important; }
-          .flow-table-header, .flow-table-row {
-            grid-template-columns: 36px 1.5fr 1fr 0.7fr !important;
-          }
-        }
-      `}</style>
     </div>
   )
 }

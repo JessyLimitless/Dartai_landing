@@ -174,11 +174,6 @@ export default function VariableDashboard({ onViewCard }) {
         </>
       )}
 
-      <style>{`
-        @media (max-width: 768px) {
-          .var-table-header { display: none !important; }
-        }
-      `}</style>
     </div>
   )
 }
@@ -221,6 +216,7 @@ function ScoreRow({ score, idx, onClick, colors, dark }) {
 
   return (
     <div
+      className="var-score-row"
       onClick={onClick}
       style={{
         display: 'grid',
@@ -278,7 +274,7 @@ function ScoreRow({ score, idx, onClick, colors, dark }) {
       </div>
 
       {/* 4-Factor Mini Bars */}
-      <div style={{ display: 'flex', gap: '3px', alignItems: 'center', padding: '0 4px' }}>
+      <div className="var-factor-col" style={{ display: 'flex', gap: '3px', alignItems: 'center', padding: '0 4px' }}>
         {FACTOR_KEYS.map((key, idx) => {
           const val = score[key] || 5
           const pct = Math.min((val / 10) * 100, 100)

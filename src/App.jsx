@@ -98,7 +98,7 @@ export default function App() {
           </>
         )}
         <ErrorBoundary>
-          <main>
+          <main className="app-content">
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/today" element={<TodayPage onViewCard={navigateToCard} />} />
