@@ -41,8 +41,9 @@ export default function FlowDashboard({ onViewCard }) {
   } = useForeignFlow()
   const [infoOpen, setInfoOpen] = useState(false)
 
-  // 당일 탭에서 장외 시간이면 데이터를 표시하지 않음
-  const showItems = period !== 'day' || isMarketOpen()
+  // 당일 탭에서 장중(09:00~15:30)이면 데이터를 표시하지 않음
+  const marketOpen = isMarketOpen()
+  const showItems = period !== 'day' || !marketOpen
   const buyItems = showItems ? items.filter((it) => it.side === 'buy') : []
   const sellItems = showItems ? items.filter((it) => it.side === 'sell') : []
 
@@ -106,7 +107,7 @@ export default function FlowDashboard({ onViewCard }) {
         }}>
           <span style={{ fontSize: '14px', flexShrink: 0 }}>ℹ️</span>
           <span style={{ fontSize: '12px', color: dark ? '#FDE68A' : '#92400E', flex: 1, lineHeight: 1.5 }}>
-            당일 수급은 <strong>장 마감(15:30) 이후</strong> 집계됩니다. 장 중에는 직전 영업일 기준으로 표시됩니다.
+            당일 수급은 <strong>장 마감(15:30) 이후</strong> 집계됩니다. 장 중에는 데이터가 표시되지 않습니다.
           </span>
           <button
             onClick={() => setInfoOpen(true)}
@@ -163,7 +164,7 @@ export default function FlowDashboard({ onViewCard }) {
               </p>
               <p style={{ margin: '0 0 12px' }}>
                 📌 <strong>장 중 (09:00~15:30)</strong><br />
-                당일 집계 미완료 → 직전 영업일 기준으로 표시
+                당일 집계 미완료 → 데이터 표시 안 됨 (1주/1개월 탭 이용)
               </p>
               <p style={{ margin: '0 0 12px' }}>
                 📌 <strong>장 마감 후 (15:30~)</strong><br />
@@ -229,13 +230,28 @@ export default function FlowDashboard({ onViewCard }) {
           {items.length > 0 ? (
             <div style={{ opacity: 0.4, pointerEvents: 'none' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                <FlowSection title={`Net Buy TOP 20`} side="buy" items={buyItems} tab={tab} dark={dark} colors={colors} onRowClick={handleRowClick} />
-                <FlowSection title={`Net Sell TOP 20`} side="sell" items={sellItems} tab={tab} dark={dark} colors={colors} onRowClick={handleRowClick} />
+                <FlowSection title="Net Buy TOP 20" side="buy" items={buyItems} tab={tab} dark={dark} colors={colors} onRowClick={handleRowClick} />
+                <FlowSection title="Net Sell TOP 20" side="sell" items={sellItems} tab={tab} dark={dark} colors={colors} onRowClick={handleRowClick} />
               </div>
             </div>
           ) : (
             <FlowSkeleton colors={colors} dark={dark} />
           )}
+        </div>
+      ) : !showItems ? (
+        /* 당일 + 장중: 데이터 숨김 */
+        <div style={{
+          padding: '80px 20px', textAlign: 'center',
+          borderRadius: '12px', backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
+          border: `1px dashed ${colors.border}`,
+        }}>
+          <div style={{ fontSize: '28px', marginBottom: '12px' }}>📊</div>
+          <div style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '6px', fontWeight: 600 }}>
+            장 마감 후 집계됩니다
+          </div>
+          <div style={{ fontSize: '12px', color: colors.textMuted }}>
+            15:30 이후 당일 확정 데이터 반영 — 1주/1개월 탭을 이용해 주세요
+          </div>
         </div>
       ) : items.length === 0 ? (
         <div style={{
@@ -243,21 +259,8 @@ export default function FlowDashboard({ onViewCard }) {
           borderRadius: '12px', backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
           border: `1px dashed ${colors.border}`,
         }}>
-          {period === 'day' ? (
-            <>
-              <div style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '6px', fontWeight: 600 }}>
-                장 마감 후 집계됩니다
-              </div>
-              <div style={{ fontSize: '12px', color: colors.textMuted }}>
-                15:30 이후 갱신 — 1주/1개월 데이터를 먼저 확인해보세요
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '6px' }}>데이터 없음</div>
-              <div style={{ fontSize: '12px', color: colors.textMuted }}>잠시 후 다시 시도해 주세요</div>
-            </>
-          )}
+          <div style={{ fontSize: '14px', color: colors.textSecondary, marginBottom: '6px' }}>데이터 없음</div>
+          <div style={{ fontSize: '12px', color: colors.textMuted }}>잠시 후 다시 시도해 주세요</div>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
