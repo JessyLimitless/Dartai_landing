@@ -38,7 +38,7 @@ const CHAT_MESSAGES = [
 
 const STATS = [
   { value: '850+', label: '종목 분석' },
-  { value: '7대', label: '변수 스코어링' },
+  { value: '5대', label: '변수 스코어링' },
   { value: '실시간', label: '공시 연동' },
 ]
 

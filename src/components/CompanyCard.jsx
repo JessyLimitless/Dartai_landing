@@ -1334,13 +1334,13 @@ function VariableSection({ score }) {
 
   // Dark mode verdict badge
   const verdictBg = dark
-    ? (score.grade === '순풍' ? 'rgba(34,197,94,0.15)' : score.grade === '양호' ? 'rgba(59,130,246,0.15)'
+    ? (score.grade === '순풍' ? 'rgba(34,197,94,0.15)' : score.grade === '양호' ? 'rgba(74,222,128,0.12)'
       : score.grade === '보통' ? 'rgba(255,255,255,0.08)' : score.grade === '주의' ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)')
-    : gc.badge
+    : gc.bg
   const verdictColor = dark
-    ? (score.grade === '순풍' ? '#4ADE80' : score.grade === '양호' ? '#60A5FA'
+    ? (score.grade === '순풍' ? '#4ADE80' : score.grade === '양호' ? '#86EFAC'
       : score.grade === '보통' ? colors.textSecondary : score.grade === '주의' ? '#FACC15' : '#F87171')
-    : (gc.text === '#F9FAFB' ? '#fff' : gc.text)
+    : gc.text
 
   return (
     <div>
