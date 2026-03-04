@@ -1,9 +1,22 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForeignFlow } from '../hooks/useForeignFlow'
 import Skeleton from './Skeleton'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM } from '../constants/theme'
+
+// 장중 여부: KST 기준 월~금 09:00~15:30
+function isMarketOpen() {
+  const now = new Date()
+  const kstMs = now.getTime() + (9 * 60 * 60 * 1000)
+  const kst = new Date(kstMs)
+  const day = kst.getUTCDay()       // 0=일, 6=토
+  const hour = kst.getUTCHours()
+  const min = kst.getUTCMinutes()
+  if (day === 0 || day === 6) return false
+  const mins = hour * 60 + min
+  return mins >= 9 * 60 && mins <= 15 * 60 + 30
+}
 
 const SUB_TABS = [
   { key: 'foreign', label: '외국인 순매매', icon: 'F' },
@@ -26,9 +39,12 @@ export default function FlowDashboard({ onViewCard }) {
     period, setPeriod,
     items, loading,
   } = useForeignFlow()
+  const [infoOpen, setInfoOpen] = useState(false)
 
-  const buyItems = items.filter((it) => it.side === 'buy')
-  const sellItems = items.filter((it) => it.side === 'sell')
+  // 당일 탭에서 장외 시간이면 데이터를 표시하지 않음
+  const showItems = period !== 'day' || isMarketOpen()
+  const buyItems = showItems ? items.filter((it) => it.side === 'buy') : []
+  const sellItems = showItems ? items.filter((it) => it.side === 'sell') : []
 
   const handleRowClick = (stockCode) => {
     if (!stockCode) return
@@ -78,6 +94,88 @@ export default function FlowDashboard({ onViewCard }) {
           })}
         </div>
       </div>
+
+      {/* 당일 안내 배너 */}
+      {period === 'day' && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '10px 14px', marginBottom: '16px',
+          borderRadius: '10px',
+          backgroundColor: dark ? 'rgba(234,179,8,0.1)' : '#FEFCE8',
+          border: `1px solid ${dark ? 'rgba(234,179,8,0.25)' : '#FDE68A'}`,
+        }}>
+          <span style={{ fontSize: '14px', flexShrink: 0 }}>ℹ️</span>
+          <span style={{ fontSize: '12px', color: dark ? '#FDE68A' : '#92400E', flex: 1, lineHeight: 1.5 }}>
+            당일 수급은 <strong>장 마감(15:30) 이후</strong> 집계됩니다. 장 중에는 직전 영업일 기준으로 표시됩니다.
+          </span>
+          <button
+            onClick={() => setInfoOpen(true)}
+            style={{
+              flexShrink: 0, padding: '3px 10px', borderRadius: '6px',
+              border: `1px solid ${dark ? 'rgba(234,179,8,0.4)' : '#FCD34D'}`,
+              backgroundColor: 'transparent',
+              color: dark ? '#FDE68A' : '#92400E',
+              fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            자세히
+          </button>
+        </div>
+      )}
+
+      {/* 상세 팝업 */}
+      {infoOpen && (
+        <div
+          onClick={() => setInfoOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: colors.bgCard, borderRadius: '16px',
+              padding: '28px 24px', maxWidth: '380px', width: '100%',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              border: `1px solid ${colors.border}`,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: colors.textPrimary }}>
+                당일 수급 데이터 안내
+              </div>
+              <button
+                onClick={() => setInfoOpen(false)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: '18px', color: colors.textMuted, lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ fontSize: '13px', color: colors.textSecondary, lineHeight: 1.8 }}>
+              <p style={{ margin: '0 0 12px' }}>
+                외국인·기관 수급 데이터는 한국거래소(KRX)가 <strong>장 마감(15:30) 이후</strong> 최종 집계하며, 키움증권 API를 통해 제공됩니다.
+              </p>
+              <p style={{ margin: '0 0 12px' }}>
+                📌 <strong>장 중 (09:00~15:30)</strong><br />
+                당일 집계 미완료 → 직전 영업일 기준으로 표시
+              </p>
+              <p style={{ margin: '0 0 12px' }}>
+                📌 <strong>장 마감 후 (15:30~)</strong><br />
+                당일 확정 데이터 반영 (약 10~30분 후 갱신)
+              </p>
+              <p style={{ margin: 0, color: colors.textMuted, fontSize: '12px' }}>
+                1주 / 1개월 탭은 확정된 과거 데이터로 언제든지 조회 가능합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sub-tabs */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>

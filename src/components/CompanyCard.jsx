@@ -164,7 +164,7 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
         ))}
       </div>
 
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {/* 1. 헤더 — always visible */}
         <CompanyHeader header={header} market={market} />
 
@@ -203,7 +203,7 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
             </Section>
           )}
           {variableScore && (
-            <Section title="5대 변수 분석">
+            <Section title="4대 변수 분석">
               <VariableSection score={variableScore} />
             </Section>
           )}
@@ -335,17 +335,16 @@ function Section({ title, children }) {
     <div style={{
       backgroundColor: colors.bgCard,
       borderRadius: '12px',
-      padding: '16px 18px',
+      padding: '14px 16px',
       border: `1px solid ${colors.border}`,
     }}>
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        fontSize: '12px', fontWeight: 700, color: colors.textSecondary,
-        marginBottom: '14px', letterSpacing: '0.03em',
-        textTransform: 'uppercase',
+        display: 'flex', alignItems: 'center', gap: '7px',
+        fontSize: '11px', fontWeight: 600, color: colors.textMuted,
+        marginBottom: '12px', letterSpacing: '0.01em',
       }}>
         <span style={{
-          width: '3px', height: '12px', borderRadius: '1.5px',
+          width: '2px', height: '10px', borderRadius: '1px',
           backgroundColor: PREMIUM.accent, flexShrink: 0,
         }} />
         {title}
@@ -376,7 +375,7 @@ function CompanyHeader({ header, market }) {
     <div style={{
       backgroundColor: colors.bgCard,
       borderRadius: '12px',
-      padding: '20px 22px',
+      padding: '16px 18px',
       border: `1px solid ${colors.border}`,
       borderBottom: `2px solid ${PREMIUM.accent}20`,
     }}>
@@ -516,69 +515,32 @@ function CompanyOverview({ overview, header }) {
     overview.acc_mt ? `${overview.acc_mt}월 결산` : '',
   ].filter(Boolean)
 
-  const contacts = [
-    { label: '주소', value: overview.adres },
-    { label: '전화', value: overview.phn_no },
-    { label: '홈페이지', value: overview.hm_url, isLink: true },
-    { label: 'IR', value: overview.ir_url, isLink: true },
-  ].filter(item => item.value)
+  const irUrl = overview.ir_url || overview.hm_url
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      {tags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-          {tags.map((tag, i) => (
-            <span key={i} style={{
-              fontSize: '11px', fontWeight: 500, color: colors.textSecondary,
-              backgroundColor: dark ? 'rgba(255,255,255,0.05)' : '#F4F4F5',
-              padding: '4px 10px', borderRadius: '6px',
-              fontFamily: i === 0 ? FONTS.body : FONTS.mono,
-              letterSpacing: i === 0 ? '0' : '-0.01em', lineHeight: '1.4',
-            }}>
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {contacts.length > 0 && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '4px 16px',
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+      {tags.map((tag, i) => (
+        <span key={i} style={{
+          fontSize: '11px', fontWeight: 500, color: colors.textSecondary,
+          backgroundColor: dark ? 'rgba(255,255,255,0.05)' : '#F4F4F5',
+          padding: '3px 9px', borderRadius: '6px', lineHeight: '1.4',
         }}>
-          {contacts.map((item, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'baseline', gap: '8px', padding: '5px 0',
-            }}>
-              <span style={{
-                fontSize: '10px', color: colors.textMuted, minWidth: '36px', flexShrink: 0,
-                fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
-              }}>
-                {item.label}
-              </span>
-              {item.isLink ? (
-                <a
-                  href={item.value.startsWith('http') ? item.value : `https://${item.value}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    fontSize: '12px', color: PREMIUM.accent,
-                    textDecoration: 'none', transition: 'opacity 0.15s',
-                  }}
-                  onMouseEnter={(e) => e.target.style.opacity = '0.7'}
-                  onMouseLeave={(e) => e.target.style.opacity = '1'}
-                >
-                  {item.value.replace(/^https?:\/\//, '')}
-                </a>
-              ) : (
-                <span style={{ fontSize: '12px', color: colors.textPrimary, lineHeight: '1.4' }}>
-                  {item.value}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
+          {tag}
+        </span>
+      ))}
+      {irUrl && (
+        <a
+          href={irUrl.startsWith('http') ? irUrl : `https://${irUrl}`}
+          target="_blank" rel="noopener noreferrer"
+          style={{
+            fontSize: '11px', color: PREMIUM.accent,
+            textDecoration: 'none', transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '0.7'}
+          onMouseLeave={(e) => e.target.style.opacity = '1'}
+        >
+          IR/홈페이지 →
+        </a>
       )}
     </div>
   )
@@ -1346,20 +1308,18 @@ function DisclosureHistory({ history, colors, dark }) {
 }
 
 
-// ── 7. 5대 변수 분석 (Phase 11) ──────────────────────────────────
+// ── 7. 4대 변수 분석 (Phase 11) ──────────────────────────────────
 
 const VARIABLE_FACTORS = [
   { key: 'ccc_score', label: '현금흐름의 질', detailKey: 'ccc_detail', num: '01' },
   { key: 'leverage_score', label: '비용 레버리지', detailKey: 'leverage_detail', num: '02' },
   { key: 'dilution_score', label: '희석 리스크', detailKey: 'dilution_detail', num: '03' },
   { key: 'safety_score', label: '재무 안전마진', detailKey: 'safety_detail', num: '04' },
-  { key: 'momentum_score', label: '이익 모멘텀', detailKey: 'momentum_detail', num: '05' },
 ]
 
 const VARIABLE_CATEGORIES = [
   { label: '체질', desc: 'Body', indices: [0, 1] },
   { label: '안전', desc: 'Safety', indices: [2, 3] },
-  { label: '방향', desc: 'Direction', indices: [4] },
 ]
 
 function VariableSection({ score }) {
@@ -1370,7 +1330,6 @@ function VariableSection({ score }) {
   const factors = [
     score.ccc_score || 5, score.leverage_score || 5,
     score.dilution_score || 5, score.safety_score || 5,
-    score.momentum_score || 5,
   ]
 
   // Dark mode verdict badge
@@ -1467,17 +1426,6 @@ function VariableSection({ score }) {
         </div>
       </div>
 
-      {/* AI 코멘트 */}
-      {score.ai_comment && (
-        <div style={{
-          marginTop: '16px', padding: '14px 16px', borderRadius: '10px',
-          backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA',
-          border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#F4F4F5'}`,
-          fontSize: '13px', lineHeight: '1.7', color: colors.textPrimary,
-        }}>
-          {score.ai_comment}
-        </div>
-      )}
     </div>
   )
 }
@@ -1499,8 +1447,6 @@ function _getFactorDesc(key, detail) {
       if (detail.overhang_pct != null) return `오버행 ${detail.overhang_pct}%`
       return detail.reason || ''
     case 'safety_score':
-      return detail.reason || ''
-    case 'momentum_score':
       return detail.reason || ''
     default:
       return ''
@@ -1541,12 +1487,10 @@ function ValuationSection({ cardData }) {
   if (pbr != null && pbr > 0 && pbr < 0.3) risks.push({ flag: '극저PBR', severity: 'WATCH' })
 
   const metrics = [
-    { label: 'PER', value: per, fmt: (v) => v.toFixed(1), good: per != null && per > 0 },
-    { label: 'PBR', value: pbr, fmt: (v) => v.toFixed(2), good: true },
-    { label: 'ROE', value: roe, fmt: (v) => v.toFixed(1) + '%', good: roe != null && roe > 0 },
-    { label: 'OPM', value: opMargin, fmt: (v) => v.toFixed(1) + '%', good: opMargin != null && opMargin > 0 },
-    { label: 'NPM', value: niMargin, fmt: (v) => v.toFixed(1) + '%', good: niMargin != null && niMargin > 0 },
-    { label: 'D/E', value: debtRatio, fmt: (v) => v.toFixed(1) + '%', good: debtRatio != null && debtRatio <= 100 },
+    { label: 'PER', value: per, fmt: (v) => v.toFixed(1) + 'x', good: per != null && per > 0 && per < 30 },
+    { label: 'PBR', value: pbr, fmt: (v) => v.toFixed(2) + 'x', good: pbr != null && pbr > 0 && pbr < 3 },
+    { label: 'ROE', value: roe, fmt: (v) => v.toFixed(1) + '%', good: roe != null && roe > 8 },
+    { label: 'OPM', value: opMargin, fmt: (v) => v.toFixed(1) + '%', good: opMargin != null && opMargin > 5 },
   ]
 
   const hasAny = metrics.some((m) => m.value != null)
@@ -1561,29 +1505,24 @@ function ValuationSection({ cardData }) {
 
   return (
     <div>
-      <div className="val-metrics-grid" style={{
-        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '8px', marginBottom: '14px',
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '6px', marginBottom: '12px',
       }}>
         {metrics.map((m) => {
-          const accentColor = m.value != null
-            ? (m.good ? colors.positive : colors.negative)
-            : (dark ? 'rgba(255,255,255,0.08)' : '#E4E4E7')
+          const valueColor = m.value == null ? colors.textMuted : m.good ? colors.positive : colors.negative
           return (
             <div key={m.label} style={{
-              backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA',
-              borderRadius: '10px', padding: '10px 12px',
-              borderLeft: `3px solid ${accentColor}60`,
+              textAlign: 'center', padding: '8px 4px',
+              borderRadius: '8px',
+              backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#F8F8F8',
+              border: `1px solid ${dark ? 'rgba(255,255,255,0.05)' : '#EFEFEF'}`,
             }}>
-              <div style={{
-                fontSize: '10px', color: colors.textMuted, marginBottom: '4px',
-                fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase',
-              }}>{m.label}</div>
-              <div style={{
-                fontSize: '16px', fontWeight: 700, fontFamily: FONTS.mono,
-                color: m.value != null ? (m.good ? colors.textPrimary : colors.negative) : colors.textMuted,
-              }}>
-                {m.value != null ? m.fmt(m.value) : '-'}
+              <div style={{ fontSize: '9px', color: colors.textMuted, fontWeight: 600, marginBottom: '4px', letterSpacing: '0.04em' }}>
+                {m.label}
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: FONTS.mono, color: valueColor }}>
+                {m.value != null ? m.fmt(m.value) : '—'}
               </div>
             </div>
           )
