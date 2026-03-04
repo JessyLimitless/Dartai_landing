@@ -451,7 +451,6 @@ function FeedRow({ d, delay, onViewCard, colors, dark, isFav, onToggleFav }) {
   const [hovered, setHovered] = React.useState(false)
   const [starAnim, setStarAnim] = React.useState(false)
   const market = MARKET_LABELS[d.corp_cls] || ''
-  const time = kstTimeStr(d.created_at)
 
   const handleStarClick = (e) => {
     e.stopPropagation()
@@ -508,19 +507,14 @@ function FeedRow({ d, delay, onViewCard, colors, dark, isFav, onToggleFav }) {
         </div>
       </div>
 
-      {/* Time + Stock code */}
-      <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px', paddingTop: '2px' }}>
-        {time && (
-          <span style={{ fontSize: '11px', color: colors.textSecondary, fontFamily: FONTS.mono, fontWeight: 500 }}>
-            {time}
-          </span>
-        )}
-        {d.stock_code && (
+      {/* Stock code */}
+      {d.stock_code && (
+        <div style={{ flexShrink: 0, textAlign: 'right', paddingTop: '2px' }}>
           <span style={{ fontSize: '10px', color: colors.textMuted, fontFamily: FONTS.mono, opacity: 0.5 }}>
             {d.stock_code}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Favorite star */}
       <button
