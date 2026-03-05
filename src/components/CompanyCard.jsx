@@ -186,7 +186,7 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
           <Section title="재무 현황">
             <FinancialChart financials={financials} sector={header.sector} />
           </Section>
-          {dividend && (
+          {dividend && !dividend.no_dividend && (
             <Section title="배당 현황">
               <DividendSection dividend={dividend} />
             </Section>
@@ -1445,8 +1445,11 @@ function ValuationSection({ cardData }) {
   const noDividend = dividend?.no_dividend === true
   const divCommon = dividend?.common
   const divLastIdx = (dividend?.years || []).length - 1
-  const dps = (!noDividend && divLastIdx >= 0) ? (divCommon?.dps || [])[divLastIdx] : null
-  const divYield = (!noDividend && divLastIdx >= 0) ? (divCommon?.yield || [])[divLastIdx] : null
+  // 키움 market 데이터 우선, 없으면 DART dividend 폴백
+  const dps = market.dps != null ? market.dps
+    : (!noDividend && divLastIdx >= 0) ? (divCommon?.dps || [])[divLastIdx] : null
+  const divYield = market.dvr != null ? market.dvr
+    : (!noDividend && divLastIdx >= 0) ? (divCommon?.yield || [])[divLastIdx] : null
 
   const netIncome = _latestVal(items.net_income)
   const totalEquity = _latestVal(items.total_equity)
