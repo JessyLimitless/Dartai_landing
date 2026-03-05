@@ -7,7 +7,7 @@ import { PREMIUM } from '../constants/theme'
 
 const TABS = [
   { key: 'screener', label: 'Screener' },
-  { key: '5factor', label: '4-Factor' },
+  { key: '5factor', label: '5-Factor' },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)
