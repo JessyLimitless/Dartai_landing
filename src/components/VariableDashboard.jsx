@@ -7,9 +7,9 @@ import { VARIABLE_GRADE_COLORS, FONTS, PREMIUM } from '../constants/theme'
 
 const GRADES = ['대운', '순풍', '양호', '보통', '주의', '경고']
 
-const FACTOR_LABELS = ['CCC', 'Leverage', 'Dilution', 'Safety']
-const FACTOR_KEYS   = ['ccc_score', 'leverage_score', 'dilution_score', 'safety_score']
-const FACTOR_COLORS = ['#2563EB', '#0D9488', '#8B5CF6', '#D97706']
+const FACTOR_LABELS = ['수익성', '성장성', '안전성', '현금창출', '밸류에이션']
+const FACTOR_KEYS   = ['profitability_score', 'growth_score', 'safety_score', 'cashflow_score', 'valuation_score']
+const FACTOR_COLORS = ['#2563EB', '#0D9488', '#8B5CF6', '#D97706', '#E11D48']
 
 export default function VariableDashboard({ onViewCard }) {
   const { colors, dark } = useTheme()
@@ -41,10 +41,10 @@ export default function VariableDashboard({ onViewCard }) {
             fontSize: '18px', fontWeight: 700, color: colors.textPrimary,
             fontFamily: FONTS.serif, margin: 0, letterSpacing: '-0.02em',
           }}>
-            4-Factor Analysis
+            5-Factor Analysis
           </h2>
           <span style={{ fontSize: '12px', color: colors.textMuted }}>
-            CCC · Leverage · Dilution · Safety
+            수익성 · 성장성 · 안전성 · 현금창출 · 밸류에이션
           </span>
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function VariableDashboard({ onViewCard }) {
               <div style={{ textAlign: 'center' }}>등급</div>
               <div>종목</div>
               <div style={{ textAlign: 'center' }}>점수</div>
-              <div style={{ textAlign: 'center' }}>4-Factor</div>
+              <div style={{ textAlign: 'center' }}>5-Factor</div>
             </div>
 
             {/* Rows */}
@@ -273,7 +273,7 @@ function ScoreRow({ score, idx, onClick, colors, dark }) {
         </span>
       </div>
 
-      {/* 4-Factor Mini Bars */}
+      {/* 5-Factor Mini Bars */}
       <div className="var-factor-col" style={{ display: 'flex', gap: '3px', alignItems: 'center', padding: '0 4px' }}>
         {FACTOR_KEYS.map((key, idx) => {
           const val = score[key] || 5

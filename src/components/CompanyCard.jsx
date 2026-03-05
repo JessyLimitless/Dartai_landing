@@ -186,7 +186,7 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
           <Section title="재무 현황">
             <FinancialChart financials={financials} sector={header.sector} />
           </Section>
-          {dividend && !dividend.no_dividend && (
+          {dividend && (
             <Section title="배당 현황">
               <DividendSection dividend={dividend} />
             </Section>
@@ -1284,18 +1284,19 @@ function DisclosureHistory({ history, colors, dark }) {
 }
 
 
-// ── 7. 4대 변수 분석 (Phase 11) ──────────────────────────────────
+// ── 7. 5대 변수 분석 (Phase 11) ──────────────────────────────────
 
 const VARIABLE_FACTORS = [
-  { key: 'ccc_score', label: '현금흐름의 질', detailKey: 'ccc_detail', num: '01' },
-  { key: 'leverage_score', label: '비용 레버리지', detailKey: 'leverage_detail', num: '02' },
-  { key: 'dilution_score', label: '희석 리스크', detailKey: 'dilution_detail', num: '03' },
-  { key: 'safety_score', label: '재무 안전마진', detailKey: 'safety_detail', num: '04' },
+  { key: 'profitability_score', label: '수익성', detailKey: 'profitability_detail', num: '01' },
+  { key: 'growth_score',        label: '성장성', detailKey: 'growth_detail',        num: '02' },
+  { key: 'safety_score',        label: '안전성', detailKey: 'safety_detail',        num: '03' },
+  { key: 'cashflow_score',      label: '현금창출', detailKey: 'cashflow_detail',    num: '04' },
+  { key: 'valuation_score',     label: '밸류에이션', detailKey: 'valuation_detail', num: '05' },
 ]
 
 const VARIABLE_CATEGORIES = [
-  { label: '체질', desc: 'Body', indices: [0, 1] },
-  { label: '안전', desc: 'Safety', indices: [2, 3] },
+  { label: '기업 품질', desc: 'Quality', indices: [0, 1, 2] },
+  { label: '투자 가치', desc: 'Value',   indices: [3, 4] },
 ]
 
 function VariableSection({ score }) {
@@ -1304,8 +1305,8 @@ function VariableSection({ score }) {
 
   const gc = VARIABLE_GRADE_COLORS[score.grade] || VARIABLE_GRADE_COLORS['보통']
   const factors = [
-    score.ccc_score || 5, score.leverage_score || 5,
-    score.dilution_score || 5, score.safety_score || 5,
+    score.profitability_score || 5, score.growth_score || 5,
+    score.safety_score || 5, score.cashflow_score || 5, score.valuation_score || 5,
   ]
 
   // Dark mode verdict badge
@@ -1407,22 +1408,40 @@ function VariableSection({ score }) {
 }
 
 function _getFactorDesc(key, detail) {
-  if (!detail || detail.reason) return detail?.reason || ''
+  if (!detail) return ''
   switch (key) {
-    case 'ccc_score':
-      if (detail.ccc_days != null) {
-        let s = `CCC ${detail.ccc_days}일`
-        if (detail.ccc_change != null) s += ` (전기대비 ${detail.ccc_change > 0 ? '+' : ''}${detail.ccc_change}일)`
+    case 'profitability_score':
+      if (detail.roe != null) return `ROE ${detail.roe.toFixed(1)}%`
+      if (detail.gpm != null) return `매출총이익률(GPM) ${detail.gpm.toFixed(1)}%`
+      return detail.reason || ''
+    case 'growth_score':
+      if (detail.yoy_pct != null) {
+        let s = `영업이익 YoY ${detail.yoy_pct > 0 ? '+' : ''}${detail.yoy_pct.toFixed(1)}%`
+        if (detail.consecutive_quarters > 0) s += ` · ${detail.consecutive_quarters}분기 연속 성장`
         return s
       }
-      return ''
-    case 'leverage_score':
-      if (detail.dol != null) return `DOL ${detail.dol}, 영업이익률 ${detail.op_margin}%`
-      return ''
-    case 'dilution_score':
-      if (detail.overhang_pct != null) return `오버행 ${detail.overhang_pct}%`
       return detail.reason || ''
     case 'safety_score':
+      if (detail.icr != null || detail.debt_ratio != null) {
+        const parts = []
+        if (detail.icr != null) parts.push(`이자보상배율 ${detail.icr.toFixed(1)}×`)
+        if (detail.debt_ratio != null) parts.push(`부채비율 ${detail.debt_ratio.toFixed(0)}%`)
+        if (detail.overhang_pct != null) parts.push(`오버행 ${detail.overhang_pct.toFixed(1)}%`)
+        return parts.join(' · ')
+      }
+      return detail.reason || ''
+    case 'cashflow_score':
+      if (detail.ocf_ni_ratio != null) return `OCF/순이익 ${detail.ocf_ni_ratio.toFixed(2)}×`
+      if (detail.ocf_revenue_ratio != null) return `OCF/매출 ${(detail.ocf_revenue_ratio * 100).toFixed(1)}%`
+      return detail.reason || ''
+    case 'valuation_score':
+      if (detail.per != null || detail.pbr != null) {
+        const parts = []
+        if (detail.per != null) parts.push(`PER ${detail.per.toFixed(1)}×`)
+        if (detail.pbr != null) parts.push(`PBR ${detail.pbr.toFixed(2)}×`)
+        if (detail.psr != null) parts.push(`PSR ${detail.psr.toFixed(2)}×`)
+        return parts.join(' · ')
+      }
       return detail.reason || ''
     default:
       return ''

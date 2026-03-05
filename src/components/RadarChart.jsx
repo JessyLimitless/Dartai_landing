@@ -1,8 +1,8 @@
 import React from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 
-const LABELS = ['CCC', '레버리지', '희석리스크', '안전마진']
-const N = 4
+const LABELS = ['수익성', '성장성', '안전성', '현금창출', '밸류에이션']
+const N = 5
 const MAX_SCORE = 10
 const GRID_LEVELS = 4
 
@@ -12,7 +12,7 @@ function polarToXY(cx, cy, r, angleRad) {
 
 export default function RadarChart({ factors = [], size = 200 }) {
   const { colors } = useTheme()
-  const scores = factors.length >= N ? factors.slice(0, N) : Array(N).fill(5)
+  const scores = factors.length >= N ? factors.slice(0, N) : [...factors, ...Array(N - factors.length).fill(5)]
 
   const cx = size / 2
   const cy = size / 2
@@ -49,7 +49,7 @@ export default function RadarChart({ factors = [], size = 200 }) {
   }
 
   return (
-    <svg width={size} height={size} aria-label="4대 변수 레이더 차트">
+    <svg width={size} height={size} aria-label="5대 변수 레이더 차트">
       {/* 축선 */}
       {outerPts.map((pt, i) => (
         <line key={`ax-${i}`}
@@ -58,7 +58,7 @@ export default function RadarChart({ factors = [], size = 200 }) {
         />
       ))}
 
-      {/* 동심 4각형 격자 */}
+      {/* 동심 다각형 격자 */}
       {gridLevels.map((pts, lvl) => (
         <polygon key={`grid-${lvl}`}
           points={toPoints(pts)}
