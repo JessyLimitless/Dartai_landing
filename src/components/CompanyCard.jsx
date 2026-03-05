@@ -76,6 +76,7 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
   const financials = cardData.financials || {}
   const shareholders = cardData.shareholders || []
   const timeline = cardData.timeline || {}
+  const dividend = cardData.dividend || null
   const handleBack = () => {
     if (onViewCard) onViewCard(null)
     else if (onBack) onBack()
@@ -185,6 +186,11 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
           <Section title="재무 현황">
             <FinancialChart financials={financials} sector={header.sector} />
           </Section>
+          {dividend && (
+            <Section title="배당 현황">
+              <DividendSection dividend={dividend} />
+            </Section>
+          )}
           <div className="company-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <Section title="60일 주가 추이">
               <PriceChart candles={candles} />
@@ -926,6 +932,70 @@ function PriceChart({ candles }) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+    </div>
+  )
+}
+
+
+// ── 4-a. 배당 현황 ───────────────────────────────────────────────
+
+function DividendSection({ dividend }) {
+  const { colors, dark } = useTheme()
+  if (!dividend) return null
+
+  const { years = [], common, preferred } = dividend
+  if (!common) return <div style={getEmptyStyle(colors, dark)}>배당 데이터가 없습니다</div>
+
+  const rows = [
+    { label: '주당배당금(원)', values: common.dps, fmt: v => v != null ? `${Number(v).toLocaleString()}` : '-' },
+    { label: '배당수익률(%)', values: common.yield, fmt: v => v != null ? `${Number(v).toFixed(2)}%` : '-' },
+    { label: '배당성향(%)', values: common.payout_ratio, fmt: v => v != null ? `${Number(v).toFixed(1)}%` : '-' },
+  ]
+
+  const cellStyle = (isHeader) => ({
+    padding: '6px 10px',
+    fontSize: '12px',
+    fontFamily: isHeader ? FONTS.sans : FONTS.mono,
+    fontWeight: isHeader ? 600 : 400,
+    color: isHeader ? colors.textMuted : colors.textPrimary,
+    textAlign: 'right',
+    borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+    whiteSpace: 'nowrap',
+  })
+
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th style={{ ...cellStyle(true), textAlign: 'left' }}>구분 (보통주)</th>
+            {years.map(y => (
+              <th key={y} style={cellStyle(true)}>{y}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(row => (
+            <tr key={row.label}>
+              <td style={{ ...cellStyle(false), textAlign: 'left', color: colors.textMuted, fontFamily: FONTS.sans, fontSize: '12px' }}>
+                {row.label}
+              </td>
+              {years.map((y, i) => (
+                <td key={y} style={cellStyle(false)}>
+                  {row.fmt((row.values || [])[i])}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {preferred && (
+        <div style={{ marginTop: '6px', fontSize: '11px', color: colors.textMuted, paddingLeft: '2px' }}>
+          * 우선주 배당: {(preferred.dps || []).map((v, i) =>
+            v != null ? `${years[i]} ${Number(v).toLocaleString()}원` : null
+          ).filter(Boolean).join(' / ') || '-'}
+        </div>
+      )}
     </div>
   )
 }
