@@ -276,7 +276,7 @@ function ScoreRow({ score, idx, onClick, colors, dark }) {
       {/* 5-Factor Mini Bars */}
       <div className="var-factor-col" style={{ display: 'flex', gap: '3px', alignItems: 'center', padding: '0 4px' }}>
         {FACTOR_KEYS.map((key, idx) => {
-          const val = score[key] || 5
+          const val = score[key] ?? 5
           const pct = Math.min((val / 10) * 100, 100)
           return (
             <div key={key} style={{ flex: 1 }} title={`${FACTOR_LABELS[idx]}: ${val.toFixed(1)}`}>
