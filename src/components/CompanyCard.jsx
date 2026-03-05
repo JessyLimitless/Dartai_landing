@@ -1442,10 +1442,11 @@ function ValuationSection({ cardData }) {
   const pbr = _num(market.pbr)
 
   const dividend = cardData.dividend || null
+  const noDividend = dividend?.no_dividend === true
   const divCommon = dividend?.common
   const divLastIdx = (dividend?.years || []).length - 1
-  const dps = divLastIdx >= 0 ? (divCommon?.dps || [])[divLastIdx] : null
-  const divYield = divLastIdx >= 0 ? (divCommon?.yield || [])[divLastIdx] : null
+  const dps = (!noDividend && divLastIdx >= 0) ? (divCommon?.dps || [])[divLastIdx] : null
+  const divYield = (!noDividend && divLastIdx >= 0) ? (divCommon?.yield || [])[divLastIdx] : null
 
   const netIncome = _latestVal(items.net_income)
   const totalEquity = _latestVal(items.total_equity)
@@ -1473,11 +1474,11 @@ function ValuationSection({ cardData }) {
     { label: 'PBR', value: pbr, fmt: (v) => v.toFixed(2) + 'x', good: pbr != null && pbr > 0 && pbr < 3 },
     { label: 'ROE', value: roe, fmt: (v) => v.toFixed(1) + '%', good: roe != null && roe > 8 },
     { label: 'OPM', value: opMargin, fmt: (v) => v.toFixed(1) + '%', good: opMargin != null && opMargin > 5 },
-    { label: 'DPS', value: dps != null ? dps : null, fmt: (v) => Number(v).toLocaleString() + '원', good: dps != null && dps > 0 },
-    { label: '배당수익률', value: divYield, fmt: (v) => v.toFixed(2) + '%', good: divYield != null && divYield > 2 },
+    { label: 'DPS', value: dps, noDiv: noDividend, fmt: (v) => Number(v).toLocaleString() + '원', good: dps != null && dps > 0 },
+    { label: '배당수익률', value: divYield, noDiv: noDividend, fmt: (v) => v.toFixed(2) + '%', good: divYield != null && divYield > 2 },
   ]
 
-  const hasAny = metrics.some((m) => m.value != null)
+  const hasAny = metrics.some((m) => m.value != null || m.noDiv)
   if (!hasAny) return <div style={getEmptyStyle(colors, dark)}>밸류에이션 데이터가 없습니다</div>
 
   const _severityColor = {
@@ -1494,7 +1495,9 @@ function ValuationSection({ cardData }) {
         gap: '6px', marginBottom: '12px',
       }}>
         {metrics.map((m) => {
-          const valueColor = m.value == null ? colors.textMuted : m.good ? colors.positive : colors.negative
+          const valueColor = (m.value == null && !m.noDiv) ? colors.textMuted : m.good ? colors.positive : colors.negative
+          const displayText = m.value != null ? m.fmt(m.value) : m.noDiv ? '무배당' : '—'
+          const displayColor = m.noDiv && m.value == null ? colors.textMuted : valueColor
           return (
             <div key={m.label} style={{
               textAlign: 'center', padding: '8px 4px',
@@ -1505,8 +1508,8 @@ function ValuationSection({ cardData }) {
               <div style={{ fontSize: '9px', color: colors.textMuted, fontWeight: 600, marginBottom: '4px', letterSpacing: '0.04em' }}>
                 {m.label}
               </div>
-              <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: FONTS.mono, color: valueColor }}>
-                {m.value != null ? m.fmt(m.value) : '—'}
+              <div style={{ fontSize: m.noDiv && m.value == null ? '11px' : '15px', fontWeight: 700, fontFamily: FONTS.mono, color: displayColor }}>
+                {displayText}
               </div>
             </div>
           )
