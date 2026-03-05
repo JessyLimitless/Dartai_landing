@@ -1347,6 +1347,9 @@ function VariableSection({ score }) {
 
         {/* 변수별 진행바 — 카테고리 그룹 */}
         <div style={{ flex: 1 }}>
+          {score.risk_flags?.length > 0 && (
+            <RiskFlagsSection flags={score.risk_flags} colors={colors} dark={dark} />
+          )}
           {VARIABLE_CATEGORIES.map((cat, ci) => (
             <div key={cat.label} style={{ marginTop: ci > 0 ? '16px' : 0 }}>
               <div style={{
@@ -1394,6 +1397,19 @@ function VariableSection({ score }) {
                       <div style={{
                         fontSize: '10px', color: colors.textMuted, marginTop: '3px', lineHeight: '1.4',
                       }}>{desc}</div>
+                    )}
+                    {/* ⑤ 밸류에이션 바 아래 peer verdict + 업종 평균 */}
+                    {f.key === 'valuation_score' && score.peer_verdict && (
+                      <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '10px', color: colors.textMuted }}>업종 대비</span>
+                        <PeerVerdictBadge verdict={score.peer_verdict} dark={dark} />
+                        {score.peer_data?.sector_avg_per != null && (
+                          <span style={{ fontSize: '10px', color: colors.textMuted }}>
+                            업종 PER {score.peer_data.sector_avg_per.toFixed(1)}x
+                            {score.peer_data?.sector_avg_pbr != null && ` / PBR ${score.peer_data.sector_avg_pbr.toFixed(2)}x`}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 )
@@ -1446,6 +1462,55 @@ function _getFactorDesc(key, detail) {
     default:
       return ''
   }
+}
+
+
+function PeerVerdictBadge({ verdict, dark }) {
+  if (!verdict) return null
+  const colorMap = {
+    '저평가': { bg: dark ? 'rgba(34,197,94,0.18)' : '#DCFCE7', text: dark ? '#4ADE80' : '#16A34A' },
+    '적정':   { bg: dark ? 'rgba(255,255,255,0.08)' : '#F4F4F5', text: dark ? '#A1A1AA' : '#71717A' },
+    '고평가': { bg: dark ? 'rgba(59,130,246,0.18)' : '#DBEAFE', text: dark ? '#93C5FD' : '#2563EB' },
+  }
+  const c = colorMap[verdict] || colorMap['적정']
+  return (
+    <span style={{
+      padding: '1px 7px', borderRadius: '10px', fontSize: '10px', fontWeight: 700,
+      backgroundColor: c.bg, color: c.text,
+    }}>
+      {verdict}
+    </span>
+  )
+}
+
+function RiskFlagsSection({ flags, colors, dark }) {
+  if (!flags || flags.length === 0) return null
+  const levelStyle = {
+    CRITICAL: { color: dark ? '#F87171' : '#DC2626', icon: '⚠' },
+    WARNING:  { color: dark ? '#FACC15' : '#D97706', icon: '▲' },
+    CAUTION:  { color: dark ? '#93C5FD' : '#2563EB', icon: '●' },
+  }
+  return (
+    <div style={{
+      marginBottom: '14px', padding: '8px 10px', borderRadius: '8px',
+      backgroundColor: dark ? 'rgba(239,68,68,0.07)' : '#FFF5F5',
+      border: `1px solid ${dark ? 'rgba(239,68,68,0.18)' : '#FED7D7'}`,
+    }}>
+      <div style={{ fontSize: '10px', fontWeight: 700, color: dark ? '#F87171' : '#DC2626', marginBottom: '6px', letterSpacing: '0.04em' }}>
+        리스크 플래그
+      </div>
+      {flags.map((f, i) => {
+        const lv = (f.level || 'CAUTION').toUpperCase()
+        const st = levelStyle[lv] || levelStyle['CAUTION']
+        return (
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '5px', marginTop: i > 0 ? '4px' : 0 }}>
+            <span style={{ fontSize: '10px', color: st.color, flexShrink: 0, marginTop: '1px' }}>{st.icon}</span>
+            <span style={{ fontSize: '10px', color: colors.textSecondary, lineHeight: '1.5' }}>{f.message || f.label || JSON.stringify(f)}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 
