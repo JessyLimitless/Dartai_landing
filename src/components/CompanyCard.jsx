@@ -186,6 +186,11 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
           <Section title="재무 현황">
             <FinancialChart financials={financials} sector={header.sector} />
           </Section>
+          {dividend && (
+            <Section title="배당 현황">
+              <DividendSection dividend={dividend} />
+            </Section>
+          )}
           <div className="company-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <Section title="60일 주가 추이">
               <PriceChart candles={candles} />
@@ -932,6 +937,70 @@ function PriceChart({ candles }) {
 }
 
 
+// ── 4-a. 배당 현황 ───────────────────────────────────────────────
+
+function DividendSection({ dividend }) {
+  const { colors, dark } = useTheme()
+  if (!dividend) return null
+
+  const { years = [], common, preferred } = dividend
+  if (!common) return <div style={getEmptyStyle(colors, dark)}>배당 데이터가 없습니다</div>
+
+  const rows = [
+    { label: '주당배당금(원)', values: common.dps, fmt: v => v != null ? `${Number(v).toLocaleString()}` : '-' },
+    { label: '배당수익률(%)', values: common.yield, fmt: v => v != null ? `${Number(v).toFixed(2)}%` : '-' },
+    { label: '배당성향(%)', values: common.payout_ratio, fmt: v => v != null ? `${Number(v).toFixed(1)}%` : '-' },
+  ]
+
+  const cellStyle = (isHeader) => ({
+    padding: '6px 10px',
+    fontSize: '12px',
+    fontFamily: isHeader ? FONTS.sans : FONTS.mono,
+    fontWeight: isHeader ? 600 : 400,
+    color: isHeader ? colors.textMuted : colors.textPrimary,
+    textAlign: 'right',
+    borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+    whiteSpace: 'nowrap',
+  })
+
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th style={{ ...cellStyle(true), textAlign: 'left' }}>구분 (보통주)</th>
+            {years.map(y => (
+              <th key={y} style={cellStyle(true)}>{y}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(row => (
+            <tr key={row.label}>
+              <td style={{ ...cellStyle(false), textAlign: 'left', color: colors.textMuted, fontFamily: FONTS.sans, fontSize: '12px' }}>
+                {row.label}
+              </td>
+              {years.map((y, i) => (
+                <td key={y} style={cellStyle(false)}>
+                  {row.fmt((row.values || [])[i])}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {preferred && (
+        <div style={{ marginTop: '6px', fontSize: '11px', color: colors.textMuted, paddingLeft: '2px' }}>
+          * 우선주 배당: {(preferred.dps || []).map((v, i) =>
+            v != null ? `${years[i]} ${Number(v).toLocaleString()}원` : null
+          ).filter(Boolean).join(' / ') || '-'}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
 // ── 4. 주요주주 (SVG 도넛) ──────────────────────────────────────
 
 const DONUT_COLORS = ['#2563EB', '#0D9488', '#8B5CF6', '#E8364E', '#D97706', '#6B7B8D', '#EC4899', '#14B8A6', '#F59E0B', '#6366F1']
@@ -1372,6 +1441,12 @@ function ValuationSection({ cardData }) {
   const per = _num(market.per)
   const pbr = _num(market.pbr)
 
+  const dividend = cardData.dividend || null
+  const divCommon = dividend?.common
+  const divLastIdx = (dividend?.years || []).length - 1
+  const dps = divLastIdx >= 0 ? (divCommon?.dps || [])[divLastIdx] : null
+  const divYield = divLastIdx >= 0 ? (divCommon?.yield || [])[divLastIdx] : null
+
   const netIncome = _latestVal(items.net_income)
   const totalEquity = _latestVal(items.total_equity)
   const totalAssets = _latestVal(items.total_assets)
@@ -1392,11 +1467,6 @@ function ValuationSection({ cardData }) {
   if (netIncome != null && netIncome < 0) risks.push({ flag: '순손실', severity: 'CAUTION' })
   if (per != null && per > 100) risks.push({ flag: 'PER 과열', severity: 'CAUTION' })
   if (pbr != null && pbr > 0 && pbr < 0.3) risks.push({ flag: '극저PBR', severity: 'WATCH' })
-
-  const divCommon = dividend?.common
-  const divLastIdx = (dividend?.years || []).length - 1
-  const dps = divLastIdx >= 0 ? (divCommon?.dps || [])[divLastIdx] : null
-  const divYield = divLastIdx >= 0 ? (divCommon?.yield || [])[divLastIdx] : null
 
   const metrics = [
     { label: 'PER', value: per, fmt: (v) => v.toFixed(1) + 'x', good: per != null && per > 0 && per < 30 },
