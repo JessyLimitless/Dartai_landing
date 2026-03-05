@@ -177,7 +177,7 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
             </Section>
           )}
           <Section title="밸류에이션 분석">
-            <ValuationSection cardData={cardData} />
+            <ValuationSection cardData={cardData} dividend={dividend} />
           </Section>
         </div>
 
@@ -186,11 +186,6 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
           <Section title="재무 현황">
             <FinancialChart financials={financials} sector={header.sector} />
           </Section>
-          {dividend && (
-            <Section title="배당 현황">
-              <DividendSection dividend={dividend} />
-            </Section>
-          )}
           <div className="company-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <Section title="60일 주가 추이">
               <PriceChart candles={candles} />
@@ -1432,7 +1427,7 @@ function _getFactorDesc(key, detail) {
 
 // ── 밸류에이션 분석 (프론트엔드 계산) ──────────────────────────────
 
-function ValuationSection({ cardData }) {
+function ValuationSection({ cardData, dividend }) {
   const { colors, dark } = useTheme()
   const market = cardData.market || {}
   const financials = cardData.financials || {}
@@ -1530,6 +1525,142 @@ function ValuationSection({ cardData }) {
           })}
         </div>
       )}
+
+      {/* 배당 블록 */}
+      {dividend && dividend.common && (() => {
+        const { years = [], common } = dividend
+        const lastIdx = years.length - 1
+        const prevIdx = lastIdx - 1
+
+        const dps = (common.dps || [])[lastIdx]
+        const yld = (common.yield || [])[lastIdx]
+        const payout = (common.payout_ratio || [])[lastIdx]
+
+        const dpsPrev = (common.dps || [])[prevIdx]
+        const yldPrev = (common.yield || [])[prevIdx]
+        const payoutPrev = (common.payout_ratio || [])[prevIdx]
+
+        const trend = (curr, prev) => {
+          if (curr == null || prev == null || prev === 0) return null
+          const diff = ((curr - prev) / Math.abs(prev)) * 100
+          if (diff > 3) return { arrow: '▲', color: colors.positive }
+          if (diff < -3) return { arrow: '▼', color: colors.negative }
+          return { arrow: '─', color: colors.textMuted }
+        }
+
+        const dpsTrend = trend(dps, dpsPrev)
+        const yldTrend = trend(yld, yldPrev)
+        const payoutTrend = trend(payout, payoutPrev)
+
+        const noDivYear = dps === 0 || dps == null
+        const lastYear = years[lastIdx] || ''
+
+        const divMetrics = [
+          {
+            label: '주당배당금',
+            value: dps != null ? `${Number(dps).toLocaleString()}원` : '—',
+            sub: `${lastYear}`,
+            trend: dpsTrend,
+            noPay: noDivYear,
+          },
+          {
+            label: '배당수익률',
+            value: yld != null ? `${Number(yld).toFixed(2)}%` : '—',
+            sub: `${lastYear}`,
+            trend: yldTrend,
+            noPay: noDivYear,
+          },
+          {
+            label: '배당성향',
+            value: payout != null ? `${Number(payout).toFixed(1)}%` : '—',
+            sub: `${lastYear}`,
+            trend: payoutTrend,
+            noPay: noDivYear,
+          },
+        ]
+
+        return (
+          <div style={{ marginTop: '10px' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              marginBottom: '8px',
+            }}>
+              <span style={{
+                fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em',
+                color: colors.textMuted, textTransform: 'uppercase',
+              }}>배당</span>
+              <div style={{ flex: 1, height: '1px', backgroundColor: dark ? 'rgba(255,255,255,0.06)' : '#EFEFEF' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+              {divMetrics.map((m) => (
+                <div key={m.label} style={{
+                  textAlign: 'center', padding: '10px 4px',
+                  borderRadius: '10px',
+                  backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#F8F8F8',
+                  border: `1px solid ${dark ? 'rgba(255,255,255,0.05)' : '#EFEFEF'}`,
+                  position: 'relative',
+                }}>
+                  <div style={{ fontSize: '9px', color: colors.textMuted, fontWeight: 600, marginBottom: '5px', letterSpacing: '0.04em' }}>
+                    {m.label}
+                  </div>
+                  <div style={{
+                    fontSize: '15px', fontWeight: 700, fontFamily: FONTS.mono,
+                    color: m.noPay ? colors.textMuted : colors.textPrimary,
+                    lineHeight: 1,
+                  }}>
+                    {m.noPay ? '무배당' : m.value}
+                  </div>
+                  {!m.noPay && m.trend && (
+                    <div style={{ fontSize: '10px', color: m.trend.color, marginTop: '4px', fontWeight: 600 }}>
+                      {m.trend.arrow} YoY
+                    </div>
+                  )}
+                  {!m.trend && !m.noPay && (
+                    <div style={{ fontSize: '10px', color: colors.textMuted, marginTop: '4px' }}>
+                      {m.sub}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* 3개년 DPS 미니 트렌드 바 */}
+            {years.length >= 2 && (common.dps || []).some(v => v != null && v > 0) && (
+              <div style={{
+                marginTop: '8px', padding: '8px 12px', borderRadius: '8px',
+                backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#F8F8F8',
+                border: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : '#EFEFEF'}`,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: '32px' }}>
+                  {years.map((y, i) => {
+                    const val = (common.dps || [])[i]
+                    const maxVal = Math.max(...(common.dps || []).filter(v => v != null && v > 0))
+                    const h = val && maxVal ? Math.max(4, Math.round((val / maxVal) * 28)) : 4
+                    const isLast = i === lastIdx
+                    return (
+                      <div key={y} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1 }}>
+                        <div style={{
+                          width: '100%', maxWidth: '32px', height: `${h}px`, borderRadius: '3px 3px 0 0',
+                          backgroundColor: isLast
+                            ? PREMIUM.accent
+                            : dark ? 'rgba(255,255,255,0.12)' : '#D1D5DB',
+                          transition: 'height 0.4s ease',
+                        }} />
+                        <div style={{ fontSize: '9px', color: isLast ? PREMIUM.accent : colors.textMuted, fontWeight: isLast ? 700 : 400 }}>
+                          {y.slice(2)}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ fontSize: '9px', color: colors.textMuted, marginTop: '2px', textAlign: 'right' }}>
+                  주당배당금(원) 추이
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }
