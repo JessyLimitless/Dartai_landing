@@ -7,18 +7,15 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import GradeBadge from './GradeBadge'
-import RadarChart from './RadarChart'
 import CompanyCardSkeleton from './skeletons/CompanyCardSkeleton'
 import { tooltipStyle, chartGrid, chartAxis } from './ChartPrimitives'
 import EmptyState from './EmptyState'
 import { useCompanyCard } from '../hooks/useCompanyCard'
 import { useCompanyCards } from '../hooks/useCompanyCards'
-import { useVariableDetail } from '../hooks/useVariableScores'
 import { useEdgeSignalDetail } from '../hooks/useEdgeSignals'
 import { useSupplyDemand } from '../hooks/useSupplyDemand'
 import {
-  GRADE_COLORS, MARKET_LABELS,
-  VARIABLE_GRADE_COLORS, PREMIUM,
+  GRADE_COLORS, MARKET_LABELS, PREMIUM,
   FONTS, formatKoreanNumber, formatPercent,
 } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
@@ -40,7 +37,6 @@ const CARD_TABS = [
 export default function CompanyCard({ corpCode, onBack, onViewCard }) {
   const { colors, dark } = useTheme()
   const { card, trend, candles, loading, error } = useCompanyCard(corpCode)
-  const { detail: variableScore } = useVariableDetail(corpCode)
   const { signal: edgeSignal } = useEdgeSignalDetail(corpCode)
   const stockCode = card?.card_data?.header?.stock_code || ''
   const { instTrend, foreignTrend, loading: supplyLoading } = useSupplyDemand(stockCode)
@@ -97,51 +93,6 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
         </button>
       </div>
 
-      {/* 코스닥 종목: 준비중 팝업 오버레이 */}
-      {header.corp_cls && header.corp_cls !== 'Y' && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: dark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)',
-          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '24px',
-        }}>
-          <div style={{
-            backgroundColor: colors.bgCard,
-            borderRadius: '16px', padding: '32px 28px', textAlign: 'center',
-            maxWidth: '360px', width: '100%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-            border: `1px solid ${colors.border}`,
-          }}>
-            <div style={{
-              width: '56px', height: '56px', borderRadius: '50%', margin: '0 auto 16px',
-              backgroundColor: dark ? 'rgba(251,191,36,0.12)' : '#FEF3C7',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={dark ? '#FCD34D' : '#D97706'} strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" />
-              </svg>
-            </div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif, marginBottom: '8px' }}>
-              준비중입니다
-            </div>
-            <div style={{ fontSize: '13px', color: colors.textSecondary, lineHeight: '1.6', marginBottom: '24px' }}>
-              코스닥 종목은 현재 지원하지 않습니다.<br />코스피 종목만 조회 가능하며, 코스닥은 추후 업데이트 예정입니다.
-            </div>
-            <button
-              onClick={handleBack}
-              style={{
-                padding: '10px 32px', borderRadius: '10px', border: 'none',
-                backgroundColor: PREMIUM.accent, color: '#fff', fontSize: '13px',
-                fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.15s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-            >
-              목록으로 돌아가기
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Mobile tab bar */}
       <div className="card-mobile-tabs">
@@ -206,11 +157,6 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
           {(foreignTrend.length > 0 || instTrend.length > 0) && (
             <Section title="기관/외국인 수급 현황">
               <SupplyDemandSection foreignTrend={foreignTrend} instTrend={instTrend} market={market} loading={supplyLoading} />
-            </Section>
-          )}
-          {variableScore && (
-            <Section title="4대 변수 분석">
-              <VariableSection score={variableScore} />
             </Section>
           )}
         </div>
@@ -1284,235 +1230,6 @@ function DisclosureHistory({ history, colors, dark }) {
 }
 
 
-// ── 7. 5대 변수 분석 (Phase 11) ──────────────────────────────────
-
-const VARIABLE_FACTORS = [
-  { key: 'profitability_score', label: '수익성', detailKey: 'profitability_detail', num: '01' },
-  { key: 'growth_score',        label: '성장성', detailKey: 'growth_detail',        num: '02' },
-  { key: 'safety_score',        label: '안전성', detailKey: 'safety_detail',        num: '03' },
-  { key: 'cashflow_score',      label: '현금창출', detailKey: 'cashflow_detail',    num: '04' },
-  { key: 'valuation_score',     label: '밸류에이션', detailKey: 'valuation_detail', num: '05' },
-]
-
-const VARIABLE_CATEGORIES = [
-  { label: '기업 품질', desc: 'Quality', indices: [0, 1, 2] },
-  { label: '투자 가치', desc: 'Value',   indices: [3, 4] },
-]
-
-function VariableSection({ score }) {
-  const { colors, dark } = useTheme()
-  if (!score) return null
-
-  const gc = VARIABLE_GRADE_COLORS[score.grade] || VARIABLE_GRADE_COLORS['보통']
-  const factors = [
-    score.profitability_score || 5, score.growth_score || 5,
-    score.safety_score || 5, score.cashflow_score || 5, score.valuation_score || 5,
-  ]
-
-  // Dark mode verdict badge
-  const verdictBg = dark
-    ? (score.grade === '순풍' ? 'rgba(34,197,94,0.15)' : score.grade === '양호' ? 'rgba(74,222,128,0.12)'
-      : score.grade === '보통' ? 'rgba(255,255,255,0.08)' : score.grade === '주의' ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)')
-    : gc.bg
-  const verdictColor = dark
-    ? (score.grade === '순풍' ? '#4ADE80' : score.grade === '양호' ? '#86EFAC'
-      : score.grade === '보통' ? colors.textSecondary : score.grade === '주의' ? '#FACC15' : '#F87171')
-    : gc.text
-
-  return (
-    <div>
-      {/* 등급 배지 + 종합 점수 */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '16px' }}>
-        <span style={{
-          padding: '5px 14px', borderRadius: '20px', fontWeight: 700,
-          fontSize: '12px', backgroundColor: verdictBg, color: verdictColor,
-          letterSpacing: '0.02em',
-        }}>
-          {gc.mark} {score.grade}
-        </span>
-        <span style={{
-          fontSize: '20px', fontWeight: 700, fontFamily: FONTS.mono,
-          color: colors.textPrimary,
-        }}>
-          {score.total_score?.toFixed(1)}
-          <span style={{ fontSize: '11px', fontWeight: 400, color: colors.textMuted }}> / 10</span>
-        </span>
-      </div>
-
-      <div className="variable-layout" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-        {/* 레이더 차트 */}
-        <div style={{ flexShrink: 0 }}>
-          <RadarChart factors={factors} size={180} />
-        </div>
-
-        {/* 변수별 진행바 — 카테고리 그룹 */}
-        <div style={{ flex: 1 }}>
-          {score.risk_flags?.length > 0 && (
-            <RiskFlagsSection flags={score.risk_flags} colors={colors} dark={dark} />
-          )}
-          {VARIABLE_CATEGORIES.map((cat, ci) => (
-            <div key={cat.label} style={{ marginTop: ci > 0 ? '16px' : 0 }}>
-              <div style={{
-                fontSize: '10px', fontWeight: 700, color: colors.textMuted,
-                borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#F4F4F5'}`,
-                paddingBottom: '4px', marginBottom: '10px',
-                letterSpacing: '0.05em', textTransform: 'uppercase',
-              }}>
-                {cat.label} · {cat.desc}
-              </div>
-              {cat.indices.map((idx) => {
-                const f = VARIABLE_FACTORS[idx]
-                const val = score[f.key] || 5
-                const detail = score[f.detailKey] || {}
-                const desc = _getFactorDesc(f.key, detail)
-                const barColor = val >= 7 ? colors.positive : val >= 4 ? (PREMIUM.accent || colors.accent) : colors.negative
-
-                return (
-                  <div key={f.key} style={{ marginBottom: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: colors.textSecondary }}>
-                        <span style={{
-                          fontSize: '9px', fontFamily: FONTS.mono, color: colors.textMuted,
-                          marginRight: '4px', fontWeight: 700,
-                        }}>{f.num}</span>
-                        {f.label}
-                      </span>
-                      <span style={{
-                        fontSize: '11px', fontWeight: 700, fontFamily: FONTS.mono, color: barColor,
-                      }}>
-                        {val.toFixed(1)}
-                      </span>
-                    </div>
-                    <div style={{
-                      height: '5px',
-                      backgroundColor: dark ? 'rgba(255,255,255,0.06)' : '#F0F0F0',
-                      borderRadius: '2.5px',
-                    }}>
-                      <div style={{
-                        height: '100%', width: `${(val / 10) * 100}%`, borderRadius: '2.5px',
-                        backgroundColor: barColor, transition: 'width 0.4s ease-out',
-                      }} />
-                    </div>
-                    {desc && (
-                      <div style={{
-                        fontSize: '10px', color: colors.textMuted, marginTop: '3px', lineHeight: '1.4',
-                      }}>{desc}</div>
-                    )}
-                    {/* ⑤ 밸류에이션 바 아래 peer verdict + 업종 평균 */}
-                    {f.key === 'valuation_score' && score.peer_verdict && (
-                      <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '10px', color: colors.textMuted }}>업종 대비</span>
-                        <PeerVerdictBadge verdict={score.peer_verdict} dark={dark} />
-                        {score.peer_data?.sector_avg_per != null && (
-                          <span style={{ fontSize: '10px', color: colors.textMuted }}>
-                            업종 PER {score.peer_data.sector_avg_per.toFixed(1)}x
-                            {score.peer_data?.sector_avg_pbr != null && ` / PBR ${score.peer_data.sector_avg_pbr.toFixed(2)}x`}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          ))}
-        </div>
-      </div>
-
-    </div>
-  )
-}
-
-function _getFactorDesc(key, detail) {
-  if (!detail) return ''
-  switch (key) {
-    case 'profitability_score':
-      if (detail.roe != null) return `ROE ${detail.roe.toFixed(1)}%`
-      if (detail.gpm != null) return `매출총이익률(GPM) ${detail.gpm.toFixed(1)}%`
-      return detail.reason || ''
-    case 'growth_score':
-      if (detail.yoy_pct != null) {
-        let s = `영업이익 YoY ${detail.yoy_pct > 0 ? '+' : ''}${detail.yoy_pct.toFixed(1)}%`
-        if (detail.consecutive_quarters > 0) s += ` · ${detail.consecutive_quarters}분기 연속 성장`
-        return s
-      }
-      return detail.reason || ''
-    case 'safety_score':
-      if (detail.icr != null || detail.debt_ratio != null) {
-        const parts = []
-        if (detail.icr != null) parts.push(`이자보상배율 ${detail.icr.toFixed(1)}×`)
-        if (detail.debt_ratio != null) parts.push(`부채비율 ${detail.debt_ratio.toFixed(0)}%`)
-        if (detail.overhang_pct != null) parts.push(`오버행 ${detail.overhang_pct.toFixed(1)}%`)
-        return parts.join(' · ')
-      }
-      return detail.reason || ''
-    case 'cashflow_score':
-      if (detail.ocf_ni_ratio != null) return `OCF/순이익 ${detail.ocf_ni_ratio.toFixed(2)}×`
-      if (detail.ocf_revenue_ratio != null) return `OCF/매출 ${(detail.ocf_revenue_ratio * 100).toFixed(1)}%`
-      return detail.reason || ''
-    case 'valuation_score':
-      if (detail.per != null || detail.pbr != null) {
-        const parts = []
-        if (detail.per != null) parts.push(`PER ${detail.per.toFixed(1)}×`)
-        if (detail.pbr != null) parts.push(`PBR ${detail.pbr.toFixed(2)}×`)
-        if (detail.psr != null) parts.push(`PSR ${detail.psr.toFixed(2)}×`)
-        return parts.join(' · ')
-      }
-      return detail.reason || ''
-    default:
-      return ''
-  }
-}
-
-
-function PeerVerdictBadge({ verdict, dark }) {
-  if (!verdict) return null
-  const colorMap = {
-    '저평가': { bg: dark ? 'rgba(34,197,94,0.18)' : '#DCFCE7', text: dark ? '#4ADE80' : '#16A34A' },
-    '적정':   { bg: dark ? 'rgba(255,255,255,0.08)' : '#F4F4F5', text: dark ? '#A1A1AA' : '#71717A' },
-    '고평가': { bg: dark ? 'rgba(59,130,246,0.18)' : '#DBEAFE', text: dark ? '#93C5FD' : '#2563EB' },
-  }
-  const c = colorMap[verdict] || colorMap['적정']
-  return (
-    <span style={{
-      padding: '1px 7px', borderRadius: '10px', fontSize: '10px', fontWeight: 700,
-      backgroundColor: c.bg, color: c.text,
-    }}>
-      {verdict}
-    </span>
-  )
-}
-
-function RiskFlagsSection({ flags, colors, dark }) {
-  if (!flags || flags.length === 0) return null
-  const levelStyle = {
-    CRITICAL: { color: dark ? '#F87171' : '#DC2626', icon: '⚠' },
-    WARNING:  { color: dark ? '#FACC15' : '#D97706', icon: '▲' },
-    CAUTION:  { color: dark ? '#93C5FD' : '#2563EB', icon: '●' },
-  }
-  return (
-    <div style={{
-      marginBottom: '14px', padding: '8px 10px', borderRadius: '8px',
-      backgroundColor: dark ? 'rgba(239,68,68,0.07)' : '#FFF5F5',
-      border: `1px solid ${dark ? 'rgba(239,68,68,0.18)' : '#FED7D7'}`,
-    }}>
-      <div style={{ fontSize: '10px', fontWeight: 700, color: dark ? '#F87171' : '#DC2626', marginBottom: '6px', letterSpacing: '0.04em' }}>
-        리스크 플래그
-      </div>
-      {flags.map((f, i) => {
-        const lv = (f.level || 'CAUTION').toUpperCase()
-        const st = levelStyle[lv] || levelStyle['CAUTION']
-        return (
-          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '5px', marginTop: i > 0 ? '4px' : 0 }}>
-            <span style={{ fontSize: '10px', color: st.color, flexShrink: 0, marginTop: '1px' }}>{st.icon}</span>
-            <span style={{ fontSize: '10px', color: colors.textSecondary, lineHeight: '1.5' }}>{f.message || f.label || JSON.stringify(f)}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 
 // ── 밸류에이션 분석 (프론트엔드 계산) ──────────────────────────────
 
@@ -1820,23 +1537,8 @@ function CardListView({ onSelectCard }) {
         <p style={{
           fontSize: '13px', color: colors.textMuted, margin: '4px 0 16px',
         }}>
-          기업명 또는 종목코드로 검색하여 카드를 조회하세요
+          기업명 또는 종목코드로 검색 · 코스피·코스닥·코넥스 전종목
         </p>
-
-        {/* 코스피 전용 안내 */}
-        <div style={{
-          padding: '10px 14px', borderRadius: '10px', marginBottom: '14px',
-          backgroundColor: dark ? 'rgba(37,99,235,0.08)' : '#EFF6FF',
-          border: `1px solid ${dark ? 'rgba(37,99,235,0.2)' : '#BFDBFE'}`,
-          fontSize: '12px', color: dark ? '#93C5FD' : '#1E40AF',
-          display: 'flex', alignItems: 'center', gap: '8px',
-        }}>
-          <span style={{
-            fontSize: '10px', fontWeight: 700, padding: '2px 7px',
-            borderRadius: '4px', backgroundColor: dark ? 'rgba(37,99,235,0.2)' : '#DBEAFE',
-          }}>KOSPI</span>
-          현재 코스피 종목만 제공됩니다
-        </div>
 
         {/* 검색 입력 */}
         <div style={{
@@ -1898,31 +1600,18 @@ function CardListView({ onSelectCard }) {
         </div>
       )}
 
-      {/* 기업 그리드 (코스피만) */}
+      {/* 기업 그리드 */}
       {!loading && companies.length > 0 && (() => {
-        const kospiOnly = companies.filter(c => c.corp_cls === 'Y' || !c.corp_cls)
-        if (kospiOnly.length === 0) return (
-          <div style={{
-            padding: '80px 24px', textAlign: 'center',
-            borderRadius: '12px',
-            backgroundColor: dark ? 'rgba(255,255,255,0.02)' : '#FAFAFA',
-            border: `1px dashed ${colors.border}`,
-          }}>
-            <div style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 600 }}>
-              코스피 종목 검색 결과가 없습니다
-            </div>
-          </div>
-        )
         return (
           <>
             <div style={{
               fontSize: '11px', color: colors.textMuted, marginBottom: '12px',
               fontWeight: 600, fontFamily: FONTS.mono,
             }}>
-              {query ? `"${query}" 검색 결과` : '최근 공시 기업'} · {kospiOnly.length}건
+              {query ? `"${query}" 검색 결과` : '최근 공시 기업'} · {companies.length}건
             </div>
             <div className="company-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              {kospiOnly.map((c) => {
+              {companies.map((c) => {
                 const summary = (c.card_summary || '').split('\n')[0].slice(0, 80)
 
                 return (

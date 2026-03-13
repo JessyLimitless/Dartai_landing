@@ -1,540 +1,295 @@
-import React, { useState, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { tooltipStyle, chartAxis } from './ChartPrimitives'
+import React, { useState } from 'react'
 import EmptyState from './EmptyState'
-import GradeBadge from './GradeBadge'
-import WeeklySummary from './WeeklySummary'
 import FeedSkeleton from './skeletons/FeedSkeleton'
+import DisclosureModal from './DisclosureModal'
 import { useDisclosures } from '../hooks/useDisclosures'
-import { useFavorites } from '../hooks/useFavorites'
-import { API } from '../lib/api'
-import { FONTS, GRADE_COLORS, MARKET_LABELS, PREMIUM } from '../constants/theme'
+import { FONTS, GRADE_COLORS, MARKET_LABELS } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
 
-
 export default function TodayPage({ onViewCard }) {
+  const { colors, dark } = useTheme()
+  const [modalRceptNo, setModalRceptNo] = useState(null)
+
+  const now = new Date()
+  const dayNames = ['일', '월', '화', '수', '목', '금', '토']
+  const dateStr = `${now.getMonth() + 1}월 ${now.getDate()}일 ${dayNames[now.getDay()]}요일`
+
+  return (
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 20px', fontFamily: FONTS.body }}>
+
+      {/* 페이지 헤더 */}
+      <div style={{ marginBottom: 20 }}>
+        <span style={{ fontFamily: FONTS.serif, fontSize: 20, fontWeight: 700, color: colors.textPrimary }}>
+          Today
+        </span>
+        <span style={{ fontSize: 13, color: colors.textMuted, marginLeft: 10 }}>{dateStr}</span>
+      </div>
+
+      <FeedTab onViewCard={onViewCard} onOpenModal={setModalRceptNo} />
+
+      {modalRceptNo && (
+        <DisclosureModal
+          rcept_no={modalRceptNo}
+          onClose={() => setModalRceptNo(null)}
+          onViewCard={onViewCard}
+        />
+      )}
+    </div>
+  )
+}
+
+function FeedTab({ onViewCard, onOpenModal }) {
   const { colors, dark } = useTheme()
   const {
     disclosures, counts, loading,
     gradeFilter, setGradeFilter,
     search, setSearch,
+    prices,
   } = useDisclosures()
-  const { favorites, toggle: toggleFavorite, isFavorite } = useFavorites()
-
-  /* ── S등급 하이라이트 (최대 3개) ── */
-  const sHighlights = disclosures.filter(d => d.grade === 'S').slice(0, 3)
 
   return (
-    <div className="page-container" style={{ padding: '24px 20px', maxWidth: '1400px', margin: '0 auto' }}>
-      {/* ── DateHeader ── */}
-      <DateHeader
-        counts={counts}
-        gradeFilter={gradeFilter}
-        setGradeFilter={setGradeFilter}
-        colors={colors}
-        dark={dark}
-      />
+    <>
+      {/* 등급 필터 */}
+      {!loading && counts.total > 0 && (
+        <GradeFilter counts={counts} gradeFilter={gradeFilter} setGradeFilter={setGradeFilter} colors={colors} dark={dark} />
+      )}
 
-      {/* ── 2-Column Grid ── */}
-      <div className="today-grid">
-        {/* ── Left: Search + Feed List ── */}
-        <div>
-          <SearchBar search={search} setSearch={setSearch} colors={colors} dark={dark} />
+      {/* 검색 */}
+      <SearchBar search={search} setSearch={setSearch} colors={colors} dark={dark} />
 
-          <div style={{
-            backgroundColor: colors.bgCard,
-            border: `1px solid ${colors.border}`,
-            borderRadius: '12px',
-            overflow: 'hidden',
-          }}>
-            {loading ? (
-              <div style={{ padding: '16px' }}><FeedSkeleton /></div>
-            ) : disclosures.length === 0 ? (
-              (gradeFilter || search) ? (
-                <EmptyState
-                  icon="search"
-                  title="조건에 맞는 공시가 없습니다"
-                  description={`${gradeFilter ? `등급 필터: ${gradeFilter}` : ''}${gradeFilter && search ? ' · ' : ''}${search ? `검색: "${search}"` : ''}`}
-                  action="필터 초기화"
-                  onAction={() => { setGradeFilter(null); setSearch('') }}
-                />
-              ) : (
-                <EmptyState
-                  icon="calendar"
-                  title="오늘 수집된 공시가 없습니다"
-                  description="장 운영 시간(09:00~18:00)에 자동으로 수집됩니다"
-                />
-              )
-            ) : (
-              disclosures.map((d, i) => (
-                <FeedRow key={d.rcept_no} d={d} delay={i * 20} onViewCard={onViewCard} colors={colors} dark={dark} isFav={isFavorite(d.corp_code)} onToggleFav={() => toggleFavorite(d)} />
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* ── Right: Highlight + Pinned + Weekly (sticky) ── */}
-        <div className="today-weekly-col">
-          {sHighlights.length > 0 && (
-            <HighlightCard highlights={sHighlights} onViewCard={onViewCard} colors={colors} dark={dark} />
-          )}
-          {favorites.length > 0 && (
-            <PinnedWidget favorites={favorites} onViewCard={onViewCard} colors={colors} dark={dark} />
-          )}
-          <TrendMiniChart colors={colors} dark={dark} />
-          <WeeklySummary onViewCard={onViewCard} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ── DateHeader: 날짜 + GradeBlocks ── */
-function DateHeader({ counts, gradeFilter, setGradeFilter, colors, dark }) {
-  const now = new Date()
-  const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-  const dateStr = `${now.getMonth() + 1}월 ${now.getDate()}일 ${dayNames[now.getDay()]}`
-
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      {/* Line 1: Date + Update time */}
+      {/* 피드 */}
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: '14px', flexWrap: 'wrap', gap: '8px',
+        background: dark ? '#18181B' : '#fff',
+        border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+        borderRadius: 12,
+        overflow: 'hidden',
       }}>
-        <div>
-          <h2 style={{
-            fontSize: '20px', fontWeight: 700, margin: 0,
-            color: colors.textPrimary, fontFamily: FONTS.serif,
-            letterSpacing: '-0.02em',
-          }}>
-            Today's Filing
-          </h2>
-          <p style={{
-            fontSize: '13px', color: colors.textMuted, margin: '4px 0 0',
-          }}>
-            {dateStr} · {counts.total}건 접수
-          </p>
-        </div>
-
+        {loading ? (
+          <div style={{ padding: 16 }}><FeedSkeleton /></div>
+        ) : disclosures.length === 0 ? (
+          (gradeFilter || search) ? (
+            <EmptyState
+              icon="search"
+              title="조건에 맞는 공시가 없습니다"
+              description={`${gradeFilter ? `등급: ${gradeFilter}` : ''}${gradeFilter && search ? ' · ' : ''}${search ? `"${search}"` : ''}`}
+              action="초기화"
+              onAction={() => { setGradeFilter(null); setSearch('') }}
+            />
+          ) : (
+            <EmptyState
+              icon="calendar"
+              title="오늘 수집된 공시가 없습니다"
+              description="장 운영 시간(09:00~18:00)에 자동으로 수집됩니다"
+            />
+          )
+        ) : (
+          disclosures.map((d, i) => (
+            <FeedRow
+              key={d.rcept_no}
+              d={d}
+              isLast={i === disclosures.length - 1}
+              onOpenModal={onOpenModal}
+              colors={colors}
+              dark={dark}
+              priceData={prices[d.stock_code]}
+            />
+          ))
+        )}
       </div>
-
-      {/* Line 2: GradeBlocks */}
-      <GradeBlocks counts={counts} gradeFilter={gradeFilter} setGradeFilter={setGradeFilter} colors={colors} dark={dark} />
-
-    </div>
+    </>
   )
 }
 
-/* ── GradeBlocks: S/A/D/기타 필터 (pill 스타일) ── */
-function GradeBlocks({ counts, gradeFilter, setGradeFilter, colors, dark }) {
-  if (!counts || counts.total === 0) return null
-
+function GradeFilter({ counts, gradeFilter, setGradeFilter, colors, dark }) {
   const grades = [
-    { key: 'S', label: 'S', color: GRADE_COLORS.S.bg, count: counts.S || 0 },
-    { key: 'A', label: 'A', color: GRADE_COLORS.A.bg, count: counts.A || 0 },
-    { key: 'D', label: 'D', color: GRADE_COLORS.D.bg, count: counts.D || 0 },
-  ]
-  const otherCount = counts.total - grades.reduce((s, g) => s + g.count, 0)
-  if (otherCount > 0) grades.push({ key: 'etc', label: 'ETC', color: '#94A3B8', count: otherCount })
+    { key: 'S', color: GRADE_COLORS.S.bg, count: counts.S || 0 },
+    { key: 'A', color: GRADE_COLORS.A.bg, count: counts.A || 0 },
+    { key: 'D', color: GRADE_COLORS.D.bg, count: counts.D || 0 },
+  ].filter(g => g.count > 0)
+
+  if (grades.length === 0) return null
 
   return (
-    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
       {grades.map(g => {
-        const isActive = g.key !== 'etc' && gradeFilter === g.key
-
+        const active = gradeFilter === g.key
         return (
           <button
             key={g.key}
-            onClick={() => {
-              if (g.key === 'etc') setGradeFilter(null)
-              else setGradeFilter(gradeFilter === g.key ? null : g.key)
-            }}
+            onClick={() => setGradeFilter(active ? null : g.key)}
             style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '6px 14px', borderRadius: '20px',
-              border: isActive ? `2px solid ${g.color}` : `1px solid ${colors.border}`,
-              backgroundColor: isActive ? g.color : 'transparent',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '5px 12px', borderRadius: 20,
+              border: active ? `1.5px solid ${g.color}` : `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+              background: active ? `${g.color}18` : 'transparent',
+              cursor: 'pointer', transition: 'all 0.15s',
+              fontSize: 12, fontWeight: active ? 600 : 400,
+              color: active ? g.color : colors.textSecondary,
             }}
           >
-            {/* Grade letter badge */}
             <span style={{
-              width: '20px', height: '20px', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '10px', fontWeight: 800, fontFamily: FONTS.mono,
-              backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : (dark ? 'rgba(255,255,255,0.06)' : `${g.color}12`),
-              color: isActive ? '#fff' : g.color,
-            }}>
-              {g.label.charAt(0)}
-            </span>
-            {/* Count */}
+              fontFamily: FONTS.mono, fontWeight: 800, fontSize: 11,
+              color: active ? g.color : colors.textMuted,
+            }}>{g.key}</span>
             <span style={{
-              fontSize: '13px', fontWeight: 700, fontFamily: FONTS.mono,
-              color: isActive ? '#fff' : colors.textPrimary,
-            }}>
-              {g.count}
-            </span>
+              fontFamily: FONTS.mono, fontSize: 12,
+              color: active ? g.color : colors.textMuted,
+            }}>{g.count}</span>
           </button>
         )
       })}
+      {gradeFilter && (
+        <button
+          onClick={() => setGradeFilter(null)}
+          style={{
+            padding: '5px 10px', borderRadius: 20, border: 'none',
+            background: 'transparent', cursor: 'pointer',
+            fontSize: 11, color: colors.textMuted,
+          }}
+        >
+          전체 보기
+        </button>
+      )}
     </div>
   )
 }
 
-/* ── SearchBar ── */
 function SearchBar({ search, setSearch, colors, dark }) {
-  const [searchInput, setSearchInput] = React.useState(search)
-  const [focused, setFocused] = React.useState(false)
+  const [val, setVal] = useState(search)
+  const [focused, setFocused] = useState(false)
 
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); setSearch(searchInput) }}
-      style={{
-        display: 'flex', gap: '6px', marginBottom: '12px', width: '100%',
-      }}
+      onSubmit={e => { e.preventDefault(); setSearch(val) }}
+      style={{ marginBottom: 12 }}
     >
       <div style={{
-        flex: 1, display: 'flex', alignItems: 'center',
-        borderRadius: '10px', padding: '0 12px',
-        border: `1px solid ${focused ? PREMIUM.accent : colors.border}`,
-        backgroundColor: dark ? 'rgba(255,255,255,0.04)' : '#FAFAFA',
-        transition: 'border-color 0.15s, background-color 0.15s',
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '0 12px', borderRadius: 10,
+        border: `1px solid ${focused ? '#0D9488' : (dark ? '#27272A' : '#E4E4E7')}`,
+        background: dark ? '#18181B' : '#FAFAFA',
+        transition: 'border-color 0.15s',
       }}>
-        {/* Search icon */}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
           <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
         </svg>
         <input
           type="text"
           placeholder="기업명 또는 공시 검색..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
+          value={val}
+          onChange={e => setVal(e.target.value)}
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onBlur={() => { setFocused(false); setSearch(val) }}
           style={{
-            flex: 1, padding: '9px 8px', fontSize: '13px',
-            border: 'none', backgroundColor: 'transparent',
+            flex: 1, padding: '10px 6px', fontSize: 13,
+            border: 'none', background: 'transparent',
             color: colors.textPrimary, outline: 'none',
           }}
         />
+        {val && (
+          <button
+            type="button"
+            onClick={() => { setVal(''); setSearch('') }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: colors.textMuted, padding: '4px', lineHeight: 1,
+              fontSize: 14,
+            }}
+          >✕</button>
+        )}
       </div>
-      <button type="submit" style={{
-        padding: '9px 18px', borderRadius: '10px', border: 'none',
-        backgroundColor: PREMIUM.accent, color: '#fff',
-        fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-        flexShrink: 0, transition: 'opacity 0.15s',
-      }}>
-        검색
-      </button>
     </form>
   )
 }
 
-
-/* ── HighlightCard: 오늘의 핵심 (S등급) ── */
-function HighlightCard({ highlights, onViewCard, colors, dark }) {
-  return (
-    <div style={{
-      backgroundColor: colors.bgCard,
-      border: `1px solid ${colors.border}`,
-      borderRadius: '12px',
-      overflow: 'hidden',
-      marginBottom: '16px',
-    }}>
-      {/* Title bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '12px 16px',
-        backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#FEF2F2',
-        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#FECDD3'}`,
-      }}>
-        <span style={{
-          width: '3px', height: '14px', backgroundColor: GRADE_COLORS.S.bg,
-          borderRadius: '1.5px', display: 'inline-block',
-        }} />
-        <span style={{
-          fontSize: '12px', fontWeight: 700, color: GRADE_COLORS.S.bg,
-          fontFamily: FONTS.serif, letterSpacing: '-0.01em',
-        }}>
-          Key Highlights
-        </span>
-        <span style={{
-          fontSize: '10px', fontWeight: 600, fontFamily: FONTS.mono,
-          color: dark ? 'rgba(255,255,255,0.4)' : '#FDA4AF',
-          marginLeft: 'auto',
-        }}>
-          S-GRADE
-        </span>
-      </div>
-
-      {/* Items */}
-      <div style={{ padding: '4px 0' }}>
-        {highlights.map((d, i) => (
-          <HighlightItem
-            key={d.rcept_no}
-            d={d}
-            isLast={i === highlights.length - 1}
-            onViewCard={onViewCard}
-            colors={colors}
-            dark={dark}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function HighlightItem({ d, isLast, onViewCard, colors, dark }) {
-  const [hovered, setHovered] = React.useState(false)
-
-  return (
-    <div
-      onClick={() => onViewCard(d.corp_code)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex', gap: '10px', padding: '10px 16px',
-        cursor: 'pointer', transition: 'background-color 0.15s',
-        backgroundColor: hovered ? (dark ? 'rgba(255,255,255,0.04)' : '#FFF5F5') : 'transparent',
-        borderBottom: isLast ? 'none' : `1px solid ${dark ? 'rgba(255,255,255,0.04)' : '#FEE2E2'}`,
-      }}
-    >
-      {/* Left accent bar */}
-      <div style={{
-        width: '3px', borderRadius: '1.5px', backgroundColor: GRADE_COLORS.S.bg,
-        flexShrink: 0, alignSelf: 'stretch', opacity: 0.6,
-      }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontWeight: 600, fontSize: '13px', color: colors.textPrimary,
-          fontFamily: FONTS.serif, marginBottom: '2px', letterSpacing: '-0.01em',
-        }}>
-          {d.corp_name}
-        </div>
-        <div style={{
-          fontSize: '11px', color: colors.textMuted,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {d.report_nm}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ── TrendMiniChart: 14일 공시 트렌드 ── */
-function TrendMiniChart({ colors, dark }) {
-  const [data, setData] = useState([])
-
-  useEffect(() => {
-    fetch(`${API}/api/stats/trend?days=14`)
-      .then((r) => r.ok ? r.json() : { trend: [] })
-      .then((d) => setData((d.trend || []).map((t) => ({
-        ...t,
-        label: t.date ? t.date.slice(5) : '',
-      }))))
-      .catch(() => {})
-  }, [])
-
-  if (data.length === 0) return null
-
-  return (
-    <div style={{
-      backgroundColor: colors.bgCard,
-      border: `1px solid ${colors.border}`,
-      borderRadius: '12px',
-      overflow: 'hidden',
-      marginBottom: '16px',
-      padding: '14px 16px',
-    }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px',
-      }}>
-        <span style={{
-          width: '3px', height: '12px', borderRadius: '1.5px',
-          backgroundColor: PREMIUM.accent, display: 'inline-block',
-        }} />
-        <span style={{
-          fontSize: '12px', fontWeight: 700, color: colors.textSecondary,
-          fontFamily: FONTS.serif, letterSpacing: '0.02em',
-        }}>
-          14-Day Trend
-        </span>
-      </div>
-      <ResponsiveContainer width="100%" height={120}>
-        <BarChart data={data} barCategoryGap="20%">
-          <XAxis
-            dataKey="label" tick={{ fontSize: 9, fill: colors.textMuted }}
-            axisLine={false} tickLine={false}
-          />
-          <YAxis hide />
-          <Tooltip
-            contentStyle={tooltipStyle(colors, dark)}
-            formatter={(val, name) => [val, name]}
-          />
-          <Bar dataKey="S" stackId="a" fill={GRADE_COLORS.S.bg} radius={[0, 0, 0, 0]} animationDuration={600} animationEasing="ease-out" />
-          <Bar dataKey="A" stackId="a" fill={GRADE_COLORS.A.bg} radius={[0, 0, 0, 0]} animationDuration={600} animationEasing="ease-out" />
-          <Bar dataKey="D" stackId="a" fill={GRADE_COLORS.D.bg} radius={[0, 0, 0, 0]} animationDuration={600} animationEasing="ease-out" />
-          <Bar dataKey="C" stackId="a" fill="#94A3B8" radius={[3, 3, 0, 0]} animationDuration={600} animationEasing="ease-out" />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  )
-}
-
-/* ── PinnedWidget: 즐겨찾기 위젯 ── */
-function PinnedWidget({ favorites, onViewCard, colors, dark }) {
-  return (
-    <div style={{
-      backgroundColor: colors.bgCard,
-      border: `1px solid ${colors.border}`,
-      borderRadius: '12px',
-      overflow: 'hidden',
-      marginBottom: '16px',
-    }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '12px 16px',
-        backgroundColor: dark ? 'rgba(255,255,255,0.03)' : '#FFFBEB',
-        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#FDE68A'}`,
-      }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" strokeWidth="1.5">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-        <span style={{
-          fontSize: '12px', fontWeight: 700, color: dark ? '#FCD34D' : '#92400E',
-          fontFamily: FONTS.serif,
-        }}>
-          Pinned
-        </span>
-        <span style={{
-          fontSize: '10px', fontWeight: 600, fontFamily: FONTS.mono,
-          color: dark ? 'rgba(255,255,255,0.4)' : '#D97706', marginLeft: 'auto',
-        }}>
-          {favorites.length}
-        </span>
-      </div>
-      <div style={{ padding: '4px 0' }}>
-        {favorites.slice(0, 10).map((f, i) => (
-          <div
-            key={f.corp_code}
-            onClick={() => onViewCard(f.corp_code)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '8px 16px', cursor: 'pointer',
-              borderBottom: i < Math.min(favorites.length, 10) - 1
-                ? `1px solid ${dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5'}` : 'none',
-              transition: 'background-color 0.15s',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.04)' : '#FFFBEB' }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
-          >
-            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textPrimary }}>
-              {f.corp_name || f.corp_code}
-            </span>
-            {f.stock_code && (
-              <span style={{ fontSize: '10px', color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 'auto' }}>
-                {f.stock_code}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ── FeedRow: 공시 피드 행 ── */
-function FeedRow({ d, delay, onViewCard, colors, dark, isFav, onToggleFav }) {
-  const [hovered, setHovered] = React.useState(false)
-  const [starAnim, setStarAnim] = React.useState(false)
+function FeedRow({ d, isLast, onOpenModal, colors, dark, priceData }) {
+  const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
   const market = MARKET_LABELS[d.corp_cls] || ''
-
-  const handleStarClick = (e) => {
-    e.stopPropagation()
-    setStarAnim(true)
-    onToggleFav()
-    setTimeout(() => setStarAnim(false), 250)
-  }
+  const changePct = priceData?.change_pct
+  const price = priceData?.price
+  const hasPrice = price != null && price > 0
+  const isUp = changePct > 0
+  const isDown = changePct < 0
+  const priceColor = isUp ? '#E8364E' : isDown ? '#3B82F6' : colors.textMuted
 
   return (
     <div
-      onClick={() => onViewCard(d.corp_code)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="animate-fade-in card-lift"
+      onClick={() => onOpenModal?.(d.rcept_no)}
       style={{
-        display: 'flex', gap: '10px', padding: '11px 16px',
-        cursor: 'pointer', transition: 'background-color 0.15s ease, transform 0.2s ease, box-shadow 0.2s ease',
-        backgroundColor: hovered ? (dark ? 'rgba(255,255,255,0.04)' : '#F8F8FC') : 'transparent',
-        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5'}`,
-        animationDelay: `${delay}ms`, animationFillMode: 'both',
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '13px 16px', cursor: 'pointer',
+        borderBottom: isLast ? 'none' : `1px solid ${dark ? '#27272A' : '#F4F4F5'}`,
+        transition: 'background 0.12s',
       }}
+      onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.03)' : '#F9FAFB'}
+      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
-      {/* Grade */}
-      <div style={{ flexShrink: 0, paddingTop: '2px' }}>
-        <GradeBadge grade={d.grade} size="lg" />
-      </div>
+      {/* 등급 배지 */}
+      <span style={{
+        flexShrink: 0,
+        background: gc.bg, color: gc.color,
+        fontSize: 10, fontWeight: 800,
+        padding: '2px 7px', borderRadius: 5,
+        fontFamily: FONTS.mono, letterSpacing: '0.05em',
+        minWidth: 24, textAlign: 'center',
+      }}>{d.grade}</span>
 
-      {/* Content */}
+      {/* 내용 */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Line 1: Company + Market */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-          <span style={{
-            fontWeight: 600, fontSize: '13px', color: colors.textPrimary,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            letterSpacing: '-0.01em',
-          }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+          <span
+            style={{
+              fontWeight: 600, fontSize: 14, color: dark ? '#FAFAFA' : '#18181B',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}
+          >
             {d.corp_name}
           </span>
           {market && (
             <span style={{
-              fontSize: '9px', fontWeight: 600, padding: '1px 5px', borderRadius: '3px',
-              backgroundColor: dark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
-              color: colors.textMuted, letterSpacing: '0.02em',
+              fontSize: 9, fontWeight: 600, padding: '1px 5px', borderRadius: 3,
+              background: dark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+              color: colors.textMuted, flexShrink: 0,
             }}>{market}</span>
           )}
         </div>
-        {/* Line 2: Filing name */}
         <div style={{
-          fontSize: '11px', color: colors.textMuted,
+          fontSize: 11, color: colors.textMuted,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          lineHeight: '1.4',
         }}>
           {d.report_nm}
         </div>
       </div>
 
-      {/* Stock code */}
-      {d.stock_code && (
-        <div style={{ flexShrink: 0, textAlign: 'right', paddingTop: '2px' }}>
-          <span style={{ fontSize: '10px', color: colors.textMuted, fontFamily: FONTS.mono, opacity: 0.5 }}>
-            {d.stock_code}
-          </span>
+      {/* 시세 */}
+      {hasPrice ? (
+        <div style={{ flexShrink: 0, textAlign: 'right' }}>
+          <div style={{
+            fontSize: 13, fontWeight: 700, fontFamily: FONTS.mono,
+            color: priceColor,
+          }}>
+            {changePct > 0 ? '+' : ''}{changePct?.toFixed(2)}%
+          </div>
+          <div style={{
+            fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono,
+          }}>
+            {price?.toLocaleString()}원
+          </div>
         </div>
-      )}
+      ) : d.stock_code ? (
+        <span style={{
+          flexShrink: 0, fontSize: 10, color: colors.textMuted,
+          fontFamily: FONTS.mono, opacity: 0.4,
+        }}>
+          {d.stock_code}
+        </span>
+      ) : null}
 
-      {/* Favorite star */}
-      <button
-        onClick={handleStarClick}
-        className={starAnim ? 'star-pop' : ''}
-        style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          padding: '4px', flexShrink: 0, lineHeight: 1,
-          color: isFav ? '#F59E0B' : colors.textMuted,
-          opacity: isFav ? 1 : 0.3,
-          transition: 'all 0.15s',
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1' }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = isFav ? '1' : '0.3' }}
-        title={isFav ? '즐겨찾기 해제' : '즐겨찾기 추가'}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill={isFav ? '#F59E0B' : 'none'} stroke={isFav ? '#F59E0B' : 'currentColor'} strokeWidth="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      </button>
+      {/* 공시 보기 화살표 */}
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+        stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0, opacity: 0.4 }}>
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
     </div>
   )
 }

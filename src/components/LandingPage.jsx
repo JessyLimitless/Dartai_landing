@@ -3,15 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { FONTS, PREMIUM, GRADE_COLORS } from '../constants/theme'
 import { useLandingData } from '../hooks/useLandingData'
 
-/* ── Variable color maps ── */
-const VAR_GRADE_COLORS = {
-  '순풍': '#16A34A', '양호': '#4ADE80', '보통': '#D97706', '주의': '#EA580C', '경고': '#DC2626',
-}
-
 export default function LandingPage() {
   const navigate = useNavigate()
-  const go = () => navigate('/today')
-  const { disclosures, stats, recentCards, variableDist, foreignFlow, loading } = useLandingData()
+  const go = () => navigate('/ai-live')
+  const { disclosures, stats, loading } = useLandingData()
 
   const totalCount = stats?.today_count ?? 0
   const sCount = stats?.s_count ?? 0
@@ -188,37 +183,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ Section 3: 시장 인텔리전스 ━━━ */}
-      <section style={{
-        background: '#FAFAFA', color: '#18181B',
-        borderTop: '1px solid #E4E4E7',
-        padding: '48px clamp(20px, 5vw, 64px)',
-      }}>
-        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          <Reveal>
-            <h2 style={{
-              fontSize: '28px', fontWeight: 700, fontFamily: FONTS.serif,
-              margin: '0 0 28px', letterSpacing: '-0.02em',
-            }}>시장 인텔리전스</h2>
-          </Reveal>
-
-          <div className="landing-pulse-grid" style={{
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px',
-          }}>
-            <Reveal d={0}>
-              <RecentCardsCard cards={recentCards} navigate={navigate} />
-            </Reveal>
-            <Reveal d={60}>
-              <VariableDistCard dist={variableDist} navigate={navigate} />
-            </Reveal>
-            <Reveal d={120}>
-              <FlowSnapshotCard items={foreignFlow} navigate={navigate} />
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ━━━ Section 4: 미니멀 푸터 ━━━ */}
+      {/* ━━━ Section 3: 미니멀 푸터 ━━━ */}
       <footer style={{
         background: '#18181B', color: '#A1A1AA',
         padding: '20px clamp(20px, 5vw, 64px)',
@@ -676,42 +641,6 @@ function RecentCardsCard({ cards, navigate }) {
   )
 }
 
-
-function VariableDistCard({ dist, navigate }) {
-  if (!dist) return <SkeletonCard />
-
-  const total = dist.total || 0
-  const grades = ['순풍', '양호', '보통', '주의', '경고']
-
-  return (
-    <CardShell>
-      <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 14px', fontFamily: FONTS.serif }}>
-        5대 변수
-      </h3>
-      <HorizBar
-        total={total}
-        items={grades.map(g => ({ value: dist[g] || 0, color: VAR_GRADE_COLORS[g] }))}
-      />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-        {grades.map(g => (
-          <div key={g} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{
-              width: '8px', height: '8px', borderRadius: '2px',
-              backgroundColor: VAR_GRADE_COLORS[g], flexShrink: 0,
-            }} />
-            <span style={{ fontSize: '12px', color: '#52525B', flex: 1 }}>
-              {g}
-            </span>
-            <span style={{ fontSize: '13px', fontWeight: 600, fontFamily: FONTS.mono, color: '#18181B' }}>
-              {dist[g] || 0}
-            </span>
-          </div>
-        ))}
-      </div>
-      <CardLink label="자세히 보기" onClick={() => navigate('/discover?tab=5factor')} />
-    </CardShell>
-  )
-}
 
 
 function FlowSnapshotCard({ items, navigate }) {

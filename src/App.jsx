@@ -1,11 +1,6 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom'
 import Header from './components/Header'
-import TodayPage from './components/TodayPage'
-import CompanyCard from './components/CompanyCard'
-import DiscoveryPage from './components/DiscoveryPage'
-import MarketPage from './components/MarketPage'
-import PremiumPage from './components/PremiumPage'
 import PushSubscribeBanner from './components/PushSubscribeBanner'
 import ToastContainer from './components/ToastContainer'
 import NotificationDetailModal from './components/NotificationDetailModal'
@@ -16,6 +11,11 @@ import { ErrorProvider } from './contexts/ErrorContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import LandingPage from './components/LandingPage'
 import { FONTS } from './constants/theme'
+
+const TodayPage   = lazy(() => import('./components/TodayPage'))
+const AiLivePage  = lazy(() => import('./components/AiLivePage'))
+const CompanyCard = lazy(() => import('./components/CompanyCard'))
+const PremiumPage = lazy(() => import('./components/PremiumPage'))
 
 function FilingsCorpRedirect() {
   const { corpCode } = useParams()
@@ -33,7 +33,6 @@ export default function App() {
   const [detailNotification, setDetailNotification] = useState(null)
   const navigate = useNavigate()
 
-  // 신규 알림 도착 시 토스트 추가
   const handleNewNotifications = useCallback((newItems) => {
     newItems.forEach((item) => addToast(item))
   }, [addToast])
@@ -50,7 +49,6 @@ export default function App() {
     }
   }, [navigate])
 
-  // 알림 상세 모달 열기 (패널 또는 토스트에서 공용)
   const handleSelectNotification = useCallback((notification) => {
     setDetailNotification(notification)
     if (!notification.is_read) {
@@ -79,30 +77,35 @@ export default function App() {
         )}
         <ErrorBoundary>
           <main className="app-content">
+            <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/today" element={<TodayPage onViewCard={navigateToCard} />} />
+              <Route path="/ai-live" element={<AiLivePage onViewCard={navigateToCard} />} />
               <Route path="/deep-dive" element={<CompanyCard onViewCard={navigateToCard} />} />
               <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
-              <Route path="/discover" element={<DiscoveryPage onViewCard={navigateToCard} />} />
-              <Route path="/market" element={<MarketPage onViewCard={navigateToCard} />} />
               <Route path="/premium" element={<PremiumPage />} />
               {/* Legacy redirects */}
+              <Route path="/surge" element={<Navigate to="/today" replace />} />
+              <Route path="/quant" element={<Navigate to="/today" replace />} />
+              <Route path="/customer-analysis" element={<Navigate to="/today" replace />} />
+              <Route path="/discover" element={<Navigate to="/today" replace />} />
+              <Route path="/market" element={<Navigate to="/today" replace />} />
               <Route path="/dashboard" element={<Navigate to="/today" replace />} />
               <Route path="/filings" element={<Navigate to="/today" replace />} />
               <Route path="/filings/:corpCode" element={<FilingsCorpRedirect />} />
-              <Route path="/analysis" element={<Navigate to="/discover" replace />} />
-              <Route path="/discovery" element={<Navigate to="/discover" replace />} />
+              <Route path="/analysis" element={<Navigate to="/today" replace />} />
+              <Route path="/discovery" element={<Navigate to="/today" replace />} />
               <Route path="/feed" element={<Navigate to="/today" replace />} />
-              <Route path="/variables" element={<Navigate to="/discover" replace />} />
-              <Route path="/industries" element={<Navigate to="/market" replace />} />
-              <Route path="/valuations" element={<Navigate to="/market" replace />} />
-              <Route path="/screener" element={<Navigate to="/discover" replace />} />
-              <Route path="/edge" element={<Navigate to="/discover" replace />} />
+              <Route path="/industries" element={<Navigate to="/today" replace />} />
+              <Route path="/valuations" element={<Navigate to="/today" replace />} />
+              <Route path="/screener" element={<Navigate to="/today" replace />} />
+              <Route path="/edge" element={<Navigate to="/today" replace />} />
               <Route path="/companies" element={<Navigate to="/deep-dive" replace />} />
               <Route path="/companies/:corpCode" element={<FilingsCorpRedirect />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </Suspense>
           </main>
         </ErrorBoundary>
 
