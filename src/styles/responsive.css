@@ -148,7 +148,7 @@ html { scroll-behavior: smooth; }
   cursor: pointer; transition: all 0.2s;
 }
 .mobile-menu button:hover,
-.mobile-menu button.active { background: #F0FDFA; color: #0D9488; }
+.mobile-menu button.active { background: #FEF2F2; color: #DC2626; }
 
 /* ═══ Bottom Tab Bar — hidden by default ════════════════════════════════ */
 .bottom-tab-bar {
@@ -172,7 +172,7 @@ html { scroll-behavior: smooth; }
   -webkit-tap-highlight-color: transparent;
 }
 .bottom-tab-item span { font-size: 10px; font-weight: 600; letter-spacing: 0.02em; }
-.bottom-tab-item.active span { color: #0D9488 !important; }
+.bottom-tab-item.active span { color: #DC2626 !important; }
 
 /* ═══ CompanyCard Mobile Tabs — hidden by default ═══════════════════════ */
 .card-mobile-tabs {

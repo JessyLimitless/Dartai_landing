@@ -84,7 +84,7 @@ function SurgeAlert({ item, onClose }) {
 // 컬럼 정렬 아이콘
 function SortIcon({ col, sortCol, sortAsc }) {
   if (sortCol !== col) return <span style={{ color: '#52525B', fontSize: 10, marginLeft: 3 }}>⇅</span>
-  return <span style={{ color: '#0D9488', fontSize: 10, marginLeft: 3 }}>{sortAsc ? '↑' : '↓'}</span>
+  return <span style={{ color: '#DC2626', fontSize: 10, marginLeft: 3 }}>{sortAsc ? '↑' : '↓'}</span>
 }
 
 // 변화율 셀
@@ -141,7 +141,7 @@ export default function SurgePage({ onViewCard, embedded = false }) {
   const thStyle = (col) => ({
     padding: '10px 12px',
     fontSize: 11, fontWeight: 600,
-    color: sortCol === col.key ? '#0D9488' : colors.textMuted,
+    color: sortCol === col.key ? '#DC2626' : colors.textMuted,
     textAlign: col.key === 'corp_name' ? 'left' : 'right',
     cursor: col.sortable ? 'pointer' : 'default',
     userSelect: 'none',

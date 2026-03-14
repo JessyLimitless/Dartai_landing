@@ -243,13 +243,15 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
               onClick={() => { onViewCard?.(raw.corp_code); onClose() }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                padding: '8px 16px', borderRadius: 8, border: 'none',
-                background: '#0D9488', color: '#fff',
+                padding: '8px 16px', borderRadius: 8,
+                border: `1px solid ${dark ? '#3F3F46' : '#D4D4D8'}`,
+                background: dark ? 'rgba(255,255,255,0.06)' : '#F4F4F5',
+                color: colors.textPrimary,
                 fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                transition: 'background 0.15s',
+                transition: 'all 0.15s',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = '#0F766E'}
-              onMouseLeave={e => e.currentTarget.style.background = '#0D9488'}
+              onMouseEnter={e => { e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.12)' : '#E4E4E7' }}
+              onMouseLeave={e => { e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.06)' : '#F4F4F5' }}
             >
               기업 카드 보기
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">

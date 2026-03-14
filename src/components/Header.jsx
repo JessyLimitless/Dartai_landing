@@ -7,7 +7,8 @@ import { FONTS, PREMIUM, PREMIUM_GOLD } from '../constants/theme'
 const TABS = [
   { key: '/today', label: 'Today', icon: 'today' },
   { key: '/ai-live', label: 'AI Live', icon: 'ailive' },
-  { key: '/deep-dive', label: 'Deep Dive', icon: 'deepdive' },
+  { key: '/deep-dive', label: 'Company Card', icon: 'deepdive' },
+  { key: '/deep-data', label: 'Deep Data', icon: 'deepdata' },
   { key: '/premium', label: 'Premium', icon: 'premium', premium: true },
 ]
 
@@ -30,6 +31,13 @@ const TAB_ICONS = {
   customer: (color) => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+    </svg>
+  ),
+  deepdata: (color) => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+      <line x1="12" y1="22.08" x2="12" y2="12" />
     </svg>
   ),
   premium: (color) => (
@@ -100,7 +108,7 @@ export default function Header({
             {/* Logo mark */}
             <div style={{
               width: 26, height: 26, borderRadius: 7,
-              background: 'linear-gradient(135deg, #0D9488, #0F766E)',
+              background: 'linear-gradient(135deg, #DC2626, #991B1B)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}>
@@ -112,7 +120,7 @@ export default function Header({
               fontSize: '15px', fontWeight: 700, letterSpacing: '-0.4px',
               fontFamily: FONTS.serif, color: colors.textPrimary,
             }}>
-              DART <span style={{ color: '#0D9488' }}>Insight</span>
+              DART <span style={{ color: '#DC2626' }}>Insight</span>
             </span>
           </div>
         </div>
@@ -129,7 +137,7 @@ export default function Header({
           {TABS.map((tab) => {
             const active = isActive(tab.key)
             const isPremium = tab.premium
-            const activeColor = isPremium ? PREMIUM_GOLD.primary : '#0D9488'
+            const activeColor = isPremium ? PREMIUM_GOLD.primary : '#DC2626'
             const iconColor = active ? activeColor : colors.textMuted
             const IconFn = TAB_ICONS[tab.icon]
             return (
@@ -192,6 +200,26 @@ export default function Header({
 
         {/* Right: Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          <a
+            href="https://dartbook.cloud5.socialbrain.co.kr/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="전자공시 시그널 전자책"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '6px', lineHeight: 1,
+              color: colors.textMuted, transition: 'all 0.15s',
+              borderRadius: 6, textDecoration: 'none',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#9E7A2F'; e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; e.currentTarget.style.backgroundColor = 'transparent' }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+          </a>
           <button
             onClick={toggle}
             aria-label={dark ? 'Light mode' : 'Dark mode'}
@@ -236,7 +264,7 @@ export default function Header({
         {TABS.map((tab) => {
           const active = isActive(tab.key)
           const isPremium = tab.premium
-          const activeCol = isPremium ? PREMIUM_GOLD.primary : '#0D9488'
+          const activeCol = isPremium ? PREMIUM_GOLD.primary : '#DC2626'
           const iconColor = active ? activeCol : '#94A3B8'
           const IconFn = TAB_ICONS[tab.icon]
           return (

@@ -138,15 +138,38 @@ export default function LandingPage() {
 
           {/* CTA */}
           <Reveal d={260}>
-            <button onClick={go} style={{
-              padding: '12px 32px', borderRadius: '8px', border: 'none',
-              backgroundColor: PREMIUM.accent, color: '#FFFFFF',
-              fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
-              boxShadow: '0 4px 14px rgba(220,38,38,0.4)',
-            }}
-              onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 20px rgba(220,38,38,0.5)' }}
-              onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = '0 4px 14px rgba(220,38,38,0.4)' }}
-            >대시보드 열기</button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <button onClick={go} style={{
+                padding: '12px 32px', borderRadius: '8px', border: 'none',
+                backgroundColor: PREMIUM.accent, color: '#FFFFFF',
+                fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                boxShadow: '0 4px 14px rgba(220,38,38,0.4)',
+              }}
+                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 20px rgba(220,38,38,0.5)' }}
+                onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = '0 4px 14px rgba(220,38,38,0.4)' }}
+              >대시보드 열기</button>
+              <a
+                href="https://dartbook.cloud5.socialbrain.co.kr/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '12px 24px', borderRadius: '8px',
+                  border: '1px solid rgba(158,122,47,0.4)',
+                  background: 'transparent', color: '#C9A84C',
+                  fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                  textDecoration: 'none', transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(158,122,47,0.7)'; e.currentTarget.style.backgroundColor = 'rgba(158,122,47,0.08)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(158,122,47,0.4)'; e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.transform = 'none' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+                전자공시 시그널
+              </a>
+            </div>
           </Reveal>
 
           {/* Scroll down guide */}
@@ -183,7 +206,110 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ Section 3: 미니멀 푸터 ━━━ */}
+      {/* ━━━ Section 3: 전자공시 시그널 전자책 ━━━ */}
+      <section style={{
+        background: '#FAF8F5',
+        borderTop: '1px solid #E8E4DD',
+        borderBottom: '1px solid #E8E4DD',
+        padding: 'clamp(48px, 8vh, 80px) clamp(20px, 5vw, 64px)',
+      }}>
+        <div style={{
+          maxWidth: '800px', margin: '0 auto',
+          display: 'flex', alignItems: 'center', gap: 'clamp(24px, 4vw, 48px)',
+          flexWrap: 'wrap', justifyContent: 'center',
+        }}>
+          {/* 왼쪽: 텍스트 */}
+          <div style={{ flex: '1 1 320px', minWidth: '280px' }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              marginBottom: '14px',
+            }}>
+              <span style={{
+                fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em',
+                padding: '3px 8px', borderRadius: '4px',
+                background: 'linear-gradient(135deg, #9E7A2F, #C9A84C)',
+                color: '#fff',
+              }}>E-BOOK</span>
+            </div>
+            <h2 style={{
+              fontSize: 'clamp(22px, 3vw, 30px)', fontWeight: 700,
+              fontFamily: FONTS.serif, color: '#1A1A1A',
+              lineHeight: 1.3, margin: '0 0 12px',
+              letterSpacing: '-0.02em',
+            }}>
+              전자공시 <span style={{ color: '#9E7A2F' }}>시그널</span>
+            </h2>
+            <p style={{
+              fontSize: '14px', color: '#555', lineHeight: 1.7,
+              margin: '0 0 24px',
+            }}>
+              공시로 읽는 투자의 기술 — 800건의 공시에서 진짜 시그널을 찾아내는 체계적 방법론을 담았습니다.
+              수주공시 분석부터 자금조달 리스크, 섹터별 핵심 지표까지.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <a
+                href="https://dartbook.cloud5.socialbrain.co.kr/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '10px 24px', borderRadius: '8px', border: 'none',
+                  background: 'linear-gradient(135deg, #9E7A2F, #B8922E)',
+                  color: '#fff', fontSize: '13px', fontWeight: 600,
+                  cursor: 'pointer', textDecoration: 'none',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 2px 8px rgba(158,122,47,0.3)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(158,122,47,0.4)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(158,122,47,0.3)' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+                무료로 읽기
+              </a>
+            </div>
+          </div>
+
+          {/* 오른쪽: 목차 미리보기 카드 */}
+          <div style={{
+            flex: '0 0 auto', width: 'clamp(220px, 28vw, 260px)',
+            background: '#FFFFFF',
+            borderRadius: '12px', padding: '20px 22px',
+            border: '1px solid #E8E4DD',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+          }}>
+            <div style={{
+              fontSize: '10px', fontWeight: 600, color: '#9E7A2F',
+              letterSpacing: '0.08em', marginBottom: '12px',
+            }}>CONTENTS</div>
+            {[
+              { ch: '01', title: '투자의 기준' },
+              { ch: '02', title: '공시의 이해' },
+              { ch: '03', title: '기업의 체력 검증' },
+              { ch: '04', title: '실전 시그널 필터' },
+              { ch: '05', title: '의사결정 매뉴얼' },
+            ].map((item, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '6px 0',
+                borderBottom: i < 4 ? '1px solid rgba(0,0,0,0.04)' : 'none',
+              }}>
+                <span style={{
+                  fontSize: '10px', fontWeight: 700, fontFamily: FONTS.mono,
+                  color: '#9E7A2F', opacity: 0.6, minWidth: '18px',
+                }}>{item.ch}</span>
+                <span style={{
+                  fontSize: '12px', color: '#3F3F46', fontWeight: 500,
+                }}>{item.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ━━━ Section 4: 미니멀 푸터 ━━━ */}
       <footer style={{
         background: '#18181B', color: '#A1A1AA',
         padding: '20px clamp(20px, 5vw, 64px)',

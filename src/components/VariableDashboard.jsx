@@ -9,7 +9,7 @@ const GRADES = ['대운', '순풍', '양호', '보통', '주의', '경고']
 
 const FACTOR_LABELS = ['수익성', '성장성', '안전성', '현금창출', '밸류에이션']
 const FACTOR_KEYS   = ['profitability_score', 'growth_score', 'safety_score', 'cashflow_score', 'valuation_score']
-const FACTOR_COLORS = ['#2563EB', '#0D9488', '#8B5CF6', '#D97706', '#E11D48']
+const FACTOR_COLORS = ['#2563EB', '#DC2626', '#8B5CF6', '#D97706', '#E11D48']
 
 export default function VariableDashboard({ onViewCard }) {
   const { colors, dark } = useTheme()

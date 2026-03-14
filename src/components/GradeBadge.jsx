@@ -3,7 +3,7 @@ import { GRADE_COLORS } from '../constants/theme'
 
 const EXTRA_STYLES = {
   report: { bg: '#8b5cf6', color: '#fff', label: 'R' },
-  signal: { bg: '#0D9488', color: '#fff', label: 'SG' },
+  signal: { bg: '#DC2626', color: '#fff', label: 'SG' },
   error: { bg: '#991B1B', color: '#fff', label: '!' },
 }
 

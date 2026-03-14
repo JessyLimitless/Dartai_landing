@@ -104,8 +104,7 @@ function useStats(weekOffset) {
 
 function pctColor(v) {
   if (v == null) return '#A1A1AA'
-  if (v >= 2) return '#DC2626'
-  if (v > 0) return '#059669'
+  if (v > 0) return '#DC2626'
   if (v < 0) return '#2563EB'
   return '#71717A'
 }
@@ -129,10 +128,11 @@ function SurgeAlert({ item, onClose }) {
     <div style={{
       position: 'fixed', top: 66, left: '50%', transform: 'translateX(-50%)',
       zIndex: 2000,
-      background: 'linear-gradient(135deg, #DC2626, #B91C1C)',
+      background: 'linear-gradient(135deg, #18181B, #27272A)',
       color: '#fff', borderRadius: 14, padding: '12px 20px',
       display: 'flex', alignItems: 'center', gap: 12,
-      boxShadow: '0 8px 32px rgba(220,38,38,0.5)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      border: '1px solid rgba(255,255,255,0.1)',
       minWidth: 280, animation: 'surgeIn 0.3s ease-out',
     }}>
       <span style={{ fontSize: 20 }}>🚀</span>
@@ -155,8 +155,7 @@ function SurgeAlert({ item, onClose }) {
 function PctCell({ value }) {
   const col = pctColor(value)
   const bg = value == null ? 'transparent'
-    : value >= 2 ? 'rgba(220,38,38,0.08)'
-    : value > 0 ? 'rgba(5,150,105,0.08)'
+    : value > 0 ? 'rgba(220,38,38,0.08)'
     : value < 0 ? 'rgba(37,99,235,0.08)'
     : 'transparent'
   return (
@@ -173,7 +172,7 @@ function PctCell({ value }) {
 
 function SortIcon({ col, sortCol, sortAsc }) {
   if (sortCol !== col) return <span style={{ color: '#52525B', fontSize: 10, marginLeft: 2 }}>⇅</span>
-  return <span style={{ color: '#0D9488', fontSize: 10, marginLeft: 2 }}>{sortAsc ? '↑' : '↓'}</span>
+  return <span style={{ color: colors.textPrimary, fontSize: 10, marginLeft: 2 }}>{sortAsc ? '↑' : '↓'}</span>
 }
 
 // ── 통계 요약 카드 ──────────────────────────────────────────────
@@ -242,7 +241,7 @@ function StatsCards({ data, loading, colors, dark }) {
         <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 8 }}>기간 요약</div>
         <div style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 1.9 }}>
           <div>{totalDays}거래일 추적</div>
-          <div style={{ color: '#DC2626', fontWeight: 600 }}>🚀 급등일 {surgeDays}회</div>
+          <div style={{ color: colors.textPrimary, fontWeight: 600 }}>급등일 {surgeDays}회</div>
         </div>
       </div>
     </div>
@@ -275,7 +274,7 @@ function TodayTable({ tracks, loading, onOpenModal, colors, dark }) {
 
   const thSt = col => ({
     padding: '9px 10px', fontSize: 11, fontWeight: 600,
-    color: sortCol === col.key ? '#0D9488' : colors.textMuted,
+    color: sortCol === col.key ? colors.textPrimary : colors.textMuted,
     textAlign: col.key === 'corp_name' ? 'left' : 'right',
     cursor: col.sortable ? 'pointer' : 'default',
     userSelect: 'none', whiteSpace: 'nowrap', width: col.w || undefined,
@@ -381,7 +380,7 @@ function HistoryTable({ tracks, loading, onOpenModal, colors, dark }) {
 
   const thSt = col => ({
     padding: '9px 10px', fontSize: 11, fontWeight: 600,
-    color: sortCol === col.key ? '#0D9488' : colors.textMuted,
+    color: sortCol === col.key ? colors.textPrimary : colors.textMuted,
     textAlign: col.key === 'corp_name' ? 'left' : 'right',
     cursor: col.sortable ? 'pointer' : 'default',
     userSelect: 'none', whiteSpace: 'nowrap', width: col.w || undefined,
@@ -500,9 +499,10 @@ export default function AiLivePage({ onViewCard }) {
             공시 후 주가 추적
           </span>
           <span style={{
-            background: isAfterMarket ? '#52525B' : '#DC2626',
-            color: '#fff', fontSize: 9, fontWeight: 800,
+            background: isAfterMarket ? '#52525B' : '#18181B',
+            color: isAfterMarket ? '#A1A1AA' : '#22C55E', fontSize: 9, fontWeight: 800,
             padding: '2px 7px', borderRadius: 20, letterSpacing: '0.1em',
+            border: isAfterMarket ? 'none' : '1px solid rgba(34,197,94,0.3)',
           }}>{isAfterMarket ? '장 마감' : 'LIVE'}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -515,7 +515,7 @@ export default function AiLivePage({ onViewCard }) {
             style={{
               fontSize: 11, padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
               border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
-              background: backfill.status === 'done' ? '#0D9488' : backfill.status === 'error' ? '#DC2626' : 'transparent',
+              background: backfill.status === 'done' ? '#22C55E' : backfill.status === 'error' ? '#EF4444' : 'transparent',
               color: backfill.status ? '#fff' : colors.textMuted,
               transition: 'all 0.15s',
             }}
@@ -541,8 +541,8 @@ export default function AiLivePage({ onViewCard }) {
               padding: '8px 14px', border: 'none', cursor: 'pointer',
               background: 'transparent', fontSize: 13,
               fontWeight: view === t.key ? 600 : 400,
-              color: view === t.key ? '#0D9488' : colors.textSecondary,
-              borderBottom: view === t.key ? '2px solid #0D9488' : '2px solid transparent',
+              color: view === t.key ? colors.textPrimary : colors.textSecondary,
+              borderBottom: view === t.key ? `2px solid ${colors.textPrimary}` : '2px solid transparent',
               marginBottom: -1, transition: 'all 0.15s',
             }}
           >
@@ -582,7 +582,7 @@ export default function AiLivePage({ onViewCard }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 16, transition: 'all 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#0D9488'; e.currentTarget.style.color = '#0D9488' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = colors.textPrimary; e.currentTarget.style.color = colors.textPrimary }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#27272A' : '#E4E4E7'; e.currentTarget.style.color = colors.textSecondary }}
           >‹</button>
 
@@ -610,7 +610,7 @@ export default function AiLivePage({ onViewCard }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 16, transition: 'all 0.15s',
             }}
-            onMouseEnter={e => { if (weekOffset < 0) { e.currentTarget.style.borderColor = '#0D9488'; e.currentTarget.style.color = '#0D9488' } }}
+            onMouseEnter={e => { if (weekOffset < 0) { e.currentTarget.style.borderColor = colors.textPrimary; e.currentTarget.style.color = colors.textPrimary } }}
             onMouseLeave={e => { if (weekOffset < 0) { e.currentTarget.style.borderColor = dark ? '#27272A' : '#E4E4E7'; e.currentTarget.style.color = colors.textSecondary } }}
           >›</button>
         </div>

@@ -166,7 +166,7 @@ function SearchBar({ search, setSearch, colors, dark }) {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '0 12px', borderRadius: 10,
-        border: `1px solid ${focused ? '#0D9488' : (dark ? '#27272A' : '#E4E4E7')}`,
+        border: `1px solid ${focused ? '#DC2626' : (dark ? '#27272A' : '#E4E4E7')}`,
         background: dark ? '#18181B' : '#FAFAFA',
         transition: 'border-color 0.15s',
       }}>

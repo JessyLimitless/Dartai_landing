@@ -38,7 +38,7 @@ export default function QuantPage({ onViewCard }) {
           </span>
           {!loading && totalAll > 0 && (
             <span style={{
-              background: '#0D9488', color: '#fff',
+              background: '#DC2626', color: '#fff',
               fontSize: 10, fontWeight: 700, padding: '2px 8px',
               borderRadius: 20,
             }}>{totalAll}개 감지</span>

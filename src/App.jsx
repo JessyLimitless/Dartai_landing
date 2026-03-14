@@ -15,6 +15,7 @@ import { FONTS } from './constants/theme'
 const TodayPage   = lazy(() => import('./components/TodayPage'))
 const AiLivePage  = lazy(() => import('./components/AiLivePage'))
 const CompanyCard = lazy(() => import('./components/CompanyCard'))
+const DeepDataPage = lazy(() => import('./components/DeepDataPage'))
 const PremiumPage = lazy(() => import('./components/PremiumPage'))
 
 function FilingsCorpRedirect() {
@@ -84,6 +85,7 @@ export default function App() {
               <Route path="/ai-live" element={<AiLivePage onViewCard={navigateToCard} />} />
               <Route path="/deep-dive" element={<CompanyCard onViewCard={navigateToCard} />} />
               <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
+              <Route path="/deep-data" element={<DeepDataPage onViewCard={navigateToCard} />} />
               <Route path="/premium" element={<PremiumPage />} />
               {/* Legacy redirects */}
               <Route path="/surge" element={<Navigate to="/today" replace />} />

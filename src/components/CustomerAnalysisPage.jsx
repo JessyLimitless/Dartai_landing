@@ -8,7 +8,7 @@ import { FONTS } from '../constants/theme'
 import { API as API_BASE } from '../lib/api'
 
 // 순위별 배지 색상
-const RANK_COLORS = ['#DC2626', '#D97706', '#059669', '#0D9488', '#2563EB', '#7C3AED', '#DB2777', '#64748B']
+const RANK_COLORS = ['#DC2626', '#D97706', '#059669', '#DC2626', '#2563EB', '#7C3AED', '#DB2777', '#64748B']
 
 function PValueBadge({ p }) {
   const sig = p < 0.05
@@ -35,9 +35,9 @@ function SectorCard({ sector, data, rank, onClick, selected, dark, colors }) {
       onClick={() => onClick(sector)}
       style={{
         background: selected
-          ? (dark ? 'rgba(13,148,136,0.15)' : 'rgba(13,148,136,0.08)')
+          ? (dark ? 'rgba(220,38,38,0.15)' : 'rgba(220,38,38,0.08)')
           : (dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
-        border: `1px solid ${selected ? '#0D9488' : (dark ? 'rgba(255,255,255,0.08)' : colors.border)}`,
+        border: `1px solid ${selected ? '#DC2626' : (dark ? 'rgba(255,255,255,0.08)' : colors.border)}`,
         borderRadius: 10,
         padding: '14px 16px',
         cursor: 'pointer',
@@ -89,7 +89,7 @@ function SectorCard({ sector, data, rank, onClick, selected, dark, colors }) {
         {isSignificant && (
           <span style={{
             fontSize: 10, padding: '2px 6px', borderRadius: 4,
-            background: 'rgba(13,148,136,0.15)', color: '#0D9488', fontWeight: 600,
+            background: 'rgba(220,38,38,0.15)', color: '#DC2626', fontWeight: 600,
           }}>통계적 유의</span>
         )}
       </div>
@@ -116,7 +116,7 @@ const CustomTooltip = ({ active, payload, label, dark, colors }) => {
   )
 }
 
-export default function CustomerAnalysisPage() {
+export default function CustomerAnalysisPage({ embedded = false }) {
   const { colors, dark } = useTheme()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -180,25 +180,25 @@ export default function CustomerAnalysisPage() {
     return Object.values(timeMap).sort((a, b) => a.time.localeCompare(b.time))
   })()
 
-  const accentColor = '#0D9488'
+  const accentColor = '#DC2626'
 
   return (
-    <div style={{ minHeight: '100vh', background: colors.bgPrimary }}>
+    <div style={{ minHeight: embedded ? 'auto' : '100vh', background: embedded ? 'transparent' : colors.bgPrimary }}>
 
       {/* 헤더 */}
       <div style={{
-        background: dark ? 'rgba(9,9,11,0.6)' : colors.bgCard,
-        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.07)' : colors.border}`,
-        backdropFilter: dark ? 'blur(8px)' : 'none',
+        background: embedded ? 'transparent' : (dark ? 'rgba(9,9,11,0.6)' : colors.bgCard),
+        borderBottom: embedded ? 'none' : `1px solid ${dark ? 'rgba(255,255,255,0.07)' : colors.border}`,
+        backdropFilter: (!embedded && dark) ? 'blur(8px)' : 'none',
       }}>
-        <div style={{ maxWidth: 1140, margin: '0 auto', padding: '16px 20px' }}>
+        <div style={{ maxWidth: 1140, margin: '0 auto', padding: embedded ? '0 0 12px' : '16px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{
                   fontFamily: FONTS.serif, fontSize: 17, fontWeight: 700,
                   color: colors.textPrimary, letterSpacing: '-0.01em',
-                }}>고객분석</span>
+                }}>NXT 시간외 분석</span>
                 <span style={{
                   background: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
                   color: '#fff', fontSize: 9, fontWeight: 800,
@@ -226,7 +226,7 @@ export default function CustomerAnalysisPage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '8px 16px', borderRadius: 8,
-                background: loading ? 'rgba(13,148,136,0.2)' : accentColor,
+                background: loading ? 'rgba(220,38,38,0.2)' : accentColor,
                 color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
                 fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
               }}
@@ -242,7 +242,7 @@ export default function CustomerAnalysisPage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1140, margin: '0 auto', padding: '24px 20px' }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto', padding: embedded ? '12px 0' : '24px 20px' }}>
 
         {/* 안내 배너 */}
         <div style={{
@@ -362,7 +362,7 @@ export default function CustomerAnalysisPage() {
                     {selectedData.significant && (
                       <span style={{
                         fontSize: 11, padding: '2px 8px', borderRadius: 4,
-                        background: 'rgba(13,148,136,0.15)', color: '#0D9488', fontWeight: 600,
+                        background: 'rgba(220,38,38,0.15)', color: '#DC2626', fontWeight: 600,
                       }}>
                         통계적으로 유의미한 패턴 ✓
                       </span>
@@ -449,12 +449,12 @@ export default function CustomerAnalysisPage() {
                   {selectedData.significant && (
                     <div style={{
                       marginTop: 16, padding: '12px 16px',
-                      background: 'rgba(13,148,136,0.08)',
-                      borderLeft: '3px solid #0D9488',
+                      background: 'rgba(220,38,38,0.08)',
+                      borderLeft: '3px solid #DC2626',
                       borderRadius: '0 8px 8px 0',
                       fontSize: 13, color: colors.textSecondary, lineHeight: 1.7,
                     }}>
-                      <strong style={{ color: '#0D9488' }}>투자 시사점:</strong> {selectedSector} 업종은
+                      <strong style={{ color: '#DC2626' }}>투자 시사점:</strong> {selectedSector} 업종은
                       NXT 18:00~20:00 구간에서 평균 {Math.abs(selectedData.avg_return).toFixed(2)}%
                       {selectedData.avg_return > 0 ? ' 상승' : ' 하락'}하는 패턴이 통계적으로 유의미합니다
                       (p={selectedData.p_value?.toFixed(3)}).

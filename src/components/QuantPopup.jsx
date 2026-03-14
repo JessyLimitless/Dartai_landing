@@ -232,7 +232,7 @@ export default function QuantPopup({ onViewCard }) {
           padding: '10px 16px',
           borderRadius: '24px',
           border: 'none',
-          backgroundColor: '#0D9488',
+          backgroundColor: '#DC2626',
           color: '#ffffff',
           fontSize: '13px',
           fontWeight: 700,
@@ -250,7 +250,7 @@ export default function QuantPopup({ onViewCard }) {
           e.currentTarget.style.boxShadow = '0 6px 20px rgba(13,148,136,0.45)'
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#0D9488'
+          e.currentTarget.style.backgroundColor = '#DC2626'
           e.currentTarget.style.transform = 'translateY(0)'
           e.currentTarget.style.boxShadow = '0 4px 16px rgba(13,148,136,0.35)'
         }}
@@ -337,7 +337,7 @@ export default function QuantPopup({ onViewCard }) {
                   </span>
                   {!loading && totalSignals > 0 && (
                     <span style={{
-                      background: '#0D9488', color: '#fff',
+                      background: '#DC2626', color: '#fff',
                       fontSize: 10, fontWeight: 800,
                       padding: '2px 8px', borderRadius: 20,
                     }}>{totalSignals}개 감지</span>
@@ -470,9 +470,9 @@ export default function QuantPopup({ onViewCard }) {
                   fontFamily: FONTS.body,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#0D9488'
+                  e.currentTarget.style.backgroundColor = '#DC2626'
                   e.currentTarget.style.color = '#fff'
-                  e.currentTarget.style.borderColor = '#0D9488'
+                  e.currentTarget.style.borderColor = '#DC2626'
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent'
