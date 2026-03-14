@@ -2,11 +2,30 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FONTS, PREMIUM, GRADE_COLORS } from '../constants/theme'
 import { useLandingData } from '../hooks/useLandingData'
+import { CURRENT_EVENT } from '../data/weeklyEvents'
+
+const WEEKLY_EVENT = CURRENT_EVENT
 
 export default function LandingPage() {
   const navigate = useNavigate()
   const go = () => navigate('/ai-live')
   const { disclosures, stats, loading } = useLandingData()
+  const [showPopup, setShowPopup] = useState(false)
+  const [showInsight, setShowInsight] = useState(false)
+
+  // 24시간 내 닫은 적 있으면 표시 안 함
+  useEffect(() => {
+    const dismissed = localStorage.getItem(`event_dismissed_${WEEKLY_EVENT.id}`)
+    if (!dismissed) {
+      const timer = setTimeout(() => setShowPopup(true), 1200)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
+  const dismissPopup = () => {
+    setShowPopup(false)
+    localStorage.setItem(`event_dismissed_${WEEKLY_EVENT.id}`, Date.now().toString())
+  }
 
   const totalCount = stats?.today_count ?? 0
   const sCount = stats?.s_count ?? 0
@@ -16,6 +35,23 @@ export default function LandingPage() {
 
   return (
     <div style={{ fontFamily: FONTS.body, overflowX: 'hidden' }}>
+
+      {/* 이벤트 팝업 */}
+      {showPopup && (
+        <EventPopup
+          event={WEEKLY_EVENT}
+          onClose={dismissPopup}
+          onInsight={() => { dismissPopup(); setShowInsight(true) }}
+        />
+      )}
+
+      {/* 인사이트 문서 모달 */}
+      {showInsight && (
+        <InsightModal
+          event={WEEKLY_EVENT}
+          onClose={() => setShowInsight(false)}
+        />
+      )}
 
       {/* ━━━ Section 1: Dark Hero (100vh, 항상 다크) ━━━ */}
       <section style={{
@@ -828,5 +864,286 @@ function FlowSnapshotCard({ items, navigate }) {
       )}
       <CardLink label="자세히 보기" onClick={() => navigate('/market?tab=flow')} />
     </CardShell>
+  )
+}
+
+
+/* ── 이벤트 팝업 ── */
+function EventPopup({ event, onClose, onInsight }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px',
+        backdropFilter: 'blur(6px)',
+        animation: 'popupFadeIn 0.3s ease',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#09090B',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 16,
+          width: '100%', maxWidth: 440,
+          overflow: 'hidden',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+          animation: 'popupSlideUp 0.35s ease',
+        }}
+      >
+        {/* 상단 악센트 바 */}
+        <div style={{
+          height: 3,
+          background: 'linear-gradient(90deg, #DC2626, #F59E0B, #DC2626)',
+          backgroundSize: '200% 100%',
+          animation: 'shimmer 3s linear infinite',
+        }} />
+
+        <div style={{ padding: '24px 24px 20px' }}>
+          {/* 태그 + 닫기 */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{
+                fontSize: 9, fontWeight: 800, letterSpacing: '0.12em',
+                padding: '3px 8px', borderRadius: 4,
+                background: 'rgba(220,38,38,0.15)', color: '#F87171',
+              }}>{event.tag}</span>
+              <span style={{
+                fontSize: 12, fontFamily: FONTS.mono, color: '#71717A',
+              }}>{event.date}</span>
+            </div>
+            <button onClick={onClose} style={{
+              background: 'rgba(255,255,255,0.06)', border: 'none',
+              borderRadius: 6, width: 28, height: 28,
+              color: '#71717A', fontSize: 14, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>✕</button>
+          </div>
+
+          {/* 제목 */}
+          <h3 style={{
+            fontSize: 20, fontWeight: 700, fontFamily: FONTS.serif,
+            color: '#FAFAFA', margin: '0 0 12px',
+            letterSpacing: '-0.02em', lineHeight: 1.3,
+          }}>
+            {event.title}
+          </h3>
+
+          {/* 요약 */}
+          <p style={{
+            fontSize: 13, color: '#A1A1AA', lineHeight: 1.7,
+            margin: '0 0 20px',
+          }}>
+            {event.summary}
+          </p>
+
+          {/* 액션 */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={onInsight}
+              style={{
+                flex: 1, padding: '10px 0', borderRadius: 8, border: 'none',
+                background: PREMIUM.accent, color: '#fff',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg>
+              인사이트 보기
+            </button>
+            <button
+              onClick={onClose}
+              style={{
+                padding: '10px 20px', borderRadius: 8,
+                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'transparent', color: '#71717A',
+                fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#A1A1AA' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#71717A' }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes popupFadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes popupSlideUp { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes shimmer { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
+      `}</style>
+    </div>
+  )
+}
+
+
+/* ── 인사이트 마크다운 모달 ── */
+function InsightModal({ event, onClose }) {
+  // ESC 닫기
+  useEffect(() => {
+    const h = e => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [onClose])
+
+  // 간이 마크다운 렌더러
+  const renderMarkdown = (md) => {
+    const lines = md.split('\n')
+    const elements = []
+    let tableRows = []
+    let tableHeaders = []
+    let inTable = false
+
+    const flushTable = () => {
+      if (tableHeaders.length > 0) {
+        elements.push(
+          <div key={`tbl-${elements.length}`} style={{ overflowX: 'auto', margin: '12px 0' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr>{tableHeaders.map((h, i) => (
+                  <th key={i} style={{ padding: '8px 10px', textAlign: 'left', borderBottom: '2px solid #27272A', color: '#A1A1AA', fontWeight: 600, fontSize: 11 }}>{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody>
+                {tableRows.map((row, ri) => (
+                  <tr key={ri}>{row.map((cell, ci) => (
+                    <td key={ci} style={{ padding: '7px 10px', borderBottom: '1px solid #1E1E22', color: '#D4D4D8', fontSize: 12 }}>{cell}</td>
+                  ))}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+      tableHeaders = []
+      tableRows = []
+      inTable = false
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+
+      // 테이블
+      if (line.startsWith('|') && line.endsWith('|')) {
+        const cells = line.split('|').filter(c => c.trim()).map(c => c.trim())
+        if (!inTable) {
+          tableHeaders = cells
+          inTable = true
+          continue
+        }
+        if (cells.every(c => /^[-:]+$/.test(c))) continue // 구분선
+        tableRows.push(cells)
+        continue
+      } else if (inTable) {
+        flushTable()
+      }
+
+      if (line.startsWith('# ')) {
+        elements.push(<h1 key={i} style={{ fontSize: 20, fontWeight: 700, fontFamily: FONTS.serif, color: '#FAFAFA', margin: '24px 0 12px', letterSpacing: '-0.02em' }}>{line.slice(2)}</h1>)
+      } else if (line.startsWith('## ')) {
+        elements.push(<h2 key={i} style={{ fontSize: 16, fontWeight: 700, fontFamily: FONTS.serif, color: '#FAFAFA', margin: '20px 0 10px', paddingTop: 8, borderTop: '1px solid #27272A' }}>{line.slice(3)}</h2>)
+      } else if (line.startsWith('### ')) {
+        elements.push(<h3 key={i} style={{ fontSize: 14, fontWeight: 600, color: '#E4E4E7', margin: '16px 0 8px' }}>{line.slice(4)}</h3>)
+      } else if (line.startsWith('---')) {
+        elements.push(<hr key={i} style={{ border: 'none', borderTop: '1px solid #27272A', margin: '16px 0' }} />)
+      } else if (line.startsWith('- **')) {
+        const match = line.match(/^- \*\*(.+?)\*\*:?\s*(.*)/)
+        if (match) {
+          elements.push(
+            <div key={i} style={{ display: 'flex', gap: 6, padding: '4px 0', fontSize: 13 }}>
+              <span style={{ color: '#DC2626', flexShrink: 0 }}>•</span>
+              <span><strong style={{ color: '#FAFAFA' }}>{match[1]}</strong><span style={{ color: '#A1A1AA' }}> {match[2]}</span></span>
+            </div>
+          )
+        }
+      } else if (line.startsWith('- ')) {
+        elements.push(
+          <div key={i} style={{ display: 'flex', gap: 6, padding: '3px 0', fontSize: 13, color: '#A1A1AA' }}>
+            <span style={{ color: '#52525B' }}>•</span>
+            <span>{line.slice(2)}</span>
+          </div>
+        )
+      } else if (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) {
+        elements.push(<p key={i} style={{ fontSize: 11, color: '#52525B', margin: '12px 0 0', fontStyle: 'italic' }}>{line.replace(/\*/g, '')}</p>)
+      } else if (line.trim() === '') {
+        elements.push(<div key={i} style={{ height: 6 }} />)
+      } else {
+        elements.push(<p key={i} style={{ fontSize: 13, color: '#A1A1AA', lineHeight: 1.7, margin: '4px 0' }}>{line}</p>)
+      }
+    }
+    if (inTable) flushTable()
+    return elements
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 10000,
+        background: 'rgba(0,0,0,0.7)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px',
+        backdropFilter: 'blur(8px)',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#0C0C0E',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 16,
+          width: '100%', maxWidth: 640,
+          maxHeight: '85vh',
+          display: 'flex', flexDirection: 'column',
+          boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
+        }}
+      >
+        {/* 헤더 */}
+        <div style={{
+          padding: '18px 24px',
+          borderBottom: '1px solid #1E1E22',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              fontSize: 14, fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#FAFAFA',
+            }}>
+              DART <span style={{ color: PREMIUM.accent }}>Insight</span>
+            </span>
+            <span style={{
+              fontSize: 9, fontWeight: 700, letterSpacing: '0.1em',
+              padding: '2px 7px', borderRadius: 4,
+              background: 'rgba(220,38,38,0.15)', color: '#F87171',
+            }}>ANALYST BRIEF</span>
+          </div>
+          <button onClick={onClose} style={{
+            background: 'rgba(255,255,255,0.06)', border: 'none',
+            borderRadius: 6, width: 28, height: 28,
+            color: '#71717A', fontSize: 14, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>✕</button>
+        </div>
+
+        {/* 본문 */}
+        <div style={{
+          flex: 1, overflowY: 'auto', padding: '20px 24px 28px',
+        }}>
+          {renderMarkdown(event.insight)}
+        </div>
+      </div>
+    </div>
   )
 }

@@ -17,6 +17,7 @@ const AiLivePage  = lazy(() => import('./components/AiLivePage'))
 const CompanyCard = lazy(() => import('./components/CompanyCard'))
 const DeepDataPage = lazy(() => import('./components/DeepDataPage'))
 const PremiumPage = lazy(() => import('./components/PremiumPage'))
+const DartEventPage = lazy(() => import('./components/DartEventPage'))
 
 function FilingsCorpRedirect() {
   const { corpCode } = useParams()
@@ -86,6 +87,7 @@ export default function App() {
               <Route path="/deep-dive" element={<CompanyCard onViewCard={navigateToCard} />} />
               <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
               <Route path="/deep-data" element={<DeepDataPage onViewCard={navigateToCard} />} />
+              <Route path="/dart-event" element={<DartEventPage />} />
               <Route path="/premium" element={<PremiumPage />} />
               {/* Legacy redirects */}
               <Route path="/surge" element={<Navigate to="/today" replace />} />
