@@ -87,13 +87,17 @@ export default function LandingPage() {
           {/* Buffett Avatar + Kicker */}
           <Reveal>
             <div style={{ marginBottom: '24px' }}>
-              <div style={{
+              <div onClick={() => { navigate('/premium'); setTimeout(() => window.dispatchEvent(new Event('open-buffett-chat')), 500) }} style={{
                 width: 'clamp(72px, 12vw, 96px)', height: 'clamp(72px, 12vw, 96px)',
                 borderRadius: '50%', overflow: 'hidden',
-                margin: '0 auto 16px',
+                margin: '0 auto 16px', cursor: 'pointer',
                 border: '3px solid rgba(220,38,38,0.3)',
                 boxShadow: '0 0 40px rgba(220,38,38,0.15), 0 0 80px rgba(220,38,38,0.05)',
-              }}>
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = '0 0 60px rgba(220,38,38,0.25)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(220,38,38,0.15), 0 0 80px rgba(220,38,38,0.05)' }}
+              >
                 <img src="/bufit.png" alt="Buffett AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>

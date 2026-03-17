@@ -112,7 +112,7 @@ export default function HistoryPage({ onViewCard }) {
                 </div>
               </div>
               <span style={{
-                fontSize: 20, fontWeight: 800, fontFamily: FONTS.mono,
+                fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono,
                 color: accentColor, flexShrink: 0,
               }}>
                 {change > 0 ? '+' : ''}{change.toFixed(2)}%
@@ -177,7 +177,7 @@ export default function HistoryPage({ onViewCard }) {
         </span>
       </div>
 
-      <div style={{ padding: '0 20px' }}>
+      <div style={{ padding: '14px 20px 0' }}>
 
       {/* 콘텐츠 */}
       {recent.loading ? (

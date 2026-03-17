@@ -77,7 +77,7 @@ export default function TodayPage({ onViewCard }) {
       </div>
 
       {/* 탭 콘텐츠 */}
-      <div key={tab} className="tab-fade" style={{ padding: '0 20px' }}>
+      <div key={tab} className="tab-fade" style={{ padding: '14px 20px 0' }}>
         {tab === 'up' && (
           <RankedList items={upList} accentColor="#DC2626" loading={loading} onOpenModal={setModalRceptNo}
             emptyTitle="장중에 업데이트돼요" emptyDesc="장 운영 시간(09:00~15:30)에 공시 종목의 실시간 상승률이 표시됩니다" />
@@ -144,7 +144,7 @@ function RankedList({ items, accentColor, loading, onOpenModal, emptyTitle, empt
           <div style={{ fontSize: 11, color: c.text3, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.report_nm}</div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FONTS.mono, color: accentColor, lineHeight: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono, color: accentColor, lineHeight: 1 }}>
             {d.changePct > 0 ? '+' : ''}{d.changePct.toFixed(2)}%
           </div>
           <div style={{ fontSize: 11, color: c.text3, fontFamily: FONTS.mono, marginTop: 3 }}>{d.price?.toLocaleString()}</div>
@@ -351,7 +351,7 @@ function FeedRow({ d, isLast, onOpenModal, colors, dark, priceData }) {
 
       {hasPrice ? (
         <div style={{ flexShrink: 0, textAlign: 'right' }}>
-          <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono, color: priceColor }}>
+          <div style={{ fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono, color: priceColor }}>
             {changePct > 0 ? '+' : ''}{changePct.toFixed(2)}%
           </div>
           <div style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 1 }}>
