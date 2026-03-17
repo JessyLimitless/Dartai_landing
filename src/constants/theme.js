@@ -99,8 +99,8 @@ export function getBoxStyle(dark, variant = 'section') {
     return {
       ...base,
       background: dark ? '#141416' : '#FFFFFF',
-      border: `1px solid ${dark ? '#232328' : '#EBEBEB'}`,
-      boxShadow: dark ? 'none' : '0 1px 2px rgba(0,0,0,0.03)',
+      border: `1px solid ${dark ? '#1E1E22' : '#F0F0F2'}`,
+      boxShadow: dark ? 'none' : '0 1px 4px rgba(0,0,0,0.04)',
     }
   }
   if (variant === 'inset') {
@@ -116,8 +116,8 @@ export function getBoxStyle(dark, variant = 'section') {
     return {
       ...base,
       background: dark ? '#141416' : '#FFFFFF',
-      border: `1px solid ${dark ? '#232328' : '#EBEBEB'}`,
-      boxShadow: dark ? 'none' : '0 1px 2px rgba(0,0,0,0.03)',
+      border: `1px solid ${dark ? '#1E1E22' : '#F0F0F2'}`,
+      boxShadow: dark ? 'none' : '0 1px 4px rgba(0,0,0,0.04)',
       overflow: 'hidden',
     }
   }

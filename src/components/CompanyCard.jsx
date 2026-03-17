@@ -158,21 +158,22 @@ function CompanyHeader({ header, market, corpCode }) {
     market.foreign_ratio != null && { label: '외국인', value: `${market.foreign_ratio.toFixed(1)}%` },
   ].filter(Boolean)
 
-  const border = dark ? '#232328' : '#EBEBEB'
-  const dimBg = dark ? '#141416' : '#F8F8FA'
+  const border = dark ? '#1E1E22' : '#F0F0F2'
+  const dimBg = dark ? '#111113' : '#F8F8FA'
 
   return (
     <div style={{
       backgroundColor: colors.bgCard,
-      borderRadius: 14, overflow: 'hidden',
+      borderRadius: 16, overflow: 'hidden',
       border: `1px solid ${border}`,
+      boxShadow: dark ? 'none' : '0 2px 8px rgba(0,0,0,0.04)',
     }}>
       {/* ── 히어로 ── */}
       <div style={{ padding: '20px 20px 14px', textAlign: 'center' }}>
-        <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FONTS.serif, color: colors.textPrimary, marginBottom: 2 }}>
+        <div style={{ fontSize: 18, fontWeight: 700, fontFamily: FONTS.serif, color: colors.textPrimary, marginBottom: 2 }}>
           {header.corp_name || '기업명'}
         </div>
-        <div style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, marginBottom: 16 }}>
+        <div style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, marginBottom: 14 }}>
           {header.stock_code || ''}{marketLabel ? ` · ${marketLabel}` : ''}
         </div>
         <div style={{ fontSize: 38, fontWeight: 800, fontFamily: FONTS.mono, color: colors.textPrimary, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 8 }}>

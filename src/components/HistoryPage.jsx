@@ -137,7 +137,7 @@ export default function HistoryPage({ onViewCard }) {
 
       {/* 헤더 */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 20 }}>
-        <span style={{ fontSize: 22, fontWeight: 800, fontFamily: FONTS.serif, color: colors.textPrimary }}>
+        <span style={{ fontSize: 22, fontWeight: 700, fontFamily: FONTS.serif, color: colors.textPrimary }}>
           History
         </span>
         <span style={{ fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono, color: pctColor(avgChange) }}>

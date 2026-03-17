@@ -99,13 +99,13 @@ export default function Header({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 24px',
-        height: '56px',
-        backgroundColor: dark ? 'rgba(9,9,11,0.92)' : 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        padding: '0 20px',
+        height: '52px',
+        backgroundColor: dark ? 'rgba(9,9,11,0.95)' : 'rgba(255,255,255,0.95)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         color: colors.textPrimary,
-        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'}`,
+        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
         position: 'sticky',
         top: 0,
         zIndex: 100,
@@ -130,7 +130,7 @@ export default function Header({
           <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' }}>
             {/* Logo mark */}
             <div style={{
-              width: 26, height: 26, borderRadius: 7,
+              width: 24, height: 24, borderRadius: 6,
               background: 'linear-gradient(135deg, #DC2626, #991B1B)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,

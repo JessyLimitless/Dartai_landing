@@ -39,7 +39,7 @@ export default function TodayPage({ onViewCard }) {
 
       {/* 헤더 */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
-        <span style={{ fontSize: 22, fontWeight: 800, fontFamily: FONTS.serif, color: colors.textPrimary }}>
+        <span style={{ fontSize: 22, fontWeight: 700, fontFamily: FONTS.serif, color: colors.textPrimary }}>
           Today
         </span>
         <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>{dateStr}</span>
