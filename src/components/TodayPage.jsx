@@ -51,14 +51,14 @@ function pctColor(v) {
 }
 
 function fmtPct(v) {
-  if (v == null) return '\u2014'
+  if (v == null) return '—'
   return `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`
 }
 
 function fmtDateShort(iso) {
   if (!iso) return ''
   const d = new Date(iso)
-  const days = ['\uC77C', '\uC6D4', '\uD654', '\uC218', '\uBAA9', '\uAE08', '\uD1A0']
+  const days = ['일', '월', '화', '수', '목', '금', '토']
   return `${d.getMonth() + 1}.${d.getDate()} ${days[d.getDay()]}`
 }
 
@@ -69,8 +69,8 @@ export default function TodayPage({ onViewCard }) {
   const [modalRceptNo, setModalRceptNo] = useState(null)
 
   const now = new Date()
-  const dayNames = ['\uC77C', '\uC6D4', '\uD654', '\uC218', '\uBAA9', '\uAE08', '\uD1A0']
-  const dateStr = `${now.getMonth() + 1}\uC6D4 ${now.getDate()}\uC77C ${dayNames[now.getDay()]}\uC694\uC77C`
+  const dayNames = ['일', '월', '화', '수', '목', '금', '토']
+  const dateStr = `${now.getMonth() + 1}월 ${now.getDate()}일 ${dayNames[now.getDay()]}요일`
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '12px 16px', fontFamily: FONTS.body }}>
@@ -339,11 +339,11 @@ function TrackView({ onOpenModal }) {
           ))}
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <span style={{ fontSize: 11, color: c.text3, fontFamily: FONTS.mono }}>{recent.total}\uAC74</span>
+          <span style={{ fontSize: 11, color: c.text3, fontFamily: FONTS.mono }}>{recent.total}건</span>
           <span style={{ fontSize: 11, color: pctColor(avgChange), fontFamily: FONTS.mono, fontWeight: 700 }}>
-            \uD3C9\uADE0 {fmtPct(avgChange)}
+            평균 {fmtPct(avgChange)}
           </span>
-          <span style={{ fontSize: 11, color: c.text3, fontFamily: FONTS.mono }}>\uC2B9\uB960 {winRate}%</span>
+          <span style={{ fontSize: 11, color: c.text3, fontFamily: FONTS.mono }}>승률 {winRate}%</span>
         </div>
       </div>
 
@@ -420,10 +420,10 @@ function TrackView({ onOpenModal }) {
             <thead>
               <tr>
                 {[
-                  { key: 'created_at', label: '\uB0A0\uC9DC', w: 72, align: 'left', sort: true },
-                  { key: 'corp_name', label: '\uC885\uBAA9', w: null, align: 'left', sort: false },
-                  { key: 'grade', label: '\uB4F1\uAE09', w: 44, align: 'center', sort: false },
-                  { key: 'change_close', label: '\uBCC0\uB3D9\uB960', w: 80, align: 'right', sort: true },
+                  { key: 'created_at', label: '날짜', w: 72, align: 'left', sort: true },
+                  { key: 'corp_name', label: '종목', w: null, align: 'left', sort: false },
+                  { key: 'grade', label: '등급', w: 44, align: 'center', sort: false },
+                  { key: 'change_close', label: '변동률', w: 80, align: 'right', sort: true },
                 ].map(col => (
                   <th key={col.key} onClick={col.sort ? () => handleSort(col.key) : undefined} style={{
                     padding: '8px 12px', fontSize: 10, fontWeight: 700,
@@ -434,7 +434,7 @@ function TrackView({ onOpenModal }) {
                     background: dark ? '#18181B' : '#FAFAFA',
                   }}>
                     {col.label}
-                    {col.sort && <span style={{ fontSize: 10, marginLeft: 2 }}>{sortCol === col.key ? (sortAsc ? '\u2191' : '\u2193') : '\u2195'}</span>}
+                    {col.sort && <span style={{ fontSize: 10, marginLeft: 2 }}>{sortCol === col.key ? (sortAsc ? '↑' : '↓') : '↕'}</span>}
                   </th>
                 ))}
               </tr>
@@ -504,7 +504,7 @@ function SearchBar({ search, setSearch, colors, dark }) {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
           <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
         </svg>
-        <input type="text" placeholder="\uAE30\uC5C5\uBA85 \uB610\uB294 \uACF5\uC2DC \uAC80\uC0C9..." value={val}
+        <input type="text" placeholder="기업명 또는 공시 검색..." value={val} autoComplete="off"
           onChange={e => setVal(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => { setFocused(false); setSearch(val) }}
