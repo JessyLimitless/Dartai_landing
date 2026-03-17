@@ -9,6 +9,8 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [remaining, setRemaining] = useState(null)
+  const [limit, setLimit] = useState(20)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const prevCorpRef = useRef(null)
@@ -18,7 +20,13 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
   }, [messages, open])
 
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 300)
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 300)
+      apiFetch('/api/chat/remaining').then(r => {
+        setRemaining(r.remaining)
+        setLimit(r.limit)
+      }).catch(() => {})
+    }
   }, [open])
 
   useEffect(() => {
@@ -36,6 +44,7 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
         method: 'POST',
         body: JSON.stringify({ message: text, corp_code: corpCode, history: [] }),
       })
+      if (res.remaining != null) setRemaining(res.remaining)
       setMessages(prev => [...prev, { role: 'assistant', content: res.answer || '답변을 생성하지 못했습니다.', scorecard: res.scorecard }])
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', content: `오류: ${err.message}` }])
@@ -63,6 +72,7 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
     try {
       const history = messages.map(m => ({ role: m.role, content: m.content }))
       const res = await apiFetch('/api/chat', { method: 'POST', body: JSON.stringify({ message: text, history }) })
+      if (res.remaining != null) setRemaining(res.remaining)
       setMessages(prev => [...prev, { role: 'assistant', content: res.answer || '답변을 생성하지 못했습니다.', scorecard: res.scorecard }])
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', content: `오류: ${err.message}` }])
@@ -222,8 +232,13 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
               </svg>
             </button>
           </div>
-          <div style={{ fontSize: 10, color: colors.textMuted, textAlign: 'center', marginTop: 6 }}>
-            DART 실시간 데이터 기반 · 투자 권유 아님
+          <div style={{ fontSize: 10, color: colors.textMuted, textAlign: 'center', marginTop: 6, display: 'flex', justifyContent: 'center', gap: 8 }}>
+            <span>DART 실시간 데이터 기반 · 투자 권유 아님</span>
+            {remaining != null && (
+              <span style={{ color: remaining <= 3 ? '#DC2626' : colors.textMuted, fontWeight: remaining <= 3 ? 700 : 400 }}>
+                {remaining}/{limit}회
+              </span>
+            )}
           </div>
         </div>
       </div>
