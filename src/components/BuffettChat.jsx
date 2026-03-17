@@ -185,7 +185,8 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
                 {msg.content.split('\n').map((line, j) => (
                   <p key={j} style={{ margin: 0 }}>{line || '\u00A0'}</p>
                 ))}
-                {msg.scorecard && <ScorecardCard scorecard={msg.scorecard} colors={colors} dark={dark} />}
+                {msg.scorecard && <VerdictCard scorecard={msg.scorecard} colors={colors} dark={dark} />}
+                {msg.scorecard?.peer && <PeerTable peer={msg.scorecard.peer} colors={colors} dark={dark} />}
               </div>
             </div>
           ))}
@@ -271,53 +272,132 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
   )
 }
 
-// ══ 스코어카드 — 카드형 UI ══
-function ScorecardCard({ scorecard, colors, dark }) {
+// ══ 한 줄 결론 + 핵심 숫자 3개 요약 카드 ══
+function VerdictCard({ scorecard, colors, dark }) {
   const sd = scorecard?.summary_data
   if (!sd) return null
 
   const sep = dark ? '#1E1E22' : '#F0F0F2'
+  const accent = '#DC2626'
 
-  const metrics = [
-    sd.margin_of_safety != null && { label: '안전마진(MoS)', value: `${sd.margin_of_safety}%`, color: sd.margin_of_safety >= 25 ? '#DC2626' : sd.margin_of_safety >= 0 ? '#D97706' : '#2563EB' },
-    sd.roe != null && { label: 'ROE', value: `${sd.roe}%`, color: sd.roe >= 15 ? '#DC2626' : '#71717A' },
-    sd.debt_ratio != null && { label: '부채비율', value: `${sd.debt_ratio}%`, color: sd.debt_ratio <= 100 ? '#DC2626' : '#2563EB' },
-    sd.moat_verdict && { label: '경제적 해자', value: sd.moat_verdict, color: sd.moat_verdict.includes('강한') ? '#DC2626' : '#71717A' },
-    sd.fcf != null && { label: 'FCF', value: sd.fcf > 0 ? '양호' : '부진', color: sd.fcf > 0 ? '#DC2626' : '#2563EB' },
-  ].filter(Boolean)
-
+  // 한 줄 결론
+  const mosV = sd.margin_of_safety_verdict || ''
+  const moatV = sd.moat_verdict || ''
   const flags = sd.red_flags || []
+  let verdict = ''
+  let verdictColor = colors.textPrimary
+  if (flags.length >= 2) { verdict = '주의 필요'; verdictColor = '#2563EB' }
+  else if (sd.margin_of_safety >= 25) { verdict = '매수 검토 가능'; verdictColor = accent }
+  else if (sd.margin_of_safety >= 0) { verdict = '적정가 부근'; verdictColor = '#D97706' }
+  else if (sd.margin_of_safety != null) { verdict = '고평가 구간'; verdictColor = '#2563EB' }
+  else { verdict = '분석 진행 중'; verdictColor = colors.textMuted }
 
-  if (metrics.length === 0 && flags.length === 0) return null
+  // 핵심 숫자 3개
+  const keyMetrics = [
+    sd.margin_of_safety != null && {
+      label: '안전마진', value: `${sd.margin_of_safety}%`,
+      bar: Math.min(Math.max((sd.margin_of_safety + 20) / 60 * 100, 5), 100),
+      color: sd.margin_of_safety >= 25 ? accent : sd.margin_of_safety >= 0 ? '#D97706' : '#2563EB',
+    },
+    sd.roe != null && {
+      label: 'ROE', value: `${sd.roe}%`,
+      bar: Math.min(sd.roe / 25 * 100, 100),
+      color: sd.roe >= 15 ? accent : sd.roe >= 10 ? '#D97706' : '#71717A',
+    },
+    sd.debt_ratio != null && {
+      label: '부채비율', value: `${sd.debt_ratio}%`,
+      bar: Math.min(sd.debt_ratio / 200 * 100, 100),
+      color: sd.debt_ratio <= 50 ? accent : sd.debt_ratio <= 100 ? '#D97706' : '#2563EB',
+    },
+  ].filter(Boolean).slice(0, 3)
+
+  if (keyMetrics.length === 0) return null
 
   return (
-    <div style={{
-      marginTop: 12, borderRadius: 12,
-      border: `1px solid ${sep}`,
-      background: dark ? '#0C0C0E' : '#FFFFFF',
-      overflow: 'hidden',
-    }}>
-      <div style={{ padding: '10px 14px', borderBottom: `1px solid ${sep}`, fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: '0.06em' }}>
-        SCORECARD
+    <div style={{ marginTop: 12, borderRadius: 12, border: `1px solid ${sep}`, background: dark ? '#0C0C0E' : '#FFFFFF', overflow: 'hidden' }}>
+      {/* 한 줄 결론 */}
+      <div style={{ padding: '14px 14px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: verdictColor, flexShrink: 0 }} />
+        <span style={{ fontSize: 14, fontWeight: 700, color: verdictColor }}>{verdict}</span>
+        {moatV && <span style={{ fontSize: 11, color: colors.textMuted, marginLeft: 'auto' }}>{moatV}</span>}
       </div>
-      {metrics.map((m, i) => (
-        <div key={m.label} style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '10px 14px',
-          borderTop: i > 0 ? `1px solid ${sep}` : 'none',
-        }}>
-          <span style={{ fontSize: 13, color: colors.textMuted }}>{m.label}</span>
-          <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FONTS.mono, color: m.color }}>{m.value}</span>
-        </div>
-      ))}
+
+      {/* 핵심 숫자 — 미니 바 차트 */}
+      <div style={{ padding: '0 14px 14px' }}>
+        {keyMetrics.map((m, i) => (
+          <div key={m.label} style={{ marginTop: i > 0 ? 10 : 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 11, color: colors.textMuted }}>{m.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FONTS.mono, color: m.color }}>{m.value}</span>
+            </div>
+            <div style={{ height: 4, borderRadius: 2, background: dark ? '#1E1E22' : '#F0F0F2' }}>
+              <div style={{ height: '100%', borderRadius: 2, background: m.color, width: `${m.bar}%`, transition: 'width 0.6s ease-out' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Red Flags */}
       {flags.length > 0 && (
         <div style={{ padding: '10px 14px', borderTop: `1px solid ${sep}`, background: 'rgba(220,38,38,0.04)' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#DC2626', marginBottom: 4 }}>RED FLAGS</div>
           {flags.map((f, i) => (
-            <div key={i} style={{ fontSize: 12, color: '#DC2626', padding: '2px 0' }}>· {f}</div>
+            <div key={i} style={{ fontSize: 12, color: '#DC2626', padding: '1px 0' }}>· {f}</div>
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ══ 동종업계 비교 테이블 ══
+function PeerTable({ peer, colors, dark }) {
+  if (!peer || !peer.peers || peer.peers.length === 0) return null
+
+  const sep = dark ? '#1E1E22' : '#F0F0F2'
+  const my = peer.my || {}
+  const rows = [{ ...my, isMe: true }, ...peer.peers.slice(0, 4)]
+
+  const fmt = (v) => v != null && v !== 0 ? v : '-'
+  const capFmt = (v) => {
+    if (!v) return '-'
+    if (v >= 10000) return `${(v / 10000).toFixed(1)}조`
+    return `${v.toLocaleString()}억`
+  }
+
+  return (
+    <div style={{ marginTop: 10, borderRadius: 12, border: `1px solid ${sep}`, background: dark ? '#0C0C0E' : '#FFFFFF', overflow: 'hidden' }}>
+      <div style={{ padding: '10px 14px', borderBottom: `1px solid ${sep}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: '0.06em' }}>
+          {peer.industry} 비교
+        </span>
+        <span style={{ fontSize: 10, color: colors.textMuted }}>
+          평균 PER {peer.avg_per} · PBR {peer.avg_pbr}
+        </span>
+      </div>
+
+      {/* 헤더 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 50px 50px 60px', padding: '8px 14px', borderBottom: `1px solid ${sep}`, gap: 4 }}>
+        {['종목', 'PER', 'PBR', '시총'].map(h => (
+          <span key={h} style={{ fontSize: 10, color: colors.textMuted, fontWeight: 600, textAlign: h === '종목' ? 'left' : 'right' }}>{h}</span>
+        ))}
+      </div>
+
+      {/* 데이터 행 */}
+      {rows.map((r, i) => (
+        <div key={i} style={{
+          display: 'grid', gridTemplateColumns: '1fr 50px 50px 60px',
+          padding: '8px 14px', gap: 4,
+          borderTop: i > 0 ? `1px solid ${sep}` : 'none',
+          background: r.isMe ? (dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)') : 'transparent',
+        }}>
+          <span style={{ fontSize: 12, fontWeight: r.isMe ? 700 : 400, color: r.isMe ? '#DC2626' : colors.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {r.corp_name}{r.isMe ? ' ←' : ''}
+          </span>
+          <span style={{ fontSize: 12, fontFamily: FONTS.mono, textAlign: 'right', color: colors.textSecondary }}>{fmt(r.per)}</span>
+          <span style={{ fontSize: 12, fontFamily: FONTS.mono, textAlign: 'right', color: colors.textSecondary }}>{fmt(r.pbr)}</span>
+          <span style={{ fontSize: 11, fontFamily: FONTS.mono, textAlign: 'right', color: colors.textMuted }}>{capFmt(r.market_cap)}</span>
+        </div>
+      ))}
     </div>
   )
 }
