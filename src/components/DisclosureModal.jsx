@@ -124,8 +124,8 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
           zIndex: 1001,
           background: bg,
           borderRadius: 16,
-          width: '92%', maxWidth: 480,
-          maxHeight: '85vh',
+          width: 'min(94%, 480px)',
+          maxHeight: '88vh',
           display: 'flex', flexDirection: 'column',
           boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
           opacity: visible ? 1 : 0,
@@ -135,7 +135,7 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
 
         {/* 헤더 */}
         <div style={{
-          padding: '4px 20px 14px',
+          padding: '4px 16px 14px',
           borderBottom: `1px solid ${border}`,
           flexShrink: 0,
         }}>
@@ -237,7 +237,7 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
 
         {/* 푸터 액션 */}
         <div style={{
-          padding: '12px 20px',
+          padding: '12px 16px',
           paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
           borderTop: `1px solid ${border}`,
           display: 'flex', gap: 8,

@@ -152,8 +152,7 @@ function CompanyHeader({ header, market, corpCode }) {
   const marketLabel = MARKET_LABELS[header.corp_cls] || ''
 
   const metrics = [
-    market.market_cap != null && { label: '시가총액', value: formatKoreanNumber(market.market_cap * 1e8) },
-    market.volume != null && { label: '거래량', value: Number(market.volume).toLocaleString() },
+    market.market_cap != null && { label: '시총', value: formatKoreanNumber(market.market_cap * 1e8) },
     market.per != null && { label: 'PER', value: market.per.toFixed(1) },
     market.pbr != null && { label: 'PBR', value: market.pbr.toFixed(2) },
     market.foreign_ratio != null && { label: '외국인', value: `${market.foreign_ratio.toFixed(1)}%` },
