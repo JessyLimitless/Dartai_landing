@@ -79,33 +79,54 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
   }
 
   return (
-    <div className="page-container page-enter" style={{ maxWidth: 640, margin: '0 auto', padding: '12px 16px 80px' }}>
-      {/* 뒤로가기 */}
-      <button className="touch-press" onClick={handleBack} style={{
-        ...getLinkBtnStyle(colors), fontSize: '13px', marginBottom: 10,
-        display: 'flex', alignItems: 'center', gap: '4px', minHeight: 44,
-      }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6" /></svg>
-        목록
-      </button>
+    <div className="page-container page-enter" style={{ maxWidth: 640, margin: '0 auto', padding: '0 0 80px', backgroundColor: colors.bgPrimary }}>
+      {/* 뒤로가기 — 토스 스타일 */}
+      <div style={{ padding: '12px 16px 0' }}>
+        <button className="touch-press" onClick={handleBack} style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+          display: 'flex', alignItems: 'center', gap: 4, minHeight: 44,
+          color: colors.textMuted, fontSize: 13,
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+      </div>
 
-      {/* 1. 헤더 히어로 */}
-      <CompanyHeader header={header} market={market} corpCode={corpCode} />
+      {/* 1. 가격 히어로 — 토스 스타일 (왼쪽 정렬, 카드 없음) */}
+      <TossStyleHeader header={header} market={market} corpCode={corpCode} colors={colors} dark={dark} />
 
-      {/* 2. 재무 요약 — 한 줄 */}
-      <CompactFinancials financials={financials} colors={colors} dark={dark} />
+      {/* 구분선 */}
+      <div style={{ height: 8, backgroundColor: dark ? '#0C0C0E' : '#F4F4F5' }} />
 
-      {/* 3. 60일 차트 — 풀너비 */}
+      {/* 2. 시세 정보 */}
+      <TossStyleMarketInfo market={market} colors={colors} dark={dark} />
+
+      {/* 구분선 */}
+      <div style={{ height: 8, backgroundColor: dark ? '#0C0C0E' : '#F4F4F5' }} />
+
+      {/* 3. 재무 요약 */}
+      <TossStyleFinancials financials={financials} colors={colors} dark={dark} />
+
+      {/* 구분선 */}
+      <div style={{ height: 8, backgroundColor: dark ? '#0C0C0E' : '#F4F4F5' }} />
+
+      {/* 4. 60일 차트 */}
       {candles && candles.length > 0 && (
-        <div style={{ margin: '12px 0' }}>
-          <PriceChart candles={candles} />
-        </div>
+        <>
+          <div style={{ padding: '20px 20px 16px' }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary, marginBottom: 12 }}>주가 추이</div>
+            <PriceChart candles={candles} />
+          </div>
+          <div style={{ height: 8, backgroundColor: dark ? '#0C0C0E' : '#F4F4F5' }} />
+        </>
       )}
 
-      {/* 4. 주주 + 배당 — 압축 */}
-      <CompactShareholders shareholders={shareholders} dividend={dividend} colors={colors} dark={dark} />
+      {/* 5. 주주 + 배당 */}
+      <TossStyleShareholders shareholders={shareholders} dividend={dividend} colors={colors} dark={dark} />
 
-      {/* 5. 최근 공시 — 접기 */}
+      {/* 구분선 */}
+      <div style={{ height: 8, backgroundColor: dark ? '#0C0C0E' : '#F4F4F5' }} />
+
+      {/* 6. 최근 공시 */}
       {timeline.history && timeline.history.length > 0 && (
         <CompactDisclosures history={timeline.history} trigger={timeline.trigger} colors={colors} dark={dark} />
       )}
@@ -240,6 +261,222 @@ function CompanyHeader({ header, market, corpCode }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+
+// ── 토스 스타일 헤더 (왼쪽 정렬, 카드 없음) ──────────────────────
+function TossStyleHeader({ header, market, corpCode, colors, dark }) {
+  const changeColor = (market.change || 0) >= 0 ? '#DC2626' : '#2563EB'
+  const changeSign = (market.change || 0) >= 0 ? '+' : ''
+  const marketLabel = MARKET_LABELS[header.corp_cls] || ''
+
+  return (
+    <div style={{ padding: '8px 20px 20px' }}>
+      {/* 기업명 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <span style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary }}>
+          {header.corp_name}
+        </span>
+        {marketLabel && (
+          <span style={{ fontSize: 11, color: colors.textMuted, fontWeight: 500 }}>{marketLabel}</span>
+        )}
+      </div>
+
+      {/* 가격 — 크게 왼쪽 */}
+      <div style={{
+        fontSize: 32, fontWeight: 700, fontFamily: FONTS.mono,
+        color: colors.textPrimary, letterSpacing: '-0.03em', lineHeight: 1,
+        marginBottom: 6,
+      }}>
+        {market.current_price ? `${Number(market.current_price).toLocaleString()}원` : '-'}
+      </div>
+
+      {/* 변동 */}
+      <div style={{ fontSize: 14, color: changeColor, fontWeight: 600, marginBottom: 16 }}>
+        어제보다 <span style={{ fontFamily: FONTS.mono }}>
+          {market.change_val != null ? `${changeSign}${Number(market.change_val).toLocaleString()}원` : ''}
+          {market.change != null ? ` (${changeSign}${market.change.toFixed(1)}%)` : ''}
+        </span>
+      </div>
+
+      {/* 액션 버튼 — 한 줄 */}
+      {corpCode && (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="touch-press" onClick={(e) => {
+            e.stopPropagation()
+            window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: corpCode }))
+          }} style={{
+            flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            padding: '11px', borderRadius: 10, border: 'none',
+            background: PREMIUM.accent, color: '#fff',
+            fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 44,
+          }}>
+            <img src="/bufit.png" alt="" style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }} />
+            AI 분석
+          </button>
+          <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
+          <ShareButton corpName={header.corp_name} corpCode={corpCode} dark={dark} colors={colors} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// ── 토스 스타일 시세 정보 ──────────────────────────────────────
+function TossStyleMarketInfo({ market, colors, dark }) {
+  const sep = dark ? '#1E1E22' : '#F0F0F2'
+
+  return (
+    <div style={{ padding: '20px 20px' }}>
+      <div style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary, marginBottom: 16 }}>시세</div>
+
+      {/* 52주 레인지 */}
+      {market.w52_high != null && market.w52_low != null && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{
+            height: 4, backgroundColor: dark ? 'rgba(255,255,255,0.06)' : '#E8E8EC',
+            borderRadius: 2, position: 'relative', marginBottom: 6,
+          }}>
+            <div style={{
+              position: 'absolute', left: 0, top: 0, height: '100%',
+              width: `${Math.min(100, Math.max(0, market.w52_position || 50))}%`,
+              background: PREMIUM.accent, borderRadius: 2, opacity: 0.7,
+            }} />
+            <div style={{
+              position: 'absolute', top: -3,
+              left: `${Math.min(98, Math.max(2, market.w52_position || 50))}%`,
+              width: 10, height: 10, borderRadius: '50%',
+              background: PREMIUM.accent, border: '2px solid #fff',
+              transform: 'translateX(-50%)',
+            }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 12, color: colors.textMuted }}>1년 최저가</div>
+              <div style={{ fontSize: 14, fontWeight: 600, fontFamily: FONTS.mono, color: colors.textPrimary }}>
+                {Number(market.w52_low).toLocaleString()}원
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 12, color: colors.textMuted }}>1년 최고가</div>
+              <div style={{ fontSize: 14, fontWeight: 600, fontFamily: FONTS.mono, color: colors.textPrimary }}>
+                {Number(market.w52_high).toLocaleString()}원
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2x2 그리드 — 토스 스타일 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+        {[
+          market.market_cap != null && { label: '시가총액', value: formatKoreanNumber(market.market_cap * 1e8) },
+          market.per != null && { label: 'PER', value: market.per.toFixed(1) + '배' },
+          market.pbr != null && { label: 'PBR', value: market.pbr.toFixed(2) + '배' },
+          market.foreign_ratio != null && { label: '외국인 보유', value: market.foreign_ratio.toFixed(1) + '%' },
+        ].filter(Boolean).map((m, i) => (
+          <div key={m.label} style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '12px 0',
+            borderTop: i >= 2 ? `1px solid ${sep}` : 'none',
+            paddingRight: i % 2 === 0 ? 16 : 0,
+            paddingLeft: i % 2 === 1 ? 16 : 0,
+            borderLeft: i % 2 === 1 ? `1px solid ${sep}` : 'none',
+          }}>
+            <span style={{ fontSize: 14, color: colors.textMuted }}>{m.label}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, fontFamily: FONTS.mono, color: colors.textPrimary }}>{m.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+
+// ── 토스 스타일 재무 ──────────────────────────────────────────
+function TossStyleFinancials({ financials, colors, dark }) {
+  const items = financials.items || {}
+  const years = financials.years || []
+  if (years.length === 0) return null
+
+  const latestIdx = years.length - 1
+  const get = (key) => items[key]?.[latestIdx]
+  const getYoy = (key) => items[`${key}_yoy`]?.[latestIdx]
+  const sep = dark ? '#1E1E22' : '#F0F0F2'
+
+  const metrics = [
+    { label: '매출액', value: get('revenue'), yoy: getYoy('revenue') },
+    { label: '영업이익', value: get('operating_income'), yoy: getYoy('operating_income') },
+    { label: '당기순이익', value: get('net_income'), yoy: getYoy('net_income') },
+  ].filter(m => m.value != null)
+
+  if (metrics.length === 0) return null
+
+  return (
+    <div style={{ padding: '20px 20px' }}>
+      <div style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary, marginBottom: 16 }}>재무</div>
+      {metrics.map((m, i) => {
+        const yoyColor = m.yoy > 0 ? '#DC2626' : m.yoy < 0 ? '#2563EB' : colors.textMuted
+        return (
+          <div key={m.label} style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '12px 0',
+            borderTop: i > 0 ? `1px solid ${sep}` : 'none',
+          }}>
+            <span style={{ fontSize: 14, color: colors.textMuted }}>{m.label}</span>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: 14, fontWeight: 600, fontFamily: FONTS.mono, color: colors.textPrimary }}>
+                {formatKoreanNumber(m.value)}
+              </span>
+              {m.yoy != null && (
+                <span style={{ fontSize: 12, fontWeight: 600, fontFamily: FONTS.mono, color: yoyColor, marginLeft: 8 }}>
+                  {m.yoy > 0 ? '+' : ''}{m.yoy.toFixed(1)}%
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+
+// ── 토스 스타일 주주 + 배당 ──────────────────────────────────
+function TossStyleShareholders({ shareholders, dividend, colors, dark }) {
+  const topHolder = shareholders?.[0]
+  const divCommon = dividend?.common
+  const years = dividend?.years || []
+  const lastIdx = years.length - 1
+  const dps = divCommon?.dps?.[lastIdx]
+  const divYield = divCommon?.yield?.[lastIdx]
+  const sep = dark ? '#1E1E22' : '#F0F0F2'
+
+  const rows = [
+    topHolder && { label: '최대주주', value: `${topHolder.name} ${topHolder.ratio?.toFixed(1)}%` },
+    shareholders?.[1] && { label: '2대주주', value: `${shareholders[1].name} ${shareholders[1].ratio?.toFixed(1)}%` },
+    dps != null && { label: '주당배당금', value: `${Number(dps).toLocaleString()}원` },
+    divYield != null && { label: '배당수익률', value: `${divYield.toFixed(2)}%` },
+  ].filter(Boolean)
+
+  if (rows.length === 0) return null
+
+  return (
+    <div style={{ padding: '20px 20px' }}>
+      <div style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary, marginBottom: 16 }}>주주·배당</div>
+      {rows.map((r, i) => (
+        <div key={r.label} style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '12px 0',
+          borderTop: i > 0 ? `1px solid ${sep}` : 'none',
+        }}>
+          <span style={{ fontSize: 14, color: colors.textMuted }}>{r.label}</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: colors.textPrimary }}>{r.value}</span>
+        </div>
+      ))}
     </div>
   )
 }

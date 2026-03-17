@@ -132,43 +132,52 @@ export default function HistoryPage({ onViewCard }) {
     )
   }
 
+  const sep = dark ? '#1E1E22' : '#F0F0F2'
+
   return (
-    <div className="page-enter" style={{ maxWidth: 900, margin: '0 auto', padding: '16px 16px 80px', fontFamily: FONTS.body }}>
+    <div className="page-enter" style={{ maxWidth: 640, margin: '0 auto', padding: '0 0 80px', fontFamily: FONTS.body, backgroundColor: colors.bgPrimary }}>
 
       {/* 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 20 }}>
-        <span style={{ fontSize: 22, fontWeight: 700, fontFamily: FONTS.serif, color: colors.textPrimary }}>
-          History
-        </span>
-        <span style={{ fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono, color: pctColor(avgChange) }}>
-          평균 {fmtPct(avgChange)}
+      <div style={{ padding: '16px 20px 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary }}>History</span>
+          <span style={{ fontSize: 13, fontWeight: 600, fontFamily: FONTS.mono, color: pctColor(avgChange) }}>
+            평균 {fmtPct(avgChange)}
+          </span>
+        </div>
+      </div>
+
+      {/* 기간 선택 — 토스 스타일 밑줄 탭 */}
+      <div style={{
+        display: 'flex', padding: '0 20px',
+        borderBottom: `1px solid ${sep}`,
+      }}>
+        {PERIODS.map(p => {
+          const active = days === p.key
+          return (
+            <button key={p.key} className="touch-press" onClick={() => { setDays(p.key); setShowAllUp(false); setShowAllDown(false) }} style={{
+              padding: '10px 16px 12px', border: 'none', cursor: 'pointer',
+              background: 'transparent', position: 'relative',
+              fontSize: 14, fontWeight: active ? 700 : 400,
+              color: active ? c.text1 : c.text3,
+            }}>
+              {p.label}
+              {active && (
+                <div style={{
+                  position: 'absolute', bottom: -1, left: 16, right: 16,
+                  height: 2, borderRadius: 1, background: colors.textPrimary,
+                }} />
+              )}
+            </button>
+          )
+        })}
+        <div style={{ flex: 1 }} />
+        <span style={{ fontSize: 12, color: c.text3, fontFamily: FONTS.mono, alignSelf: 'center' }}>
+          {recent.total}건
         </span>
       </div>
 
-      {/* 기간 선택 */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{
-          display: 'inline-flex', borderRadius: 12, overflow: 'hidden',
-          background: dark ? '#1A1A1E' : '#F4F4F5', padding: 3,
-        }}>
-          {PERIODS.map(p => {
-            const active = days === p.key
-            return (
-              <button key={p.key} className="touch-press" onClick={() => { setDays(p.key); setShowAllUp(false); setShowAllDown(false) }} style={{
-                padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: active ? (dark ? '#FAFAFA' : '#FFFFFF') : 'transparent',
-                boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                fontSize: 13, fontWeight: active ? 700 : 500,
-                color: active ? c.text1 : c.text3,
-                transition: 'all 0.15s',
-              }}>{p.label}</button>
-            )
-          })}
-        </div>
-        <span style={{ fontSize: 12, color: c.text3, fontFamily: FONTS.mono }}>
-          {recent.total}건 추적
-        </span>
-      </div>
+      <div style={{ padding: '0 20px' }}>
 
       {/* 콘텐츠 */}
       {recent.loading ? (
@@ -209,6 +218,8 @@ export default function HistoryPage({ onViewCard }) {
           )}
         </>
       )}
+
+      </div>
 
       {/* 타임라인 바텀시트 */}
       {timelineRcept && (

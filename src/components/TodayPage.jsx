@@ -34,38 +34,42 @@ export default function TodayPage({ onViewCard }) {
     { key: 'down', label: '하락', count: downList.length, color: '#2563EB', icon: <svg width="8" height="8" viewBox="0 0 8 8" fill="#2563EB"><path d="M4 7L1 2H7L4 7Z" /></svg> },
   ]
 
+  const sep = dark ? '#1E1E22' : '#F0F0F2'
+
   return (
-    <div className="page-enter" style={{ maxWidth: 900, margin: '0 auto', padding: '16px 16px 80px', fontFamily: FONTS.body }}>
+    <div className="page-enter" style={{ maxWidth: 640, margin: '0 auto', padding: '0 0 80px', fontFamily: FONTS.body, backgroundColor: colors.bgPrimary }}>
 
       {/* 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
-        <span style={{ fontSize: 22, fontWeight: 700, fontFamily: FONTS.serif, color: colors.textPrimary }}>
+      <div style={{ padding: '16px 20px 12px' }}>
+        <div style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary, marginBottom: 2 }}>
           Today
-        </span>
-        <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>{dateStr}</span>
+        </div>
+        <div style={{ fontSize: 13, color: colors.textMuted }}>{dateStr}</div>
       </div>
 
-      {/* 탭: 실시간 상승 / 실시간 하락 / 전체 */}
+      {/* 탭 — 토스 스타일 밑줄 */}
       <div style={{
-        display: 'inline-flex', borderRadius: 12, overflow: 'hidden',
-        background: dark ? '#1A1A1E' : '#F4F4F5', padding: 3, marginBottom: 16,
+        display: 'flex', padding: '0 20px',
+        borderBottom: `1px solid ${sep}`,
+        marginBottom: 0,
       }}>
         {TABS.map(t => {
           const active = tab === t.key
           return (
             <button key={t.key} className="touch-press" onClick={() => setTab(t.key)} style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
-              background: active ? (dark ? '#FAFAFA' : '#FFFFFF') : 'transparent',
-              boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              fontSize: 13, fontWeight: active ? 700 : 500,
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '10px 14px 12px', border: 'none', cursor: 'pointer',
+              background: 'transparent', position: 'relative',
+              fontSize: 14, fontWeight: active ? 700 : 400,
               color: active ? t.color : colors.textMuted,
-              transition: 'all 0.15s',
             }}>
               {t.icon}
-              {t.label}
-              {t.count > 0 && (
-                <span style={{ fontSize: 11, fontFamily: FONTS.mono, fontWeight: 700, opacity: active ? 1 : 0.6 }}>{t.count}</span>
+              {t.label} {t.count > 0 && <span style={{ fontFamily: FONTS.mono, fontSize: 12 }}>{t.count}</span>}
+              {active && (
+                <div style={{
+                  position: 'absolute', bottom: -1, left: 14, right: 14,
+                  height: 2, borderRadius: 1, background: t.color,
+                }} />
               )}
             </button>
           )
@@ -73,7 +77,7 @@ export default function TodayPage({ onViewCard }) {
       </div>
 
       {/* 탭 콘텐츠 */}
-      <div key={tab} className="tab-fade">
+      <div key={tab} className="tab-fade" style={{ padding: '0 20px' }}>
         {tab === 'up' && (
           <RankedList items={upList} accentColor="#DC2626" loading={loading} onOpenModal={setModalRceptNo}
             emptyTitle="장중에 업데이트돼요" emptyDesc="장 운영 시간(09:00~15:30)에 공시 종목의 실시간 상승률이 표시됩니다" />
