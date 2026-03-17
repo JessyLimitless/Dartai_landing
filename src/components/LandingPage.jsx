@@ -8,7 +8,7 @@ const WEEKLY_EVENT = CURRENT_EVENT
 
 export default function LandingPage() {
   const navigate = useNavigate()
-  const go = () => navigate('/ai-live')
+  const go = () => navigate('/today')
   const { disclosures, stats, loading } = useLandingData()
   const [showPopup, setShowPopup] = useState(false)
   const [showInsight, setShowInsight] = useState(false)

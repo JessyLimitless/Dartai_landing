@@ -79,102 +79,36 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
   }
 
   return (
-    <div className="page-container content-fade-in" style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px' }}>
+    <div className="page-container page-enter" style={{ maxWidth: 640, margin: '0 auto', padding: '12px 16px 80px' }}>
       {/* 뒤로가기 */}
-      <div style={{ marginBottom: '14px' }}>
-        <button onClick={handleBack} style={{
-          ...getLinkBtnStyle(colors), fontSize: '12px',
-          display: 'flex', alignItems: 'center', gap: '4px',
-        }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-          목록으로
-        </button>
-      </div>
+      <button className="touch-press" onClick={handleBack} style={{
+        ...getLinkBtnStyle(colors), fontSize: '13px', marginBottom: 10,
+        display: 'flex', alignItems: 'center', gap: '4px', minHeight: 44,
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6" /></svg>
+        목록
+      </button>
 
+      {/* 1. 헤더 히어로 */}
+      <CompanyHeader header={header} market={market} corpCode={corpCode} />
 
-      {/* Mobile tab bar */}
-      <div className="card-mobile-tabs">
-        {CARD_TABS.map((t) => (
-          <button
-            key={t.key}
-            className={mobileTab === t.key ? 'active' : ''}
-            onClick={() => setMobileTab(t.key)}
-            style={{
-              flex: 1, padding: '12px 0', border: 'none', cursor: 'pointer',
-              fontSize: '13px', fontWeight: mobileTab === t.key ? 700 : 500,
-              backgroundColor: 'transparent',
-              color: mobileTab === t.key ? PREMIUM.accent : colors.textMuted,
-              borderBottom: mobileTab === t.key ? `2px solid ${PREMIUM.accent}` : '2px solid transparent',
-              transition: 'all 0.15s',
-              WebkitTapHighlightColor: 'transparent',
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* 2. 재무 요약 — 한 줄 */}
+      <CompactFinancials financials={financials} colors={colors} dark={dark} />
 
-      <div className="animate-fade-in page-enter" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {/* 1. 헤더 — always visible */}
-        <CompanyHeader header={header} market={market} corpCode={corpCode} />
-
-        {/* Tab: 요약 */}
-        <div className={`card-tab-section card-tab-summary ${mobileTab === 'summary' ? 'card-tab-active' : ''}`}>
-          {overview && Object.values(overview).some(v => v) && (
-            <Section title="기업 개황">
-              <CompanyOverview overview={overview} header={header} />
-            </Section>
-          )}
-          <Section title="밸류에이션 분석">
-            <ValuationSection cardData={cardData} />
-          </Section>
+      {/* 3. 60일 차트 — 풀너비 */}
+      {candles && candles.length > 0 && (
+        <div style={{ margin: '12px 0' }}>
+          <PriceChart candles={candles} />
         </div>
+      )}
 
-        {/* Tab: 재무 */}
-        <div className={`card-tab-section card-tab-financials ${mobileTab === 'financials' ? 'card-tab-active' : ''}`}>
-          <Section title="재무 현황">
-            <FinancialChart financials={financials} sector={header.sector} />
-          </Section>
-          {dividend && (
-            <Section title="배당 현황">
-              <DividendSection dividend={dividend} />
-            </Section>
-          )}
-          <div className="company-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            <Section title="60일 주가 추이">
-              <PriceChart candles={candles} />
-            </Section>
-            <Section title="주요주주 현황">
-              <ShareholderChart shareholders={shareholders} />
-            </Section>
-          </div>
-        </div>
+      {/* 4. 주주 + 배당 — 압축 */}
+      <CompactShareholders shareholders={shareholders} dividend={dividend} colors={colors} dark={dark} />
 
-        {/* Tab: 시장 */}
-        <div className={`card-tab-section card-tab-market ${mobileTab === 'market' ? 'card-tab-active' : ''}`}>
-          {(foreignTrend.length > 0 || instTrend.length > 0) && (
-            <Section title="기관/외국인 수급 현황">
-              <SupplyDemandSection foreignTrend={foreignTrend} instTrend={instTrend} market={market} loading={supplyLoading} />
-            </Section>
-          )}
-        </div>
-
-        {/* Tab: 공시 */}
-        <div className={`card-tab-section card-tab-filings ${mobileTab === 'filings' ? 'card-tab-active' : ''}`}>
-          {timeline.trigger && timeline.trigger.report_nm && (
-            <Section title="트리거 공시">
-              <TriggerInfo trigger={timeline.trigger} />
-            </Section>
-          )}
-          {timeline.history && timeline.history.length > 0 && (
-            <Section title="최근 공시 이력">
-              <DisclosureHistory history={timeline.history} colors={colors} dark={dark} />
-            </Section>
-          )}
-        </div>
-      </div>
+      {/* 5. 최근 공시 — 접기 */}
+      {timeline.history && timeline.history.length > 0 && (
+        <CompactDisclosures history={timeline.history} trigger={timeline.trigger} colors={colors} dark={dark} />
+      )}
     </div>
   )
 }
@@ -234,130 +168,228 @@ function CompanyHeader({ header, market, corpCode }) {
       borderRadius: 14, overflow: 'hidden',
       border: `1px solid ${border}`,
     }}>
-      {/* ── 히어로: 기업명 + 가격 ── */}
-      <div style={{ padding: '20px 20px 16px', textAlign: 'center' }}>
-        {/* 기업명 + 마켓 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{
-            fontSize: 20, fontWeight: 800, fontFamily: FONTS.serif,
-            color: colors.textPrimary, letterSpacing: '-0.03em',
-          }}>
-            {header.corp_name || '기업명'}
-          </span>
-          {marketLabel && (
-            <span style={{
-              fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5,
-              background: dimBg, color: colors.textMuted, letterSpacing: '0.06em',
-            }}>{marketLabel}</span>
-          )}
+      {/* ── 히어로 ── */}
+      <div style={{ padding: '20px 20px 14px', textAlign: 'center' }}>
+        <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FONTS.serif, color: colors.textPrimary, marginBottom: 2 }}>
+          {header.corp_name || '기업명'}
         </div>
-        <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 14 }}>
-          {header.stock_code && <span style={{ fontFamily: FONTS.mono }}>{header.stock_code}</span>}
-          {header.ceo && <span style={{ opacity: 0.3 }}> | </span>}
-          {header.ceo && <span>{header.ceo}</span>}
+        <div style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, marginBottom: 16 }}>
+          {header.stock_code || ''}{marketLabel ? ` · ${marketLabel}` : ''}
         </div>
-
-        {/* 현재가 — 크게 */}
-        <div style={{
-          fontSize: 36, fontWeight: 800, fontFamily: FONTS.mono,
-          color: colors.textPrimary, letterSpacing: '-0.04em', lineHeight: 1,
-          marginBottom: 6,
-        }}>
+        <div style={{ fontSize: 38, fontWeight: 800, fontFamily: FONTS.mono, color: colors.textPrimary, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 8 }}>
           {market.current_price ? Number(market.current_price).toLocaleString() : '-'}
         </div>
-
-        {/* 변동률 배지 */}
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: 4,
-          padding: '4px 12px', borderRadius: 20,
-          background: (market.change || 0) >= 0 ? 'rgba(220,38,38,0.08)' : 'rgba(37,99,235,0.08)',
-          fontSize: 16, fontWeight: 800, fontFamily: FONTS.mono,
-          color: changeColor,
+          padding: '5px 14px', borderRadius: 20,
+          background: (market.change || 0) >= 0 ? 'rgba(220,38,38,0.06)' : 'rgba(37,99,235,0.06)',
+          fontSize: 15, fontWeight: 800, fontFamily: FONTS.mono, color: changeColor,
         }}>
           {market.change != null ? `${changeSign}${market.change.toFixed(2)}%` : ''}
-          {market.change_val != null && (
-            <span style={{ fontSize: 12, opacity: 0.7 }}>
-              {changeSign}{Number(market.change_val).toLocaleString()}
-            </span>
-          )}
+          {market.change_val != null && <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 2 }}>{changeSign}{Number(market.change_val).toLocaleString()}</span>}
         </span>
       </div>
 
-      {/* ── 4칸 메트릭 그리드 ── */}
+      {/* ── 메트릭 ── */}
       {metrics.length > 0 && (
-        <div className="company-metrics-grid" style={{
-          display: 'grid', gridTemplateColumns: `repeat(${Math.min(metrics.length, 5)}, 1fr)`,
-          borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}`,
+        <div style={{
+          display: 'flex', borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}`,
         }}>
           {metrics.map((m, i) => (
             <div key={m.label} style={{
-              padding: '10px 8px', textAlign: 'center',
+              flex: 1, padding: '10px 6px', textAlign: 'center',
               borderLeft: i > 0 ? `1px solid ${border}` : 'none',
             }}>
-              <div style={{
-                fontSize: 10, fontWeight: 700, color: colors.textMuted,
-                letterSpacing: '0.04em', marginBottom: 3,
-              }}>{m.label}</div>
-              <div style={{
-                fontSize: 15, fontWeight: 800, fontFamily: FONTS.mono,
-                color: colors.textPrimary,
-              }}>{m.value}</div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: colors.textMuted, letterSpacing: '0.06em', marginBottom: 3 }}>{m.label}</div>
+              <div style={{ fontSize: 14, fontWeight: 800, fontFamily: FONTS.mono, color: colors.textPrimary }}>{m.value}</div>
             </div>
           ))}
         </div>
       )}
 
-      {/* ── 액션 영역 ── */}
-      <div style={{ padding: '12px 16px' }}>
-        {/* AI 분석 — 풀 CTA */}
-        {corpCode && (
+      {/* ── 액션: 3버튼 한 줄 ── */}
+      {corpCode && (
+        <div style={{ display: 'flex', gap: 6, padding: '10px 14px' }}>
           <button className="touch-press" onClick={(e) => {
             e.stopPropagation()
             window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: corpCode }))
           }} style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            width: '100%', padding: '12px', borderRadius: 12, marginBottom: 8,
-            border: 'none', background: PREMIUM.accent, color: '#fff',
-            fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 48,
+            flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            padding: '10px', borderRadius: 10, border: 'none',
+            background: PREMIUM.accent, color: '#fff',
+            fontSize: 13, fontWeight: 700, cursor: 'pointer', minHeight: 42,
           }}>
-            <img src="/bufit.png" alt="" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }} />
-            Buffett AI 분석
+            <img src="/bufit.png" alt="" style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }} />
+            AI 분석
           </button>
-        )}
+          <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
+          <ShareButton corpName={header.corp_name} corpCode={corpCode} dark={dark} colors={colors} />
+        </div>
+      )}
 
-        {/* 관심 + 공유 */}
-        {corpCode && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
-            <ShareButton corpName={header.corp_name} corpCode={corpCode} dark={dark} colors={colors} />
+      {/* ── 52W ── */}
+      {market.w52_high != null && market.w52_low != null && (
+        <div style={{ padding: '0 14px 12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono, fontWeight: 600, marginBottom: 4 }}>
+            <span>{Number(market.w52_low).toLocaleString()}</span>
+            <span style={{ opacity: 0.4 }}>52W</span>
+            <span>{Number(market.w52_high).toLocaleString()}</span>
           </div>
-        )}
+          <div style={{ height: 3, backgroundColor: dark ? 'rgba(255,255,255,0.04)' : '#F0F0F2', borderRadius: 2, position: 'relative' }}>
+            <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${Math.min(100, Math.max(0, market.w52_position || 50))}%`, background: PREMIUM.accent, borderRadius: 2, opacity: 0.6 }} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
-        {/* 52주 레인지 */}
-        {market.w52_high != null && market.w52_low != null && (
-          <div style={{ marginTop: 12 }}>
-            <div style={{
-              display: 'flex', justifyContent: 'space-between',
-              fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono,
-              fontWeight: 600, marginBottom: 5,
-            }}>
-              <span>{Number(market.w52_low).toLocaleString()}</span>
-              <span style={{ color: dark ? '#3F3F46' : '#D4D4D8', fontSize: 9 }}>52W</span>
-              <span>{Number(market.w52_high).toLocaleString()}</span>
+
+// ── 압축 재무 요약 (한 줄) ──────────────────────────────────────
+function CompactFinancials({ financials, colors, dark }) {
+  const items = financials.items || {}
+  const years = financials.years || []
+  if (years.length === 0) return null
+
+  const latestIdx = years.length - 1
+  const get = (key) => items[key]?.[latestIdx]
+  const getYoy = (key) => items[`${key}_yoy`]?.[latestIdx]
+
+  const metrics = [
+    { label: '매출', value: get('revenue'), yoy: getYoy('revenue') },
+    { label: '영업이익', value: get('operating_income'), yoy: getYoy('operating_income') },
+    { label: '순이익', value: get('net_income'), yoy: getYoy('net_income') },
+  ].filter(m => m.value != null)
+
+  if (metrics.length === 0) return null
+
+  const border = dark ? '#232328' : '#EBEBEB'
+
+  return (
+    <div style={{
+      display: 'grid', gridTemplateColumns: `repeat(${metrics.length}, 1fr)`,
+      borderRadius: 14, border: `1px solid ${border}`, overflow: 'hidden',
+      margin: '12px 0',
+    }}>
+      {metrics.map((m, i) => {
+        const yoyColor = m.yoy > 0 ? '#DC2626' : m.yoy < 0 ? '#2563EB' : colors.textMuted
+        return (
+          <div key={m.label} style={{
+            padding: '12px 10px', textAlign: 'center',
+            borderLeft: i > 0 ? `1px solid ${border}` : 'none',
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, marginBottom: 4, letterSpacing: '0.04em' }}>{m.label}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FONTS.mono, color: colors.textPrimary, marginBottom: 2 }}>
+              {formatKoreanNumber(m.value)}
             </div>
-            <div style={{
-              height: 4, backgroundColor: dark ? 'rgba(255,255,255,0.04)' : '#F0F0F2',
-              borderRadius: 2, position: 'relative',
-            }}>
-              <div style={{
-                position: 'absolute', left: 0, top: 0, height: '100%',
-                width: `${Math.min(100, Math.max(0, market.w52_position || 50))}%`,
-                background: PREMIUM.accent, borderRadius: 2, opacity: 0.7,
-              }} />
-            </div>
+            {m.yoy != null && (
+              <span style={{ fontSize: 11, fontWeight: 700, fontFamily: FONTS.mono, color: yoyColor }}>
+                {m.yoy > 0 ? '+' : ''}{m.yoy.toFixed(1)}%
+              </span>
+            )}
           </div>
-        )}
-      </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── 압축 주주 + 배당 ──────────────────────────────────────────
+function CompactShareholders({ shareholders, dividend, colors, dark }) {
+  const border = dark ? '#232328' : '#EBEBEB'
+  const topHolder = shareholders?.[0]
+  const divCommon = dividend?.common
+  const years = dividend?.years || []
+  const lastIdx = years.length - 1
+  const dps = divCommon?.dps?.[lastIdx]
+  const divYield = divCommon?.yield?.[lastIdx]
+
+  if (!topHolder && !dps) return null
+
+  return (
+    <div style={{
+      display: 'flex', gap: 0, borderRadius: 14, border: `1px solid ${border}`, overflow: 'hidden',
+      marginBottom: 12,
+    }}>
+      {topHolder && (
+        <div style={{ flex: 1, padding: '12px 14px', borderRight: dps != null ? `1px solid ${border}` : 'none' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, marginBottom: 4, letterSpacing: '0.04em' }}>최대주주</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{topHolder.name}</div>
+          <div style={{ fontSize: 12, fontFamily: FONTS.mono, color: colors.textSecondary, marginTop: 1 }}>
+            {topHolder.ratio?.toFixed(1)}%
+          </div>
+        </div>
+      )}
+      {dps != null && (
+        <div style={{ flex: 1, padding: '12px 14px' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, marginBottom: 4, letterSpacing: '0.04em' }}>배당</div>
+          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FONTS.mono, color: colors.textPrimary }}>
+            {Number(dps).toLocaleString()}원
+          </div>
+          {divYield != null && (
+            <div style={{ fontSize: 12, fontFamily: FONTS.mono, color: colors.textSecondary, marginTop: 1 }}>
+              수익률 {divYield.toFixed(2)}%
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── 압축 공시 (접기/펼치기) ───────────────────────────────────
+function CompactDisclosures({ history, trigger, colors, dark }) {
+  const [open, setOpen] = React.useState(false)
+  const border = dark ? '#232328' : '#EBEBEB'
+  const items = history.slice(0, open ? 10 : 3)
+
+  return (
+    <div style={{ borderRadius: 14, border: `1px solid ${border}`, overflow: 'hidden' }}>
+      <button className="touch-press" onClick={() => setOpen(o => !o)} style={{
+        width: '100%', padding: '12px 14px', border: 'none', cursor: 'pointer',
+        background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary }}>
+          최근 공시 {history.length}건
+        </span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round"
+          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {items.map((h, i) => {
+        const gc = GRADE_COLORS[h.grade] || {}
+        const dt = h.rcept_dt || ''
+        const dateStr = dt.length >= 8 ? `${dt.slice(4,6)}.${dt.slice(6,8)}` : ''
+        return (
+          <div key={h.rcept_no || i} style={{
+            padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8,
+            borderTop: `1px solid ${dark ? '#1E1E22' : '#F4F4F5'}`,
+          }}>
+            {h.grade && (
+              <span style={{
+                background: gc.bg || '#A1A1AA', color: gc.color || '#fff',
+                fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 3, fontFamily: FONTS.mono,
+              }}>{h.grade}</span>
+            )}
+            <span style={{ flex: 1, fontSize: 13, color: colors.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {h.report_nm}
+            </span>
+            <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0 }}>
+              {dateStr}
+            </span>
+          </div>
+        )
+      })}
+      {!open && history.length > 3 && (
+        <button className="touch-press" onClick={() => setOpen(true)} style={{
+          width: '100%', padding: '10px', border: 'none', background: 'transparent',
+          cursor: 'pointer', fontSize: 12, fontWeight: 600, color: PREMIUM.accent,
+          borderTop: `1px solid ${dark ? '#1E1E22' : '#F4F4F5'}`,
+        }}>
+          전체 {history.length}건 보기
+        </button>
+      )}
     </div>
   )
 }

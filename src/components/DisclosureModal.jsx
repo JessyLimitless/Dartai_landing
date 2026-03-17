@@ -113,34 +113,25 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
         }}
       />
 
-      {/* 바텀시트 */}
+      {/* 중앙 모달 */}
       <div
         ref={sheetRef}
         onClick={e => e.stopPropagation()}
         style={{
           position: 'fixed',
-          bottom: 0, left: 0, right: 0,
+          top: '50%', left: '50%',
+          transform: visible ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
           zIndex: 1001,
           background: bg,
-          borderRadius: '20px 20px 0 0',
-          maxHeight: '88vh',
+          borderRadius: 16,
+          width: '92%', maxWidth: 480,
+          maxHeight: '85vh',
           display: 'flex', flexDirection: 'column',
-          boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
-          transform: visible ? 'translateY(0)' : 'translateY(100%)',
-          transition: 'transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
+          opacity: visible ? 1 : 0,
+          transition: 'all 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
         }}
       >
-        {/* 드래그 핸들 */}
-        <div style={{
-          display: 'flex', justifyContent: 'center',
-          padding: '10px 0 6px',
-          flexShrink: 0,
-        }}>
-          <div style={{
-            width: 36, height: 4, borderRadius: 2,
-            background: dark ? '#3F3F46' : '#D4D4D8',
-          }} />
-        </div>
 
         {/* 헤더 */}
         <div style={{
