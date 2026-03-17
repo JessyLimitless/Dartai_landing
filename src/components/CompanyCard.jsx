@@ -1805,7 +1805,7 @@ function ShareButton({ corpName, corpCode, dark, colors }) {
       padding: '10px', borderRadius: 10, minHeight: 44,
       border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
       background: 'transparent',
-      color: copied ? '#22C55E' : colors.textSecondary,
+      color: copied ? '#DC2626' : colors.textSecondary,
       fontSize: 13, fontWeight: 600, cursor: 'pointer',
     }}>
       {copied ? (

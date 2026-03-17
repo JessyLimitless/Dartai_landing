@@ -34,11 +34,11 @@ const SIMULATION = [
 
 ▎ 레드플래그: 없음`,
     scorecard: {
-      mos: { value: '+14.2%', color: '#059669' },
+      mos: { value: '+14.2%', color: '#DC2626' },
       roe: { value: '8.4%', color: '#D97706' },
-      de: { value: '32.4%', color: '#059669' },
+      de: { value: '32.4%', color: '#DC2626' },
       moat: { value: '해자 가능성', color: '#D97706' },
-      fcf: { value: 'FCF +', color: '#059669' },
+      fcf: { value: 'FCF +', color: '#DC2626' },
     },
     delay: 400,
   },
@@ -501,11 +501,11 @@ export default function PremiumPage() {
             }}>
               <span style={{
                 width: 6, height: 6, borderRadius: '50%',
-                background: '#059669',
+                background: '#DC2626',
                 animation: 'pfPulse 2s ease-in-out infinite',
               }} />
               <span style={{
-                fontSize: 10, color: '#059669',
+                fontSize: 10, color: '#DC2626',
                 fontFamily: FONTS.mono, fontWeight: 600,
               }}>ONLINE</span>
             </div>

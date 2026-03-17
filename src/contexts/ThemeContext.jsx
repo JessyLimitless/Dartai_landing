@@ -11,7 +11,7 @@ const LIGHT_COLORS = {
   textSecondary: '#52525B',
   textMuted: '#A1A1AA',
   accent: '#DC2626',
-  positive: '#059669',
+  positive: '#DC2626',
   negative: '#2563EB',
 }
 
@@ -26,7 +26,7 @@ const DARK_COLORS = {
   textSecondary: '#A1A1AA',
   textMuted: '#71717A',
   accent: '#EF4444',
-  positive: '#10B981',
+  positive: '#EF4444',
   negative: '#60A5FA',
 }
 

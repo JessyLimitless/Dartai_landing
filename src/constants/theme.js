@@ -72,7 +72,7 @@ export const COLORS = {
   textSecondary: '#52525B',
   textMuted: '#A1A1AA',
   accent: '#DC2626',
-  positive: '#059669',
+  positive: '#DC2626',
   negative: '#2563EB',
 }
 

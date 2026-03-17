@@ -296,23 +296,23 @@ function ScorecardBadges({ scorecard }) {
   const badges = [
     sd.margin_of_safety != null && {
       label: `MoS ${sd.margin_of_safety}%`,
-      color: sd.margin_of_safety >= 25 ? '#22C55E' : sd.margin_of_safety >= 0 ? '#EAB308' : '#EF4444',
+      color: sd.margin_of_safety >= 25 ? '#DC2626' : sd.margin_of_safety >= 0 ? '#EAB308' : '#EF4444',
     },
     sd.roe != null && {
       label: `ROE ${sd.roe}%`,
-      color: sd.roe >= 15 ? '#22C55E' : sd.roe >= 10 ? '#EAB308' : '#71717A',
+      color: sd.roe >= 15 ? '#DC2626' : sd.roe >= 10 ? '#EAB308' : '#71717A',
     },
     sd.debt_ratio != null && {
       label: `D/E ${sd.debt_ratio}%`,
-      color: sd.debt_ratio <= 50 ? '#22C55E' : sd.debt_ratio <= 100 ? '#EAB308' : '#EF4444',
+      color: sd.debt_ratio <= 50 ? '#DC2626' : sd.debt_ratio <= 100 ? '#EAB308' : '#EF4444',
     },
     sd.moat_verdict && {
       label: sd.moat_verdict,
-      color: sd.moat_verdict.includes('강한') ? '#22C55E' : sd.moat_verdict.includes('가능') ? '#EAB308' : '#71717A',
+      color: sd.moat_verdict.includes('강한') ? '#DC2626' : sd.moat_verdict.includes('가능') ? '#EAB308' : '#71717A',
     },
     sd.fcf != null && {
       label: sd.fcf > 0 ? 'FCF +' : 'FCF -',
-      color: sd.fcf > 0 ? '#22C55E' : '#EF4444',
+      color: sd.fcf > 0 ? '#DC2626' : '#EF4444',
     },
   ].filter(Boolean)
 
