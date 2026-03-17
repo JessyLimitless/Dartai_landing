@@ -13,7 +13,6 @@ import LandingPage from './components/LandingPage'
 import { FONTS } from './constants/theme'
 
 const TodayPage   = lazy(() => import('./components/TodayPage'))
-const AiLivePage  = lazy(() => import('./components/AiLivePage'))
 const CompanyCard = lazy(() => import('./components/CompanyCard'))
 const DeepDataPage = lazy(() => import('./components/DeepDataPage'))
 const PremiumPage = lazy(() => import('./components/PremiumPage'))
@@ -86,7 +85,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/today" element={<TodayPage onViewCard={navigateToCard} />} />
-              <Route path="/ai-live" element={<AiLivePage onViewCard={navigateToCard} />} />
+              <Route path="/ai-live" element={<Navigate to="/today" replace />} />
               <Route path="/deep-dive" element={<CompanyCard onViewCard={navigateToCard} />} />
               <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
               <Route path="/deep-data" element={<DeepDataPage onViewCard={navigateToCard} />} />

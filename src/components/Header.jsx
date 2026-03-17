@@ -6,7 +6,6 @@ import { FONTS, PREMIUM, PREMIUM_GOLD } from '../constants/theme'
 
 const TABS = [
   { key: '/today', label: 'Today', icon: 'today', mobileLabel: '홈', mobileIcon: 'home' },
-  { key: '/ai-live', label: 'AI Live', icon: 'ailive', desktopOnly: true },
   { key: '/deep-dive', label: 'Company Card', icon: 'deepdive', mobileLabel: '종목', mobileIcon: 'deepdive' },
   { key: '/dart-event', label: 'DART Event', icon: 'dartevent', desktopOnly: true },
   { key: '/premium', label: 'Premium', icon: 'premium', premium: true, mobileLabel: 'AI', mobileIcon: 'premium' },
