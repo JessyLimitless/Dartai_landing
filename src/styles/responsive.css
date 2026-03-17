@@ -375,8 +375,8 @@ html { scroll-behavior: smooth; }
   .val-metrics-grid    { grid-template-columns: repeat(2, 1fr) !important; }
   .val-summary-grid    { grid-template-columns: repeat(2, 1fr) !important; }
   .compare-layout      { flex-direction: column !important; padding: 0 !important; }
-  .company-header-layout               { flex-direction: column !important; gap: 12px !important; }
-  .company-header-layout > div:last-child { text-align: left !important; }
+  /* ── CompanyCard: 메트릭 그리드 모바일 ── */
+  .company-metrics-grid { grid-template-columns: repeat(4, 1fr) !important; }
 
   /* ── Variable layout (CompanyCard 4-Factor section) ── */
   .variable-layout               { flex-direction: column !important; align-items: center !important; }

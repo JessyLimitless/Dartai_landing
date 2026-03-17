@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import EmptyState from './EmptyState'
 import FeedSkeleton from './skeletons/FeedSkeleton'
 import DisclosureModal from './DisclosureModal'
-import MacroTicker from './MacroTicker'
 import { useDisclosures } from '../hooks/useDisclosures'
 import { FONTS, GRADE_COLORS, MARKET_LABELS, getBoxStyle } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
@@ -76,10 +75,7 @@ export default function TodayPage({ onViewCard }) {
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '12px 16px', fontFamily: FONTS.body }}>
 
-      {/* 매크로 티커 — 최상단 */}
-      <MacroTicker />
-
-      {/* 탭 네비게이션 — 깔끔하게 */}
+      {/* 탭 네비게이션 */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 0,
         marginBottom: 14,

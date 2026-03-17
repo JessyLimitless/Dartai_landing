@@ -225,142 +225,139 @@ function CompanyHeader({ header, market, corpCode }) {
     market.foreign_ratio != null && { label: '외국인', value: `${market.foreign_ratio.toFixed(1)}%` },
   ].filter(Boolean)
 
+  const border = dark ? '#232328' : '#EBEBEB'
+  const dimBg = dark ? '#141416' : '#F8F8FA'
+
   return (
     <div style={{
       backgroundColor: colors.bgCard,
-      borderRadius: '12px',
-      padding: '16px 18px',
-      border: `1px solid ${colors.border}`,
-      borderBottom: `2px solid ${PREMIUM.accent}20`,
+      borderRadius: 14, overflow: 'hidden',
+      border: `1px solid ${border}`,
     }}>
-      {/* 상단: 기업명 + 현재가 */}
-      <div className="company-header-layout" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+      {/* ── 히어로: 기업명 + 가격 ── */}
+      <div style={{ padding: '20px 20px 16px', textAlign: 'center' }}>
+        {/* 기업명 + 마켓 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{
+            fontSize: 20, fontWeight: 800, fontFamily: FONTS.serif,
+            color: colors.textPrimary, letterSpacing: '-0.03em',
+          }}>
+            {header.corp_name || '기업명'}
+          </span>
+          {marketLabel && (
             <span style={{
-              fontSize: '22px', fontWeight: 700, fontFamily: FONTS.serif,
-              color: colors.textPrimary, letterSpacing: '-0.02em',
-            }}>
-              {header.corp_name || '기업명'}
+              fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5,
+              background: dimBg, color: colors.textMuted, letterSpacing: '0.06em',
+            }}>{marketLabel}</span>
+          )}
+        </div>
+        <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 14 }}>
+          {header.stock_code && <span style={{ fontFamily: FONTS.mono }}>{header.stock_code}</span>}
+          {header.ceo && <span style={{ opacity: 0.3 }}> | </span>}
+          {header.ceo && <span>{header.ceo}</span>}
+        </div>
+
+        {/* 현재가 — 크게 */}
+        <div style={{
+          fontSize: 36, fontWeight: 800, fontFamily: FONTS.mono,
+          color: colors.textPrimary, letterSpacing: '-0.04em', lineHeight: 1,
+          marginBottom: 6,
+        }}>
+          {market.current_price ? Number(market.current_price).toLocaleString() : '-'}
+        </div>
+
+        {/* 변동률 배지 */}
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          padding: '4px 12px', borderRadius: 20,
+          background: (market.change || 0) >= 0 ? 'rgba(220,38,38,0.08)' : 'rgba(37,99,235,0.08)',
+          fontSize: 16, fontWeight: 800, fontFamily: FONTS.mono,
+          color: changeColor,
+        }}>
+          {market.change != null ? `${changeSign}${market.change.toFixed(2)}%` : ''}
+          {market.change_val != null && (
+            <span style={{ fontSize: 12, opacity: 0.7 }}>
+              {changeSign}{Number(market.change_val).toLocaleString()}
             </span>
-            {marketLabel && (
-              <span style={{
-                fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '10px',
-                backgroundColor: `${PREMIUM.accent}14`, color: PREMIUM.accent,
-                letterSpacing: '0.02em',
-              }}>
-                {marketLabel}
-              </span>
-            )}
-          </div>
-          <div style={{
-            fontSize: '12px', color: colors.textMuted, display: 'flex', gap: '8px', alignItems: 'center',
-          }}>
-            {header.stock_code && <span style={{ fontFamily: FONTS.mono, fontWeight: 500 }}>{header.stock_code}</span>}
-            {header.ceo && <><span style={{ opacity: 0.3 }}>·</span><span>{header.ceo}</span></>}
-          </div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{
-            fontSize: '34px', fontWeight: 800, fontFamily: FONTS.mono,
-            color: colors.textPrimary, letterSpacing: '-0.04em', lineHeight: 1,
-          }}>
-            {market.current_price ? Number(market.current_price).toLocaleString() : '-'}
-          </div>
-          <div style={{
-            fontSize: '18px', fontFamily: FONTS.mono, color: changeColor,
-            fontWeight: 800, marginTop: '6px',
-          }}>
-            {market.change != null ? `${changeSign}${market.change.toFixed(2)}%` : ''}
-            {market.change_val != null && (
-              <span style={{ marginLeft: '6px', fontSize: '13px', fontWeight: 500, opacity: 0.7 }}>
-                {changeSign}{Number(market.change_val).toLocaleString()}
-              </span>
-            )}
-          </div>
-        </div>
+          )}
+        </span>
       </div>
 
-      {/* 핵심 지표 행 */}
+      {/* ── 4칸 메트릭 그리드 ── */}
       {metrics.length > 0 && (
-        <div style={{
-          display: 'flex', marginTop: '14px', paddingTop: '12px',
-          borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#F4F4F5'}`,
-          flexWrap: 'wrap', gap: '0',
+        <div className="company-metrics-grid" style={{
+          display: 'grid', gridTemplateColumns: `repeat(${Math.min(metrics.length, 5)}, 1fr)`,
+          borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}`,
         }}>
           {metrics.map((m, i) => (
             <div key={m.label} style={{
-              flex: '1 1 0', minWidth: '70px', padding: '0 10px',
-              borderLeft: i > 0 ? `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#F4F4F5'}` : 'none',
+              padding: '10px 8px', textAlign: 'center',
+              borderLeft: i > 0 ? `1px solid ${border}` : 'none',
             }}>
               <div style={{
-                fontSize: '10px', fontWeight: 600, color: colors.textMuted,
-                letterSpacing: '0.03em', marginBottom: '3px', textTransform: 'uppercase',
+                fontSize: 10, fontWeight: 700, color: colors.textMuted,
+                letterSpacing: '0.04em', marginBottom: 3,
               }}>{m.label}</div>
               <div style={{
-                fontSize: '14px', fontWeight: 700, fontFamily: FONTS.mono,
-                color: colors.textPrimary, lineHeight: 1.3,
+                fontSize: 15, fontWeight: 800, fontFamily: FONTS.mono,
+                color: colors.textPrimary,
               }}>{m.value}</div>
             </div>
           ))}
         </div>
       )}
 
-      {/* 52주 레인지 */}
-      {market.w52_high != null && market.w52_low != null && (
-        <div style={{ marginTop: '12px' }}>
-          <div style={{
-            display: 'flex', justifyContent: 'space-between',
-            fontSize: '9px', color: colors.textMuted, marginBottom: '5px',
-          }}>
-            <span style={{ fontFamily: FONTS.mono }}>52W Low {Number(market.w52_low).toLocaleString()}</span>
-            <span style={{ fontFamily: FONTS.mono }}>High {Number(market.w52_high).toLocaleString()}</span>
-          </div>
-          <div style={{
-            height: '3px', backgroundColor: dark ? 'rgba(255,255,255,0.06)' : '#F0F0F0',
-            borderRadius: '1.5px', position: 'relative', overflow: 'hidden',
-          }}>
-            <div style={{
-              position: 'absolute', left: 0, top: 0, height: '100%',
-              width: `${Math.min(100, Math.max(0, market.w52_position || 50))}%`,
-              background: `linear-gradient(90deg, ${PREMIUM.accent}80, ${PREMIUM.accent})`,
-              borderRadius: '1.5px',
-            }} />
-          </div>
-        </div>
-      )}
-
-      {/* 액션 버튼 행: 관심종목 + 공유 + AI분석 */}
-      {corpCode && (
-        <div style={{ display: 'flex', gap: 8, marginTop: '12px' }}>
-          {/* 관심 종목 */}
-          <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
-          {/* 공유 */}
-          <ShareButton corpName={header.corp_name} corpCode={corpCode} dark={dark} colors={colors} />
-        </div>
-      )}
-      {corpCode && (
-        <button
-          className="touch-press"
-          onClick={(e) => {
+      {/* ── 액션 영역 ── */}
+      <div style={{ padding: '12px 16px' }}>
+        {/* AI 분석 — 풀 CTA */}
+        {corpCode && (
+          <button className="touch-press" onClick={(e) => {
             e.stopPropagation()
             window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: corpCode }))
-          }}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            width: '100%', marginTop: '8px',
-            padding: '12px', borderRadius: 12,
-            border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
-            background: dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA',
-            color: PREMIUM.accent, fontSize: 14, fontWeight: 700,
-            cursor: 'pointer', fontFamily: FONTS.body,
-            minHeight: 48,
-          }}
-        >
-          <img src="/bufit.png" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
-          Buffett AI 분석
-        </button>
-      )}
+          }} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            width: '100%', padding: '12px', borderRadius: 12, marginBottom: 8,
+            border: 'none', background: PREMIUM.accent, color: '#fff',
+            fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 48,
+          }}>
+            <img src="/bufit.png" alt="" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }} />
+            Buffett AI 분석
+          </button>
+        )}
+
+        {/* 관심 + 공유 */}
+        {corpCode && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
+            <ShareButton corpName={header.corp_name} corpCode={corpCode} dark={dark} colors={colors} />
+          </div>
+        )}
+
+        {/* 52주 레인지 */}
+        {market.w52_high != null && market.w52_low != null && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between',
+              fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono,
+              fontWeight: 600, marginBottom: 5,
+            }}>
+              <span>{Number(market.w52_low).toLocaleString()}</span>
+              <span style={{ color: dark ? '#3F3F46' : '#D4D4D8', fontSize: 9 }}>52W</span>
+              <span>{Number(market.w52_high).toLocaleString()}</span>
+            </div>
+            <div style={{
+              height: 4, backgroundColor: dark ? 'rgba(255,255,255,0.04)' : '#F0F0F2',
+              borderRadius: 2, position: 'relative',
+            }}>
+              <div style={{
+                position: 'absolute', left: 0, top: 0, height: '100%',
+                width: `${Math.min(100, Math.max(0, market.w52_position || 50))}%`,
+                background: PREMIUM.accent, borderRadius: 2, opacity: 0.7,
+              }} />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
