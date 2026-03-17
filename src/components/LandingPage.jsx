@@ -580,7 +580,7 @@ function TickerStrip({ disclosures }) {
       grade: d.grade || 'B',
       corp: d.corp_name || '',
       report: (d.report_nm || '').length > 20 ? d.report_nm.slice(0, 20) + '...' : (d.report_nm || ''),
-      time: d.created_at ? d.created_at.substring(11, 16) : '',
+      time: d.created_at ? (() => { const dt = new Date(d.created_at); const k = new Date(dt.getTime() + 9*3600000); return `${String(k.getUTCHours()).padStart(2,'0')}:${String(k.getUTCMinutes()).padStart(2,'0')}` })() : '',
     }))
   }, [disclosures])
 
@@ -662,7 +662,7 @@ function DisclosureTable({ disclosures, loading, navigate }) {
     }}>
       {disclosures.slice(0, 8).map((d, i) => {
         const gc = GRADE_COLORS[d.grade] || {}
-        const timeStr = d.created_at ? d.created_at.substring(11, 16) : ''
+        const timeStr = d.created_at ? (() => { const dt = new Date(d.created_at); const k = new Date(dt.getTime() + 9*3600000); return `${String(k.getUTCHours()).padStart(2,'0')}:${String(k.getUTCMinutes()).padStart(2,'0')}` })() : ''
         return (
           <div
             key={d.rcept_no}

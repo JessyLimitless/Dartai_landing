@@ -19,6 +19,7 @@ const DeepDataPage = lazy(() => import('./components/DeepDataPage'))
 const PremiumPage = lazy(() => import('./components/PremiumPage'))
 const DartEventPage = lazy(() => import('./components/DartEventPage'))
 import BuffettChatPanel from './components/BuffettChat'
+import DisclosureModal from './components/DisclosureModal'
 import EmailCapture from './components/EmailCapture'
 
 function FilingsCorpRedirect() {
@@ -53,10 +54,17 @@ export default function App() {
     }
   }, [navigate])
 
+  const [notifRceptNo, setNotifRceptNo] = useState(null)
+
   const handleSelectNotification = useCallback((notification) => {
-    setDetailNotification(notification)
     if (!notification.is_read) {
       markAsRead(notification.id)
+    }
+    // rcept_no가 있으면 공시 모달로, 없으면 기존 모달
+    if (notification.rcept_no) {
+      setNotifRceptNo(notification.rcept_no)
+    } else {
+      setDetailNotification(notification)
     }
   }, [markAsRead])
 
@@ -131,7 +139,16 @@ export default function App() {
         {/* 이메일 수집 배너 (랜딩 제외) */}
         {!isLanding && <EmailCapture />}
 
-        {/* 알림 상세 모달 */}
+        {/* 알림 → 공시 모달 (rcept_no 있는 경우) */}
+        {notifRceptNo && (
+          <DisclosureModal
+            rcept_no={notifRceptNo}
+            onClose={() => setNotifRceptNo(null)}
+            onViewCard={navigateToCard}
+          />
+        )}
+
+        {/* 알림 상세 모달 (rcept_no 없는 경우 폴백) */}
         {detailNotification && (
           <NotificationDetailModal
             notification={detailNotification}
