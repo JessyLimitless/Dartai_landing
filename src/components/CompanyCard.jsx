@@ -56,7 +56,7 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
       <div style={{ padding: '40px 24px' }}>
         <EmptyState
           icon="chart"
-          title={error || '기업 카드를 찾을 수 없습니다'}
+          title={error || '이 기업의 카드를 아직 준비하고 있어요'}
           description="데이터가 아직 생성되지 않았거나 오류가 발생했습니다"
           action="목록으로 돌아가기"
           onAction={onBack}
@@ -116,9 +116,9 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
         ))}
       </div>
 
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="animate-fade-in page-enter" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {/* 1. 헤더 — always visible */}
-        <CompanyHeader header={header} market={market} />
+        <CompanyHeader header={header} market={market} corpCode={corpCode} />
 
         {/* Tab: 요약 */}
         <div className={`card-tab-section card-tab-summary ${mobileTab === 'summary' ? 'card-tab-active' : ''}`}>
@@ -211,7 +211,7 @@ function Section({ title, children }) {
 
 // ── 1. 헤더 ──────────────────────────────────────────────────────
 
-function CompanyHeader({ header, market }) {
+function CompanyHeader({ header, market, corpCode }) {
   const { colors, dark } = useTheme()
   const changeColor = (market.change || 0) >= 0 ? colors.positive : colors.negative
   const changeSign = (market.change || 0) >= 0 ? '+' : ''
@@ -262,20 +262,19 @@ function CompanyHeader({ header, market }) {
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{
-            fontSize: '26px', fontWeight: 700, fontFamily: FONTS.mono,
-            color: colors.textPrimary, letterSpacing: '-0.03em', lineHeight: 1.1,
+            fontSize: '34px', fontWeight: 800, fontFamily: FONTS.mono,
+            color: colors.textPrimary, letterSpacing: '-0.04em', lineHeight: 1,
           }}>
             {market.current_price ? Number(market.current_price).toLocaleString() : '-'}
-            <span style={{ fontSize: '11px', fontWeight: 400, color: colors.textMuted, marginLeft: '2px' }}>원</span>
           </div>
           <div style={{
-            fontSize: '13px', fontFamily: FONTS.mono, color: changeColor,
-            fontWeight: 700, marginTop: '3px',
+            fontSize: '18px', fontFamily: FONTS.mono, color: changeColor,
+            fontWeight: 800, marginTop: '6px',
           }}>
             {market.change != null ? `${changeSign}${market.change.toFixed(2)}%` : ''}
             {market.change_val != null && (
-              <span style={{ marginLeft: '5px', fontSize: '11px', fontWeight: 500, opacity: 0.8 }}>
-                ({changeSign}{Number(market.change_val).toLocaleString()})
+              <span style={{ marginLeft: '6px', fontSize: '13px', fontWeight: 500, opacity: 0.7 }}>
+                {changeSign}{Number(market.change_val).toLocaleString()}
               </span>
             )}
           </div>
@@ -329,6 +328,38 @@ function CompanyHeader({ header, market }) {
             }} />
           </div>
         </div>
+      )}
+
+      {/* 액션 버튼 행: 관심종목 + 공유 + AI분석 */}
+      {corpCode && (
+        <div style={{ display: 'flex', gap: 8, marginTop: '12px' }}>
+          {/* 관심 종목 */}
+          <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
+          {/* 공유 */}
+          <ShareButton corpName={header.corp_name} corpCode={corpCode} dark={dark} colors={colors} />
+        </div>
+      )}
+      {corpCode && (
+        <button
+          className="touch-press"
+          onClick={(e) => {
+            e.stopPropagation()
+            window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: corpCode }))
+          }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            width: '100%', marginTop: '8px',
+            padding: '12px', borderRadius: 12,
+            border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+            background: dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA',
+            color: PREMIUM.accent, fontSize: 14, fontWeight: 700,
+            cursor: 'pointer', fontFamily: FONTS.body,
+            minHeight: 48,
+          }}
+        >
+          <img src="/bufit.png" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
+          Buffett AI 분석
+        </button>
       )}
     </div>
   )
@@ -405,6 +436,7 @@ function CompanyOverview({ overview, header }) {
 
 function FinancialChart({ financials, sector }) {
   const { colors, dark } = useTheme()
+  const [showDetail, setShowDetail] = React.useState(false)
   const rawYears = financials.years || []
   const items = financials.items || {}
 
@@ -423,7 +455,7 @@ function FinancialChart({ financials, sector }) {
   ].filter(m => items[m.key]?.some(v => v != null))
 
   if (rawYears.length === 0) {
-    return <div style={getEmptyStyle(colors, dark)}>재무 데이터가 없습니다</div>
+    return <div style={getEmptyStyle(colors, dark)}>재무 데이터가 아직 준비되지 않았어요</div>
   }
 
   const pickIndices = []
@@ -609,8 +641,18 @@ function FinancialChart({ financials, sector }) {
         </div>
       </div>
 
+      {/* 모바일 상세보기 토글 */}
+      <button className="fin-detail-toggle touch-press" onClick={() => setShowDetail(v => !v)} style={{
+        display: 'none', width: '100%', padding: '10px',
+        borderRadius: 10, border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+        background: 'transparent', color: colors.textMuted,
+        fontSize: 12, fontWeight: 600, cursor: 'pointer', marginBottom: 8, minHeight: 44,
+      }}>
+        {showDetail ? '상세 테이블 접기 \u25B2' : '연도별 상세 보기 \u25BC'}
+      </button>
+
       {/* ③ P&L 테이블 */}
-      <div style={{ marginBottom: '10px' }}>
+      <div className={`fin-detail-tables ${showDetail ? 'fin-detail-open' : ''}`} style={{ marginBottom: '10px' }}>
         <div style={{
           fontSize: '10px', fontWeight: 700, color: colors.textMuted,
           marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase',
@@ -711,7 +753,7 @@ function FinancialChart({ financials, sector }) {
 
       {/* ④ Balance Sheet */}
       {bsMetrics.length > 0 && (
-        <div>
+        <div className={`fin-detail-tables ${showDetail ? 'fin-detail-open' : ''}`}>
           <div style={{
             fontSize: '10px', fontWeight: 700, color: colors.textMuted,
             marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase',
@@ -818,7 +860,7 @@ function PriceChart({ candles }) {
   const gradientId = React.useId()
 
   if (!candles || candles.length === 0) {
-    return <div style={getEmptyStyle(colors, dark)}>주가 데이터가 없습니다</div>
+    return <div style={getEmptyStyle(colors, dark)}>주가 차트를 준비하고 있어요</div>
   }
 
   const closes = candles.map(c => c.close_price || 0)
@@ -890,7 +932,7 @@ function DividendSection({ dividend }) {
   if (!dividend) return null
 
   const { years = [], common, preferred } = dividend
-  if (!common) return <div style={getEmptyStyle(colors, dark)}>배당 데이터가 없습니다</div>
+  if (!common) return <div style={getEmptyStyle(colors, dark)}>배당 정보가 아직 없어요</div>
 
   const rows = [
     { label: '주당배당금(원)', values: common.dps, fmt: v => v != null ? `${Number(v).toLocaleString()}` : '-' },
@@ -954,7 +996,7 @@ const DONUT_COLORS = ['#2563EB', '#0D9488', '#8B5CF6', '#E8364E', '#D97706', '#6
 function ShareholderChart({ shareholders }) {
   const { colors, dark } = useTheme()
   if (!shareholders || shareholders.length === 0) {
-    return <div style={getEmptyStyle(colors, dark)}>주주 데이터가 없습니다</div>
+    return <div style={getEmptyStyle(colors, dark)}>주주 현황을 준비하고 있어요</div>
   }
 
   const top = shareholders.slice(0, 6)
@@ -1047,7 +1089,7 @@ function SupplyDemandSection({ foreignTrend, instTrend, market, loading }) {
   }
 
   if (foreignTrend.length === 0 && instTrend.length === 0) {
-    return <div style={getEmptyStyle(colors, dark)}>수급 데이터가 없습니다</div>
+    return <div style={getEmptyStyle(colors, dark)}>수급 데이터를 수집하고 있어요</div>
   }
 
   const foreignNetTotal = foreignTrend.reduce((s, d) => s + (d.foreign_net || 0), 0)
@@ -1283,7 +1325,7 @@ function ValuationSection({ cardData }) {
   ]
 
   const hasAny = metrics.some((m) => m.value != null || m.noDiv)
-  if (!hasAny) return <div style={getEmptyStyle(colors, dark)}>밸류에이션 데이터가 없습니다</div>
+  if (!hasAny) return <div style={getEmptyStyle(colors, dark)}>밸류에이션을 분석하고 있어요</div>
 
   const _severityColor = {
     CRITICAL: { bg: dark ? 'rgba(37,99,235,0.15)' : '#EFF6FF', text: dark ? '#93C5FD' : '#1D4ED8' },
@@ -1592,7 +1634,7 @@ function CardListView({ onSelectCard }) {
           border: `1px dashed ${colors.border}`,
         }}>
           <div style={{ fontSize: '14px', color: colors.textSecondary, fontWeight: 600, marginBottom: '6px' }}>
-            {query ? `"${query}" 검색 결과가 없습니다` : '공시 데이터가 없습니다'}
+            {query ? `"${query}"에 해당하는 기업이 없어요` : '아직 공시 데이터를 수집하고 있어요'}
           </div>
           <div style={{ fontSize: '12px', color: colors.textMuted }}>
             공시 수집이 시작되면 기업 목록이 표시됩니다
@@ -1695,6 +1737,92 @@ function CardListView({ onSelectCard }) {
         @keyframes card-spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
+  )
+}
+
+
+// ── 관심 종목 버튼 ─────────────────────────────────────────────
+
+function WatchlistButton({ corpCode, dark, colors }) {
+  const [watching, setWatching] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem('dart_watchlist') || '[]').includes(corpCode) }
+    catch { return false }
+  })
+
+  const toggle = () => {
+    try {
+      const list = JSON.parse(localStorage.getItem('dart_watchlist') || '[]')
+      const next = watching ? list.filter(c => c !== corpCode) : [...list, corpCode].slice(-30)
+      localStorage.setItem('dart_watchlist', JSON.stringify(next))
+      setWatching(!watching)
+    } catch { /* ignore */ }
+  }
+
+  return (
+    <button className="touch-press" onClick={toggle} style={{
+      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+      padding: '10px', borderRadius: 10, minHeight: 44,
+      border: `1px solid ${watching ? PREMIUM.accent : (dark ? '#27272A' : '#E4E4E7')}`,
+      background: watching ? `${PREMIUM.accent}10` : 'transparent',
+      color: watching ? PREMIUM.accent : colors.textSecondary,
+      fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill={watching ? PREMIUM.accent : 'none'} stroke={watching ? PREMIUM.accent : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+      {watching ? '관심 등록됨' : '관심 종목'}
+    </button>
+  )
+}
+
+
+// ── 공유 버튼 ──────────────────────────────────────────────────
+
+function ShareButton({ corpName, corpCode, dark, colors }) {
+  const [copied, setCopied] = React.useState(false)
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/deep-dive/${corpCode}`
+    const text = `${corpName} - DART Insight 기업 분석`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: text, url })
+        return
+      } catch { /* user cancelled */ }
+    }
+    // 폴백: 클립보드 복사
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* ignore */ }
+  }
+
+  return (
+    <button className="touch-press" onClick={handleShare} style={{
+      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+      padding: '10px', borderRadius: 10, minHeight: 44,
+      border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+      background: 'transparent',
+      color: copied ? '#22C55E' : colors.textSecondary,
+      fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    }}>
+      {copied ? (
+        <>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
+          복사됨
+        </>
+      ) : (
+        <>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          공유
+        </>
+      )}
+    </button>
   )
 }
 

@@ -18,6 +18,8 @@ const CompanyCard = lazy(() => import('./components/CompanyCard'))
 const DeepDataPage = lazy(() => import('./components/DeepDataPage'))
 const PremiumPage = lazy(() => import('./components/PremiumPage'))
 const DartEventPage = lazy(() => import('./components/DartEventPage'))
+import BuffettChatPanel from './components/BuffettChat'
+import EmailCapture from './components/EmailCapture'
 
 function FilingsCorpRedirect() {
   const { corpCode } = useParams()
@@ -80,6 +82,7 @@ export default function App() {
         <ErrorBoundary>
           <main className="app-content">
             <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
+            <div key={location.pathname.split('/')[1] || 'home'} className="page-enter">
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/today" element={<TodayPage onViewCard={navigateToCard} />} />
@@ -109,6 +112,7 @@ export default function App() {
               <Route path="/companies/:corpCode" element={<FilingsCorpRedirect />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </div>
             </Suspense>
           </main>
         </ErrorBoundary>
@@ -119,6 +123,12 @@ export default function App() {
           onDismiss={dismissToast}
           onSelectNotification={handleSelectNotification}
         />
+
+        {/* 버핏 챗 플로팅 패널 (프리미엄 + 기업카드 페이지) */}
+        {(location.pathname === '/premium' || location.pathname.startsWith('/deep-dive')) && <BuffettChatPanel />}
+
+        {/* 이메일 수집 배너 (랜딩 제외) */}
+        {!isLanding && <EmailCapture />}
 
         {/* 알림 상세 모달 */}
         {detailNotification && (

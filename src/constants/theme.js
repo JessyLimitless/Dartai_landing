@@ -85,6 +85,59 @@ export const ELEVATION = {
   lg: PREMIUM.shadowLg,
 }
 
+/**
+ * 공통 박스 스타일 헬퍼 — 다크/라이트 모드 대응
+ * Section, Card, Table wrapper 등에 일관 적용
+ */
+export function getBoxStyle(dark, variant = 'section') {
+  const base = {
+    borderRadius: 14,
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+  }
+
+  if (variant === 'section') {
+    return {
+      ...base,
+      background: dark ? '#141416' : '#FFFFFF',
+      border: `1px solid ${dark ? '#232328' : '#EBEBEB'}`,
+      boxShadow: dark ? 'none' : '0 1px 2px rgba(0,0,0,0.03)',
+    }
+  }
+  if (variant === 'inset') {
+    return {
+      ...base,
+      borderRadius: 10,
+      background: dark ? '#0F0F11' : '#F8F8FA',
+      border: `1px solid ${dark ? '#1E1E22' : '#F0F0F2'}`,
+      boxShadow: 'none',
+    }
+  }
+  if (variant === 'table') {
+    return {
+      ...base,
+      background: dark ? '#141416' : '#FFFFFF',
+      border: `1px solid ${dark ? '#232328' : '#EBEBEB'}`,
+      boxShadow: dark ? 'none' : '0 1px 2px rgba(0,0,0,0.03)',
+      overflow: 'hidden',
+    }
+  }
+  if (variant === 'strip') {
+    return {
+      ...base,
+      borderRadius: 12,
+      background: dark ? '#1A1A1E' : '#EBEBEB',
+      border: `1px solid ${dark ? '#232328' : '#EBEBEB'}`,
+      overflow: 'hidden',
+    }
+  }
+  if (variant === 'strip-cell') {
+    return {
+      background: dark ? '#141416' : '#FFFFFF',
+    }
+  }
+  return base
+}
+
 export function formatKoreanNumber(value) {
   if (value == null || isNaN(value)) return '-'
   const abs = Math.abs(value)

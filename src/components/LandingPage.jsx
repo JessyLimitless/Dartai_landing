@@ -84,13 +84,24 @@ export default function LandingPage() {
         </nav>
 
         <div style={{ maxWidth: '800px', width: '100%', textAlign: 'center' }}>
-          {/* Kicker */}
+          {/* Buffett Avatar + Kicker */}
           <Reveal>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-              <PulseDot />
-              <span style={{ fontSize: '12px', fontWeight: 600, color: PREMIUM.accent, letterSpacing: '0.08em' }}>
-                AI 공시 인사이트
-              </span>
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{
+                width: 'clamp(72px, 12vw, 96px)', height: 'clamp(72px, 12vw, 96px)',
+                borderRadius: '50%', overflow: 'hidden',
+                margin: '0 auto 16px',
+                border: '3px solid rgba(220,38,38,0.3)',
+                boxShadow: '0 0 40px rgba(220,38,38,0.15), 0 0 80px rgba(220,38,38,0.05)',
+              }}>
+                <img src="/bufit.png" alt="Buffett AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <PulseDot />
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#FAFAFA', letterSpacing: '0.04em' }}>
+                  with <span style={{ color: PREMIUM.accent }}>Buffett AI</span>
+                </span>
+              </div>
             </div>
           </Reveal>
 
@@ -185,7 +196,7 @@ export default function LandingPage() {
                 onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = '0 4px 14px rgba(220,38,38,0.4)' }}
               >대시보드 열기</button>
               <a
-                href="https://dartbook.cloud5.socialbrain.co.kr/"
+                href="https://jessylimitless.github.io/dartbook/"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -284,7 +295,7 @@ export default function LandingPage() {
             </p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <a
-                href="https://dartbook.cloud5.socialbrain.co.kr/"
+                href="https://jessylimitless.github.io/dartbook/"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
