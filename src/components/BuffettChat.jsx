@@ -65,7 +65,7 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
 
   const sendMessage = async () => {
     const text = input.trim()
-    if (!text || loading) return
+    if (!text || loading || text.length > 2000) return
     setMessages(prev => [...prev, { role: 'user', content: text }])
     setInput('')
     setLoading(true)
