@@ -30,12 +30,10 @@ export default function TodayPage({ onViewCard }) {
   const now = new Date()
   const dayNames = ['일', '월', '화', '수', '목', '금', '토']
 
-  // KST 9시 전이면 전일 공시를 보여줌
+  // KST 9시 전이면 전일 공시
   const kstNow = new Date(now.getTime() + 9 * 3600000)
   const kstHour = kstNow.getUTCHours()
-  const targetDate = kstHour < 9
-    ? new Date(kstNow.getTime() - 24 * 3600000) // 전일
-    : kstNow
+  const targetDate = kstHour < 9 ? new Date(kstNow.getTime() - 24 * 3600000) : kstNow
   const targetStr = targetDate.toISOString().slice(0, 10)
   const displayDate = new Date(targetStr + 'T00:00:00')
   const dateStr = `${displayDate.getMonth() + 1}.${displayDate.getDate()} ${dayNames[displayDate.getDay()]}요일`
@@ -61,12 +59,6 @@ export default function TodayPage({ onViewCard }) {
     return c
   }, [todayDisclosures])
 
-  // S등급 분리 (최대 4개만 히어로)
-  const allSGrade = todayDisclosures.filter(d => d.grade === 'S')
-  const sGradeItems = allSGrade.slice(0, 4)
-  const sGradeOverflow = allSGrade.slice(4) // 나머지는 전체 리스트로
-  const hasHero = sGradeItems.length > 0 && !gradeFilter
-
   // 필터링
   const filtered = useMemo(() => {
     let list = todayDisclosures
@@ -80,10 +72,6 @@ export default function TodayPage({ onViewCard }) {
     return list
   }, [todayDisclosures, gradeFilter, search])
 
-  // 히어로에 표시된 S등급은 리스트에서 제외 (overflow분은 리스트에 포함)
-  const heroRceptNos = hasHero ? new Set(sGradeItems.map(d => d.rcept_no)) : new Set()
-  const listItems = hasHero ? filtered.filter(d => !heroRceptNos.has(d.rcept_no)) : filtered
-
   const FILTER_PILLS = [
     { key: null, label: '전체', count: todayCounts.total },
     { key: 'S', label: 'S', count: todayCounts.S, color: GRADE_COLORS.S.bg },
@@ -92,8 +80,7 @@ export default function TodayPage({ onViewCard }) {
   ]
 
   const c = {
-    sep: dark ? '#1E1E22' : '#F0F0F2',
-    cardBg: dark ? '#141416' : '#FFFFFF',
+    sep: dark ? '#1E1E22' : '#F4F4F5',
     pillBg: dark ? '#1A1A1E' : '#F4F4F5',
     pillActiveBg: dark ? '#2A2A2E' : '#18181B',
   }
@@ -136,7 +123,7 @@ export default function TodayPage({ onViewCard }) {
       {!loading && todayCounts.total > 0 && (
         <div style={{
           display: 'flex', gap: 1, margin: '16px 24px 0',
-          background: c.sep, borderRadius: 12, overflow: 'hidden',
+          background: dark ? '#1E1E22' : '#F0F0F2', borderRadius: 12, overflow: 'hidden',
         }}>
           {[
             { label: '전체', value: todayCounts.total, color: colors.textPrimary },
@@ -145,7 +132,8 @@ export default function TodayPage({ onViewCard }) {
             { label: 'D등급', value: todayCounts.D, color: GRADE_COLORS.D.bg },
           ].map(item => (
             <div key={item.label} style={{
-              flex: 1, padding: '12px 8px', textAlign: 'center', background: c.cardBg,
+              flex: 1, padding: '12px 8px', textAlign: 'center',
+              background: dark ? '#141416' : '#FFFFFF',
             }}>
               <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>{item.label}</div>
               <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono, color: item.color, lineHeight: 1 }}>
@@ -156,29 +144,10 @@ export default function TodayPage({ onViewCard }) {
         </div>
       )}
 
-      {/* ── S등급 히어로 (컴팩트, 시세 우측) ── */}
-      {!loading && hasHero && (
-        <div style={{ padding: '20px 24px 0' }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: colors.textPrimary, marginBottom: 10 }}>
-            핵심 공시
-          </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: sGradeItems.length === 1 ? '1fr' : 'repeat(2, 1fr)',
-            gap: 8,
-          }}>
-            {sGradeItems.map(d => (
-              <HeroCard key={d.rcept_no} d={d} dark={dark} colors={colors}
-                priceData={prices[d.stock_code]} onOpenModal={setModalRceptNo} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── 필터 pill ── */}
+      {/* ── 필터 pill (토스 순매수/순매도 스타일) ── */}
       {!loading && todayCounts.total > 0 && (
         <div style={{
-          display: 'flex', gap: 8, padding: '20px 24px 0',
+          display: 'flex', gap: 8, padding: '16px 24px 0',
           overflowX: 'auto', WebkitOverflowScrolling: 'touch',
         }}>
           {FILTER_PILLS.filter(p => p.key === null || p.count > 0).map(p => {
@@ -207,14 +176,8 @@ export default function TodayPage({ onViewCard }) {
         </div>
       )}
 
-      {/* ── 전체 공시 (2컬럼 카드 그리드) ── */}
-      <div style={{ padding: '16px 24px 0' }}>
-        {!loading && listItems.length > 0 && !gradeFilter && !search && (
-          <div style={{ fontSize: 17, fontWeight: 800, color: colors.textPrimary, marginBottom: 10 }}>
-            전체 공시
-          </div>
-        )}
-
+      {/* ── 공시 리스트 (toss2 스타일: 순번 + 원형배지 + 기업명/공시 + 우측 시세) ── */}
+      <div style={{ padding: '12px 24px 0' }}>
         {loading ? (
           <div style={{ padding: '12px 0' }}><FeedSkeleton /></div>
         ) : filtered.length === 0 ? (
@@ -226,24 +189,11 @@ export default function TodayPage({ onViewCard }) {
               description="보통 오전 9시부터 올라와요" />
           )
         ) : (
-          <>
-            <div className="today-card-grid" style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: 8,
-            }}>
-              {listItems.map((d) => (
-                <FeedCard key={d.rcept_no} d={d}
-                  onOpenModal={setModalRceptNo} colors={colors} dark={dark}
-                  priceData={prices[d.stock_code]} c={c} />
-              ))}
-            </div>
-            <style>{`
-              @media (max-width: 480px) {
-                .today-card-grid { grid-template-columns: 1fr !important; }
-              }
-            `}</style>
-          </>
+          filtered.map((d, i) => (
+            <FeedRow key={d.rcept_no} d={d} rank={i + 1} isLast={i === filtered.length - 1}
+              onOpenModal={setModalRceptNo} colors={colors} dark={dark}
+              priceData={prices[d.stock_code]} sep={c.sep} />
+          ))
         )}
       </div>
 
@@ -255,75 +205,9 @@ export default function TodayPage({ onViewCard }) {
 }
 
 
-// ══ S등급 히어로 카드 (컴팩트 + 시세 우측) ══
-function HeroCard({ d, dark, colors, priceData, onOpenModal }) {
-  const changePct = priceData?.change_pct
-  const price = priceData?.price
-  const hasPrice = price != null && price > 0
-  const priceColor = changePct > 0 ? '#DC2626' : changePct < 0 ? '#2563EB' : colors.textMuted
-
-  const kstTime = (() => {
-    if (!d.created_at) return ''
-    const dt = new Date(d.created_at)
-    const kst = new Date(dt.getTime() + 9 * 60 * 60 * 1000)
-    return `${String(kst.getUTCHours()).padStart(2, '0')}:${String(kst.getUTCMinutes()).padStart(2, '0')}`
-  })()
-
-  return (
-    <div className="touch-press" onClick={() => onOpenModal?.(d.rcept_no)} style={{
-      padding: '14px 16px', borderRadius: 14, cursor: 'pointer',
-      background: dark ? '#1A1A1E' : '#FEF2F2',
-      border: `1px solid ${dark ? '#2A1A1A' : '#FECACA'}`,
-      display: 'flex', alignItems: 'center', gap: 12,
-      transition: 'transform 0.1s',
-    }}>
-      {/* 좌: 등급 + 기업명 + 공시 */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-          <div style={{
-            width: 24, height: 24, borderRadius: 12,
-            background: GRADE_COLORS.S.bg, color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
-          }}>S</div>
-          {kstTime && (
-            <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{kstTime}</span>
-          )}
-        </div>
-        <div style={{
-          fontSize: 15, fontWeight: 700, color: dark ? '#FAFAFA' : '#18181B',
-          fontFamily: FONTS.serif, marginBottom: 2,
-        }}>
-          {d.corp_name}
-        </div>
-        <div style={{
-          fontSize: 12, color: colors.textMuted, lineHeight: 1.4,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {d.report_nm}
-        </div>
-      </div>
-
-      {/* 우: 시세 */}
-      {hasPrice && (
-        <div style={{ flexShrink: 0, textAlign: 'right' }}>
-          <div style={{
-            fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono, color: priceColor, lineHeight: 1,
-          }}>
-            {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
-          </div>
-          <div style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 4 }}>
-            {price.toLocaleString()}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-
-// ══ 카드형 피드 아이템 (2컬럼용) ══
-function FeedCard({ d, onOpenModal, colors, dark, priceData, c }) {
+// ══ toss2 스타일 리스트 아이템 ══
+// 순번 + 원형 등급배지 + 기업명/가격/등락률 + 우측 큰 시세
+function FeedRow({ d, rank, isLast, onOpenModal, colors, dark, priceData, sep }) {
   const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
   const changePct = priceData?.change_pct
   const price = priceData?.price
@@ -339,60 +223,65 @@ function FeedCard({ d, onOpenModal, colors, dark, priceData, c }) {
 
   return (
     <div className="touch-press" onClick={() => onOpenModal?.(d.rcept_no)} style={{
-      padding: '14px', borderRadius: 12, cursor: 'pointer',
-      background: c.cardBg,
-      border: `1px solid ${c.sep}`,
-      display: 'flex', flexDirection: 'column',
-      height: 120,
-      transition: 'transform 0.1s',
+      display: 'flex', alignItems: 'center', gap: 14,
+      padding: '16px 0', cursor: 'pointer',
+      borderBottom: isLast ? 'none' : `1px solid ${sep}`,
+      minHeight: 72,
     }}>
-      {/* 1행: 등급배지 + 기업명 + 변동률 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+      {/* 순번 */}
+      <span style={{
+        fontSize: 14, fontWeight: 700, fontFamily: FONTS.mono,
+        color: rank <= 3
+          ? (d.grade === 'S' ? GRADE_COLORS.S.bg : d.grade === 'D' ? GRADE_COLORS.D.bg : colors.textPrimary)
+          : colors.textMuted,
+        minWidth: 20, textAlign: 'right',
+      }}>
+        {rank}
+      </span>
+
+      {/* 원형 등급배지 (토스 회사로고 자리) */}
+      <div style={{
+        width: 44, height: 44, borderRadius: 22, flexShrink: 0,
+        background: gc.bg, color: gc.color,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 15, fontWeight: 800, fontFamily: FONTS.mono,
+      }}>
+        {d.grade}
+      </div>
+
+      {/* 기업명 + 가격/등락률 (토스: 종목명 + 가격 +x.x%) */}
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          width: 24, height: 24, borderRadius: 12,
-          background: gc.bg, color: gc.color,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
-        }}>
-          {d.grade}
-        </div>
-        <span style={{
-          fontSize: 15, fontWeight: 700, color: dark ? '#FAFAFA' : '#18181B',
-          fontFamily: FONTS.serif, flex: 1, overflow: 'hidden',
-          textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          fontSize: 16, fontWeight: 700, color: dark ? '#FAFAFA' : '#18181B',
+          fontFamily: FONTS.serif,
         }}>
           {d.corp_name}
-        </span>
-        {hasPrice ? (
-          <span style={{
-            fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono,
-            color: priceColor, flexShrink: 0,
-          }}>
-            {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
-          </span>
-        ) : kstTime ? (
-          <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0 }}>{kstTime}</span>
-        ) : null}
-      </div>
-
-      {/* 2행: 공시제목 */}
-      <div style={{
-        fontSize: 12, color: colors.textMuted, lineHeight: 1.5, flex: 1,
-        overflow: 'hidden', textOverflow: 'ellipsis',
-        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-      }}>
-        {d.report_nm}
-      </div>
-
-      {/* 3행: 가격 */}
-      {hasPrice && (
-        <div style={{
-          fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono,
-          marginTop: 'auto', paddingTop: 6,
-        }}>
-          {price.toLocaleString()}원
         </div>
-      )}
+        <div style={{
+          fontSize: 13, color: colors.textMuted, marginTop: 3,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {hasPrice ? (
+            <>
+              <span style={{ fontFamily: FONTS.mono }}>{price.toLocaleString()}원</span>
+              <span style={{ color: priceColor, fontWeight: 600, marginLeft: 6 }}>
+                {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
+              </span>
+            </>
+          ) : (
+            <span>{d.report_nm}</span>
+          )}
+        </div>
+      </div>
+
+      {/* 우측: 공시시간 또는 장외 */}
+      <div style={{ flexShrink: 0, textAlign: 'right' }}>
+        {kstTime && (
+          <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>
+            {kstTime}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

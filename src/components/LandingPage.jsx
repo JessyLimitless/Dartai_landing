@@ -13,17 +13,22 @@ export default function LandingPage() {
   const [showPopup, setShowPopup] = useState(false)
   const [showInsight, setShowInsight] = useState(false)
 
-  const todayDisclosures = useMemo(() => {
+  // KST 9시 전이면 전일 공시 표시
+  const recentDisclosures = useMemo(() => {
     if (!disclosures) return disclosures
     const now = new Date()
     const kstNow = new Date(now.getTime() + 9 * 3600000)
-    const todayStr = kstNow.toISOString().slice(0, 10)
-    return disclosures.filter(d => {
+    const kstHour = kstNow.getUTCHours()
+    const targetDate = kstHour < 9 ? new Date(kstNow.getTime() - 24 * 3600000) : kstNow
+    const targetStr = targetDate.toISOString().slice(0, 10)
+    const filtered = disclosures.filter(d => {
       if (!d.created_at) return false
       const dt = new Date(d.created_at)
       const kst = new Date(dt.getTime() + 9 * 3600000)
-      return kst.toISOString().slice(0, 10) === todayStr
+      return kst.toISOString().slice(0, 10) === targetStr
     })
+    // 필터 결과가 비면 전체 최신 8건 반환
+    return filtered.length > 0 ? filtered : disclosures.slice(0, 8)
   }, [disclosures])
 
   useEffect(() => {
@@ -228,12 +233,12 @@ export default function LandingPage() {
                 <div key={i} style={{ height: 72, borderRadius: 12, background: '#F4F4F5', animation: 'pulse 1.4s ease-in-out infinite' }} />
               ))}
             </div>
-          ) : !todayDisclosures || todayDisclosures.length === 0 ? (
+          ) : !recentDisclosures || recentDisclosures.length === 0 ? (
             <div style={{ padding: '48px 0', textAlign: 'center', color: '#A1A1AA', fontSize: 14 }}>
               오늘 공시를 기다리는 중...
             </div>
           ) : (
-            todayDisclosures.slice(0, 8).map((d, i) => {
+            recentDisclosures.slice(0, 8).map((d, i) => {
               const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
               const kstTime = d.created_at ? (() => {
                 const dt = new Date(d.created_at)
@@ -247,7 +252,7 @@ export default function LandingPage() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 14,
                     padding: '16px 0', cursor: 'pointer',
-                    borderBottom: i < Math.min(todayDisclosures.length, 8) - 1 ? '1px solid #F4F4F5' : 'none',
+                    borderBottom: i < Math.min(recentDisclosures.length, 8) - 1 ? '1px solid #F4F4F5' : 'none',
                     minHeight: 72, transition: 'opacity 0.15s',
                   }}
                   onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
