@@ -57,7 +57,6 @@ export default function HistoryPage({ onViewCard }) {
   const { colors, dark } = useTheme()
   const [days, setDays] = useState(5)
   const [direction, setDirection] = useState('up') // 'up' | 'down'
-  const [timelineRcept, setTimelineRcept] = useState(null)
   const [showAll, setShowAll] = useState(false)
   const [modalRceptNo, setModalRceptNo] = useState(null)
   const recent = useRecentTracks(days)
@@ -240,7 +239,7 @@ export default function HistoryPage({ onViewCard }) {
               <RankedItem key={t.rcept_no || i} t={t} rank={i + 1}
                 accentColor={accentColor} isLast={i === visibleItems.length - 1}
                 dark={dark} colors={colors} c={c}
-                onClick={() => setTimelineRcept(t.rcept_no)} />
+                onClick={() => setModalRceptNo(t.rcept_no)} />
             ))}
 
             {/* 더 보기 */}
@@ -257,12 +256,6 @@ export default function HistoryPage({ onViewCard }) {
           </>
         )}
       </div>
-
-      {/* 타임라인 바텀시트 */}
-      {timelineRcept && (
-        <TrackTimeline rceptNo={timelineRcept} onClose={() => setTimelineRcept(null)}
-          onOpenModal={setModalRceptNo} onViewCard={onViewCard} />
-      )}
 
       {modalRceptNo && (
         <DisclosureModal rcept_no={modalRceptNo} onClose={() => setModalRceptNo(null)} onViewCard={onViewCard} />
@@ -337,198 +330,3 @@ function RankedItem({ t, rank, accentColor, isLast, dark, colors, c, onClick }) 
   )
 }
 
-
-// ══ 타임라인 바텀시트 ══
-function TrackTimeline({ rceptNo, onClose, onOpenModal, onViewCard }) {
-  const { colors, dark } = useTheme()
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    requestAnimationFrame(() => setVisible(true))
-    fetch(`${API}/api/price-tracks/${rceptNo}/timeline`)
-      .then(r => r.json())
-      .then(d => { setData(d.timeline); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [rceptNo])
-
-  const handleClose = () => { setVisible(false); setTimeout(onClose, 250) }
-  const tl = data
-
-  return (
-    <>
-      <div onClick={handleClose} style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(0,0,0,0.4)',
-        opacity: visible ? 1 : 0, transition: 'opacity 0.25s',
-      }} />
-      <div style={{
-        position: 'fixed', bottom: 0, left: '50%',
-        transform: visible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(100%)',
-        zIndex: 1001,
-        background: dark ? '#141416' : '#FFFFFF',
-        borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 640,
-        maxHeight: '85vh', display: 'flex', flexDirection: 'column',
-        boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
-        transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
-      }}>
-        {/* 핸들 바 */}
-        <div style={{ padding: '12px 0 8px', display: 'flex', justifyContent: 'center' }}>
-          <div style={{
-            width: 36, height: 4, borderRadius: 2,
-            background: dark ? '#333' : '#D4D4D8',
-          }} />
-        </div>
-
-        {loading ? (
-          <div style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div style={{
-              width: 20, height: 20, border: '2px solid #E4E4E7',
-              borderTopColor: '#DC2626', borderRadius: '50%',
-              animation: 'spin 0.8s linear infinite', margin: '0 auto',
-            }} />
-            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-          </div>
-        ) : !tl ? (
-          <div style={{ padding: '40px 24px', textAlign: 'center', color: colors.textMuted, fontSize: 14 }}>
-            추적 데이터가 없어요
-          </div>
-        ) : (
-          <div style={{
-            padding: '0 24px 24px', overflowY: 'auto',
-            paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))',
-          }}>
-            {/* 기업명 + 등급 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-              {tl.grade && (
-                <div style={{
-                  width: 32, height: 32, borderRadius: 16,
-                  background: GRADE_COLORS[tl.grade]?.bg || '#A1A1AA',
-                  color: GRADE_COLORS[tl.grade]?.color || '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono,
-                }}>
-                  {tl.grade}
-                </div>
-              )}
-              <span style={{
-                fontSize: 20, fontWeight: 800, color: colors.textPrimary,
-                fontFamily: FONTS.serif,
-              }}>
-                {tl.corp_name}
-              </span>
-            </div>
-            <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 20 }}>
-              {tl.report_nm}
-            </div>
-
-            {/* 기준가 (토스 큰 가격 스타일) */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 4 }}>
-                공시 시점 기준가
-              </div>
-              <div style={{
-                fontSize: 28, fontWeight: 800, fontFamily: FONTS.mono,
-                color: colors.textPrimary, letterSpacing: -0.5,
-              }}>
-                {tl.base_price ? `${Number(tl.base_price).toLocaleString()}원` : '—'}
-              </div>
-            </div>
-
-            {/* 타임라인 포인트 (레인지바 스타일) */}
-            {tl.points.map((p, i) => {
-              const isUp = p.change > 0
-              const isDown = p.change < 0
-              const color = isUp ? '#DC2626' : isDown ? '#2563EB' : colors.textMuted
-              const dimBg = dark ? '#0F0F11' : '#F4F4F5'
-              return (
-                <div key={p.time} style={{
-                  display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0',
-                  borderBottom: i < tl.points.length - 1
-                    ? `1px solid ${dark ? '#1E1E22' : '#F4F4F5'}` : 'none',
-                }}>
-                  <span style={{
-                    fontSize: 13, fontWeight: 600, color: colors.textMuted,
-                    minWidth: 52, fontFamily: FONTS.mono,
-                  }}>
-                    {p.label}
-                  </span>
-                  <div style={{
-                    flex: 1, height: 6, borderRadius: 3,
-                    background: dimBg, position: 'relative', overflow: 'hidden',
-                  }}>
-                    <div style={{
-                      position: 'absolute',
-                      left: p.change >= 0 ? '50%' : undefined,
-                      right: p.change < 0 ? '50%' : undefined,
-                      top: 0, height: '100%',
-                      width: `${Math.min(Math.abs(p.change) * 5, 50)}%`,
-                      background: color, borderRadius: 3, opacity: 0.7,
-                    }} />
-                  </div>
-                  <span style={{
-                    fontSize: 16, fontWeight: 800, fontFamily: FONTS.mono,
-                    color, minWidth: 70, textAlign: 'right',
-                  }}>
-                    {isUp ? '+' : ''}{p.change.toFixed(2)}%
-                  </span>
-                </div>
-              )
-            })}
-
-            {/* 액션 버튼 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 20 }}>
-              <button className="touch-press" onClick={() => { onOpenModal?.(rceptNo); handleClose() }} style={{
-                width: '100%', padding: '14px', borderRadius: 14,
-                border: `1px solid ${dark ? '#232328' : '#E4E4E7'}`,
-                background: 'transparent', color: colors.textPrimary,
-                fontSize: 15, fontWeight: 600, cursor: 'pointer', minHeight: 50,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-                공시 내용 보기
-              </button>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <a className="touch-press"
-                  href={`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${rceptNo}`}
-                  target="_blank" rel="noopener noreferrer"
-                  style={{
-                    flex: 1, padding: '14px', borderRadius: 14, textDecoration: 'none',
-                    border: `1px solid ${dark ? '#232328' : '#E4E4E7'}`,
-                    background: 'transparent', color: colors.textSecondary,
-                    fontSize: 14, fontWeight: 600, minHeight: 50,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                  }}
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                    <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                  DART 원문
-                </a>
-                {tl.corp_code && (
-                  <button className="touch-press" onClick={() => { onViewCard?.(tl.corp_code); handleClose() }} style={{
-                    flex: 1, padding: '14px', borderRadius: 14, border: 'none',
-                    background: dark ? '#FAFAFA' : '#18181B',
-                    color: dark ? '#18181B' : '#FAFAFA',
-                    fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 50,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                  }}>
-                    기업 카드
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  )
-}
