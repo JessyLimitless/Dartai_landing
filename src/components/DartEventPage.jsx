@@ -116,16 +116,16 @@ export default function DartEventPage() {
             fontSize: 22, fontWeight: 700, fontFamily: FONTS.serif,
             color: colors.textPrimary, margin: 0,
           }}>
-            DART Event
+            DART <span style={{ color: PREMIUM.accent }}>Insight</span>
           </h1>
           <span style={{
             fontSize: 9, fontWeight: 800, letterSpacing: '0.1em',
             padding: '2px 7px', borderRadius: 4,
             background: 'rgba(220,38,38,0.12)', color: '#F87171',
-          }}>WEEKLY</span>
+          }}>ANALYST BRIEF</span>
         </div>
         <p style={{ fontSize: 13, color: colors.textMuted, margin: 0 }}>
-          증시에 영향을 줄 핵심 이벤트와 DART Insight 애널리스트 브리핑
+          글로벌 이벤트 → 국내 공급망 연결 → 공시 모니터링 체크리스트
         </p>
       </div>
 
