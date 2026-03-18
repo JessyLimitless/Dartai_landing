@@ -133,8 +133,8 @@ export default function HistoryPage({ onViewCard }) {
           background: dark ? '#1A1A1E' : '#F4F4F5', padding: 3,
         }}>
           {[
-            { key: 'up', label: '순매수', color: '#DC2626' },
-            { key: 'down', label: '순매도', color: '#2563EB' },
+            { key: 'up', label: '상승', color: '#DC2626' },
+            { key: 'down', label: '하락', color: '#2563EB' },
           ].map(btn => {
             const active = direction === btn.key
             return (
