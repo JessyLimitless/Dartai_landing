@@ -295,124 +295,108 @@ export default function TodayPage({ onViewCard }) {
           .today-sub { font-size: 12px; }
           .today-right-num { font-size: 14px; }
         }
+
+        /* 급등 패널 — 데스크톱: 우측 상단 고정 */
+        .riser-panel {
+          top: 64px; right: max(16px, calc((100vw - 640px) / 2 - 260px));
+          width: 240px;
+        }
+        /* 태블릿: 우측 고정 */
+        @media (max-width: 1024px) {
+          .riser-panel { right: 12px; width: 220px; }
+        }
+        /* 모바일: 하단 고정 카드 */
+        @media (max-width: 768px) {
+          .riser-panel {
+            top: auto; right: 12px;
+            bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+            width: calc(100vw - 24px); max-width: 340px;
+          }
+        }
       `}</style>
     </div>
   )
 }
 
 
-// ══ 실시간 급등 플로팅 위젯 ══
+// ══ 공시 후 급등 — 항상 보이는 우측 상단 고정 패널 ══
 function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
-  const [open, setOpen] = useState(false)
-  const [pulse, setPulse] = useState(true)
-
-  // 3초 후 펄스 끄기
-  useEffect(() => {
-    const t = setTimeout(() => setPulse(false), 3000)
-    return () => clearTimeout(t)
-  }, [risers])
+  const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
   return (
-    <>
-      {/* 플로팅 버튼 (접힌 상태) */}
-      {!open && (
-        <button className="touch-press" onClick={() => setOpen(true)} style={{
-          position: 'fixed',
-          right: 16, bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
-          width: 56, height: 56, borderRadius: 28,
-          background: '#DC2626', color: '#fff', border: 'none',
-          cursor: 'pointer', zIndex: 90,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(220,38,38,0.4)',
-          animation: pulse ? 'riser-pulse 1.5s ease-in-out infinite' : 'none',
-        }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="#fff">
-            <path d="M8 2L13 9H3L8 2Z" />
-          </svg>
-          <span style={{ fontSize: 9, fontWeight: 800, marginTop: 1 }}>LIVE</span>
-        </button>
-      )}
+    <div className="riser-panel" style={{
+      position: 'fixed', zIndex: 90,
+      background: dark ? '#141416' : '#FFFFFF',
+      borderRadius: 14,
+      border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#F0F0F2'}`,
+      boxShadow: dark ? '0 4px 24px rgba(0,0,0,0.4)' : '0 4px 24px rgba(0,0,0,0.06)',
+      overflow: 'hidden',
+    }}>
+      {/* 헤더 */}
+      <div style={{
+        padding: '12px 16px',
+        borderBottom: `1px solid ${lineSep}`,
+        display: 'flex', alignItems: 'center', gap: 6,
+      }}>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="#DC2626">
+          <path d="M8 2L13 9H3L8 2Z" />
+        </svg>
+        <span style={{ fontSize: 14, fontWeight: 800, color: colors.textPrimary }}>
+          공시 후 급등
+        </span>
+        <span style={{
+          fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+          background: '#DC2626', color: '#fff', marginLeft: 2,
+        }}>LIVE</span>
+      </div>
 
-      {/* 펼친 패널 */}
-      {open && (
-        <div style={{
-          position: 'fixed',
-          right: 16, bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
-          width: 220, zIndex: 90,
-          background: dark ? '#141416' : '#FFFFFF',
-          borderRadius: 16,
-          border: `1px solid ${dark ? '#2A1A1A' : '#FECACA'}`,
-          boxShadow: dark
-            ? '0 8px 32px rgba(0,0,0,0.5)'
-            : '0 8px 32px rgba(220,38,38,0.15)',
-          overflow: 'hidden',
-        }}>
-          {/* 헤더 */}
-          <div style={{
-            padding: '10px 14px',
-            background: dark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.04)',
-            borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="#DC2626">
-                <path d="M8 2L13 9H3L8 2Z" />
-              </svg>
-              <span style={{ fontSize: 12, fontWeight: 800, color: '#DC2626' }}>실시간 급등</span>
+      {/* 리스트 (토스 스타일) */}
+      <div style={{ padding: '4px 0' }}>
+        {risers.map((d, i) => {
+          const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8' }
+          return (
+            <div key={d.rcept_no} className="touch-press"
+              onClick={() => onOpenModal(d.rcept_no)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 16px', cursor: 'pointer',
+                borderBottom: i < risers.length - 1 ? `1px solid ${lineSep}` : 'none',
+              }}>
+              {/* 순번 */}
               <span style={{
-                fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
-                background: '#DC2626', color: '#fff',
-              }}>LIVE</span>
+                fontSize: 14, fontWeight: 700, fontFamily: FONTS.mono,
+                color: '#DC2626', minWidth: 14, textAlign: 'right',
+              }}>{i + 1}</span>
+
+              {/* 등급 원형 */}
+              <div style={{
+                width: 28, height: 28, borderRadius: 14,
+                background: gc.bg, color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
+              }}>{d.grade}</div>
+
+              {/* 기업명 + 가격 */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>{d.corp_name}</div>
+                <div style={{
+                  fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 1,
+                }}>{d.price.toLocaleString()}원</div>
+              </div>
+
+              {/* 변동률 (토스: 우측 큰 숫자) */}
+              <span style={{
+                fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono,
+                color: '#DC2626', flexShrink: 0,
+              }}>+{d.changePct.toFixed(1)}%</span>
             </div>
-            <button onClick={() => setOpen(false)} style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: colors.textMuted, fontSize: 14, padding: '2px 4px',
-            }}>✕</button>
-          </div>
-
-          {/* 리스트 */}
-          <div style={{ padding: '6px 0' }}>
-            {risers.map((d, i) => {
-              const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8' }
-              return (
-                <div key={d.rcept_no} className="touch-press"
-                  onClick={() => { onOpenModal(d.rcept_no); setOpen(false) }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '8px 14px', cursor: 'pointer',
-                  }}>
-                  <span style={{
-                    fontSize: 12, fontWeight: 800, fontFamily: FONTS.mono,
-                    color: '#DC2626', minWidth: 14, textAlign: 'right',
-                  }}>{i + 1}</span>
-                  <div style={{
-                    width: 20, height: 20, borderRadius: 10,
-                    background: gc.bg, color: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 9, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
-                  }}>{d.grade}</div>
-                  <span style={{
-                    fontSize: 13, fontWeight: 600, color: colors.textPrimary,
-                    flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>{d.corp_name}</span>
-                  <span style={{
-                    fontSize: 13, fontWeight: 700, fontFamily: FONTS.mono,
-                    color: '#DC2626', flexShrink: 0,
-                  }}>+{d.changePct.toFixed(1)}%</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes riser-pulse {
-          0%, 100% { box-shadow: 0 4px 20px rgba(220,38,38,0.4); }
-          50% { box-shadow: 0 4px 30px rgba(220,38,38,0.7); }
-        }
-      `}</style>
-    </>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
