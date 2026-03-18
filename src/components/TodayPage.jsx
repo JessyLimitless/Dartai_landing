@@ -74,16 +74,17 @@ export default function TodayPage({ onViewCard }) {
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
   return (
-    <div className="page-enter" style={{
-      maxWidth: 640, margin: '0 auto', padding: '0 0 100px',
+    <div className="page-enter today-page" style={{
+      maxWidth: 640, margin: '0 auto',
+      paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
       fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
     }}>
 
       {/* ── 헤더 ── */}
-      <div style={{ padding: '24px 24px 0' }}>
+      <div className="today-pad" style={{ paddingTop: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
+            <div className="today-title" style={{ fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
               오늘의 공시
             </div>
             <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
@@ -91,7 +92,7 @@ export default function TodayPage({ onViewCard }) {
             </div>
           </div>
           <button className="touch-press" onClick={() => setSearchOpen(!searchOpen)} style={{
-            width: 40, height: 40, borderRadius: 20, border: 'none',
+            width: 44, height: 44, borderRadius: 22, border: 'none',
             background: searchOpen ? (dark ? '#2A2A2E' : '#F0F0F2') : 'transparent',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
@@ -108,19 +109,20 @@ export default function TodayPage({ onViewCard }) {
 
       {/* ── 섹션 타이틀 ── */}
       {!loading && todayCounts.total > 0 && (
-        <div style={{ padding: '32px 24px 0' }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.3 }}>
+        <div className="today-pad" style={{ paddingTop: 28 }}>
+          <div className="today-section-title" style={{ fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.3 }}>
             AI가 선별한 핵심 공시
           </div>
         </div>
       )}
 
-      {/* ── 등급 탭 (토스 언더라인) ── */}
+      {/* ── 등급 탭 ── */}
       {!loading && todayCounts.total > 0 && (
         <div style={{
-          display: 'flex', padding: '20px 24px 0',
-          borderBottom: `1px solid ${lineSep}`,
+          display: 'flex', overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+          borderBottom: `1px solid ${lineSep}`, marginTop: 16,
         }}>
+          <div style={{ width: 24, flexShrink: 0 }} />
           {[
             { key: null, label: '전체', count: todayCounts.total },
             { key: 'S', label: 'S등급', count: todayCounts.S, color: GRADE_COLORS.S.bg },
@@ -132,15 +134,15 @@ export default function TodayPage({ onViewCard }) {
               <button key={t.label} className="touch-press"
                 onClick={() => { setGradeFilter(active && t.key !== null ? null : t.key); setShowAll(false) }}
                 style={{
-                  padding: '10px 18px 16px', border: 'none', cursor: 'pointer',
-                  background: 'transparent', position: 'relative',
-                  fontSize: 15, fontWeight: active ? 700 : 400,
+                  padding: '10px 14px 14px', border: 'none', cursor: 'pointer',
+                  background: 'transparent', position: 'relative', whiteSpace: 'nowrap',
+                  fontSize: 14, fontWeight: active ? 700 : 400, minHeight: 44,
                   color: active ? (t.color || colors.textPrimary) : colors.textMuted,
                 }}>
                 {t.label}
                 {active && (
                   <div style={{
-                    position: 'absolute', bottom: -1, left: 14, right: 14,
+                    position: 'absolute', bottom: -1, left: 10, right: 10,
                     height: 3, borderRadius: 1.5,
                     background: t.color || colors.textPrimary,
                   }} />
@@ -148,11 +150,12 @@ export default function TodayPage({ onViewCard }) {
               </button>
             )
           })}
+          <div style={{ width: 24, flexShrink: 0 }} />
         </div>
       )}
 
       {/* ── 리스트 ── */}
-      <div style={{ padding: '4px 24px 0' }}>
+      <div className="today-pad" style={{ paddingTop: 4 }}>
         {loading ? (
           <div style={{ padding: '20px 0' }}><FeedSkeleton /></div>
         ) : filtered.length === 0 ? (
@@ -181,36 +184,36 @@ export default function TodayPage({ onViewCard }) {
               })()
 
               return (
-                <div key={d.rcept_no} className="touch-press"
+                <div key={d.rcept_no} className="touch-press today-row"
                   onClick={() => setModalRceptNo(d.rcept_no)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 16,
-                    padding: '20px 0', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center',
+                    padding: '18px 0', cursor: 'pointer',
                     borderBottom: i < visibleItems.length - 1 ? `1px solid ${lineSep}` : 'none',
+                    minHeight: 64,
                   }}>
 
-                  {/* 순번 */}
-                  <span style={{
-                    fontSize: 17, fontWeight: 700, fontFamily: FONTS.mono,
-                    color: gc.bg,
-                    minWidth: 24, textAlign: 'right',
+                  {/* 순번 (모바일에서 숨김) */}
+                  <span className="today-rank" style={{
+                    fontWeight: 700, fontFamily: FONTS.mono,
+                    color: gc.bg, textAlign: 'right',
                   }}>{i + 1}</span>
 
-                  {/* 원형 등급배지 48px */}
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 24, flexShrink: 0,
+                  {/* 원형 등급배지 */}
+                  <div className="today-badge" style={{
+                    borderRadius: '50%', flexShrink: 0,
                     background: gc.bg, color: gc.color,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 16, fontWeight: 800, fontFamily: FONTS.mono,
+                    fontWeight: 800, fontFamily: FONTS.mono,
                   }}>{d.grade}</div>
 
                   {/* 기업명 + 가격/등락률 */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: 17, fontWeight: 700, color: colors.textPrimary,
+                    <div className="today-corp" style={{
+                      fontWeight: 700, color: colors.textPrimary,
                       fontFamily: FONTS.serif,
                     }}>{d.corp_name}</div>
-                    <div style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
+                    <div className="today-sub" style={{ color: colors.textMuted, marginTop: 3 }}>
                       {hasPrice ? (
                         <>
                           <span style={{ fontFamily: FONTS.mono }}>{price.toLocaleString()}원</span>
@@ -222,25 +225,24 @@ export default function TodayPage({ onViewCard }) {
                       ) : (
                         <span style={{
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          display: 'block', fontSize: 13,
+                          display: 'block',
                         }}>{d.report_nm}</span>
                       )}
                     </div>
                   </div>
 
-                  {/* 우측 큰 변동률 or 시간 (토스: 6,885억원) */}
+                  {/* 우측 */}
                   <div style={{ flexShrink: 0, textAlign: 'right' }}>
                     {hasPrice ? (
-                      <span style={{
-                        fontSize: 17, fontWeight: 700, fontFamily: FONTS.mono,
-                        color: priceColor,
+                      <span className="today-right-num" style={{
+                        fontWeight: 700, fontFamily: FONTS.mono, color: priceColor,
                       }}>
                         {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
                       </span>
                     ) : kstTime ? (
-                      <span style={{
-                        fontSize: 14, fontFamily: FONTS.mono, color: colors.textMuted,
-                      }}>{kstTime}</span>
+                      <span style={{ fontSize: 13, fontFamily: FONTS.mono, color: colors.textMuted }}>
+                        {kstTime}
+                      </span>
                     ) : null}
                   </div>
                 </div>
@@ -249,10 +251,10 @@ export default function TodayPage({ onViewCard }) {
 
             {!showAll && filtered.length > 20 && (
               <button className="touch-press" onClick={() => setShowAll(true)} style={{
-                width: '100%', padding: '20px 0', border: 'none',
+                width: '100%', padding: '18px 0', border: 'none',
                 background: 'transparent', cursor: 'pointer',
                 fontSize: 15, fontWeight: 600, color: colors.textSecondary,
-                borderTop: `1px solid ${lineSep}`,
+                borderTop: `1px solid ${lineSep}`, minHeight: 52,
               }}>더 보기</button>
             )}
           </>
@@ -264,8 +266,43 @@ export default function TodayPage({ onViewCard }) {
       )}
 
       <style>{`
-        @media (max-width: 380px) {
-          .page-enter { padding-left: 16px !important; padding-right: 16px !important; }
+        /* 데스크톱 기본값 */
+        .today-pad { padding-left: 24px; padding-right: 24px; }
+        .today-title { font-size: 22px; }
+        .today-section-title { font-size: 20px; }
+        .today-row { gap: 16px; }
+        .today-rank { font-size: 17px; min-width: 24px; display: inline-block; }
+        .today-badge { width: 48px; height: 48px; font-size: 16px; }
+        .today-corp { font-size: 17px; }
+        .today-sub { font-size: 14px; }
+        .today-right-num { font-size: 17px; }
+
+        /* 태블릿 */
+        @media (max-width: 768px) {
+          .today-pad { padding-left: 20px; padding-right: 20px; }
+        }
+
+        /* 모바일 */
+        @media (max-width: 480px) {
+          .today-pad { padding-left: 16px; padding-right: 16px; }
+          .today-title { font-size: 20px; }
+          .today-section-title { font-size: 18px; }
+          .today-row { gap: 10px; }
+          .today-rank { font-size: 14px; min-width: 18px; }
+          .today-badge { width: 40px; height: 40px; font-size: 14px; }
+          .today-corp { font-size: 15px; }
+          .today-sub { font-size: 13px; }
+          .today-right-num { font-size: 15px; }
+        }
+
+        /* 극소 모바일 */
+        @media (max-width: 360px) {
+          .today-pad { padding-left: 12px; padding-right: 12px; }
+          .today-rank { display: none; }
+          .today-badge { width: 36px; height: 36px; font-size: 13px; }
+          .today-corp { font-size: 14px; }
+          .today-sub { font-size: 12px; }
+          .today-right-num { font-size: 14px; }
         }
       `}</style>
     </div>
@@ -280,7 +317,7 @@ function SearchBar({ search, setSearch, colors, dark, onClose }) {
     <div style={{ marginTop: 14 }}>
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10,
-        padding: '0 14px', borderRadius: 12, height: 46,
+        padding: '0 14px', borderRadius: 12, height: 48,
         background: dark ? '#1A1A1E' : '#F4F4F5',
       }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
@@ -289,12 +326,13 @@ function SearchBar({ search, setSearch, colors, dark, onClose }) {
         <input ref={inputRef} type="text" placeholder="기업명 또는 공시 검색" value={val} autoComplete="off"
           onChange={e => { setVal(e.target.value); setSearch(e.target.value) }}
           style={{
-            flex: 1, padding: '10px 0', fontSize: 15, border: 'none',
+            flex: 1, padding: '12px 0', fontSize: 16, border: 'none',
             background: 'transparent', color: colors.textPrimary, outline: 'none',
           }} />
         <button onClick={onClose} style={{
           background: 'none', border: 'none', cursor: 'pointer',
           color: colors.textMuted, fontSize: 14, fontWeight: 600,
+          padding: '8px 4px', minHeight: 44,
         }}>취소</button>
       </div>
     </div>
