@@ -429,6 +429,8 @@ function FeedRow({ d, isLast, onOpenModal, colors, dark, priceData }) {
             {price.toLocaleString()}
           </div>
         </div>
+      ) : priceData && price === 0 ? (
+        <span style={{ fontSize: 11, color: '#A1A1AA', background: 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: 4 }}>장외</span>
       ) : d.stock_code ? (
         <span style={{ flexShrink: 0, fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, opacity: 0.5 }}>
           {d.stock_code}

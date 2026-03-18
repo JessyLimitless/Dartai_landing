@@ -9,7 +9,7 @@ const TABS = [
   { key: '/history', label: 'History', icon: 'chart', mobileLabel: '추적', mobileIcon: 'chart' },
   { key: '/deep-dive', label: 'Company Card', icon: 'deepdive', mobileLabel: '종목', mobileIcon: 'deepdive' },
   { key: '/dart-event', label: 'DART Event', icon: 'dartevent', desktopOnly: true },
-  { key: '/library', label: 'Library', icon: 'library', desktopOnly: true },
+  { key: '/library', label: 'Library', icon: 'library', mobileLabel: '서재', mobileIcon: 'library' },
   { key: '/premium', label: 'Premium', icon: 'premium', premium: true, mobileLabel: 'AI', mobileIcon: 'premium' },
 ]
 

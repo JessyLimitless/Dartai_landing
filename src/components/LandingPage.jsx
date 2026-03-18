@@ -164,6 +164,11 @@ export default function LandingPage() {
             <Reveal d={180}>
               <div style={{ maxWidth: '480px', margin: '0 auto 32px' }}>
                 <GradeBar s={sCount} a={aCount} d={dCount} total={totalCount} />
+                <p style={{fontSize: '12px', color: '#52525B', textAlign: 'center', margin: '8px auto 0', maxWidth: '400px', lineHeight: 1.5}}>
+                  S등급 = 주가에 즉각적 영향을 미치는 최우선 공시
+                  <br/>
+                  <span style={{color: '#71717A', fontSize: '11px'}}>투자주의종목 · 전환사채 · 임원매수 · 대규모 계약 등</span>
+                </p>
               </div>
             </Reveal>
           )}
@@ -214,6 +219,16 @@ export default function LandingPage() {
                 onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 20px rgba(220,38,38,0.5)' }}
                 onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = '0 4px 14px rgba(220,38,38,0.4)' }}
               >대시보드 열기</button>
+              <button onClick={() => { navigate('/premium'); setTimeout(() => window.dispatchEvent(new Event('open-buffett-chat')), 500) }} style={{
+                padding: '12px 28px', borderRadius: '8px',
+                border: '1px solid rgba(220,38,38,0.4)',
+                background: 'transparent', color: '#F87171',
+                fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                transition: 'all 0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px',
+              }}
+                onMouseEnter={e => { e.target.style.backgroundColor = 'rgba(220,38,38,0.08)'; e.target.style.transform = 'translateY(-2px)' }}
+                onMouseLeave={e => { e.target.style.backgroundColor = 'transparent'; e.target.style.transform = 'none' }}
+              >Buffett AI 체험</button>
               <a
                 href="https://jessylimitless.github.io/dartbook/"
                 target="_blank"
@@ -236,6 +251,69 @@ export default function LandingPage() {
                 전자공시 시그널
               </a>
             </div>
+          </Reveal>
+
+          {/* 성공사례 — S등급 시그널 적중 */}
+          <Reveal d={300}>
+            <div style={{
+              maxWidth: '520px', width: '100%', margin: '40px auto 0',
+              padding: '20px 24px',
+              background: 'rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '14px',
+              cursor: 'default',
+              transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.3)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                {/* 좌측: 배지 + 종목 정보 */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      width: '26px', height: '26px', borderRadius: '50%',
+                      backgroundColor: GRADE_COLORS.S.bg, color: '#fff',
+                      fontSize: '12px', fontWeight: 800, fontFamily: FONTS.mono,
+                      flexShrink: 0,
+                    }}>S</span>
+                    <span style={{
+                      fontSize: '11px', fontWeight: 600, color: '#F87171',
+                      padding: '2px 8px', borderRadius: '4px',
+                      backgroundColor: 'rgba(248,113,113,0.12)',
+                      whiteSpace: 'nowrap',
+                    }}>투자경고종목 지정</span>
+                  </div>
+                  <div style={{
+                    fontFamily: FONTS.serif, fontWeight: 700, fontSize: '17px',
+                    color: '#FAFAFA', marginBottom: '4px',
+                  }}>로킷헬스케어</div>
+                  <div style={{
+                    fontSize: '12px', color: '#A1A1AA', lineHeight: 1.4,
+                  }}>소수계좌 매수관여 과다 → 투자경고 지정 예고</div>
+                </div>
+                {/* 우측: 수익률 */}
+                <div style={{
+                  fontFamily: FONTS.mono, fontSize: '32px', fontWeight: 800,
+                  color: '#22C55E', letterSpacing: '-0.02em', flexShrink: 0,
+                  lineHeight: 1,
+                }}>+50%</div>
+              </div>
+              <div style={{
+                fontSize: '11px', color: '#71717A', marginTop: '12px',
+                borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px',
+              }}>
+                DART Insight S등급 포착 → 공시 이후 50% 상승
+              </div>
+            </div>
+            <p style={{
+              fontSize: '10px', color: '#52525B', textAlign: 'center',
+              margin: '10px 0 0', letterSpacing: '0.02em',
+            }}>
+              실제 사례 기반 · 투자 성과를 보장하지 않습니다
+            </p>
           </Reveal>
 
           {/* Scroll down guide */}
