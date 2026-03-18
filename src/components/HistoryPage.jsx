@@ -249,7 +249,12 @@ export default function HistoryPage({ onViewCard }) {
       {modalRceptNo && (
         <DisclosureModal rcept_no={modalRceptNo} onClose={() => setModalRceptNo(null)} onViewCard={onViewCard} />
       )}
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        @media (max-width: 380px) {
+          .page-enter { padding-left: 16px !important; padding-right: 16px !important; }
+        }
+      `}</style>
     </div>
   )
 }

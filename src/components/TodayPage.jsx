@@ -262,6 +262,12 @@ export default function TodayPage({ onViewCard }) {
       {modalRceptNo && (
         <DisclosureModal rcept_no={modalRceptNo} onClose={() => setModalRceptNo(null)} onViewCard={onViewCard} />
       )}
+
+      <style>{`
+        @media (max-width: 380px) {
+          .page-enter { padding-left: 16px !important; padding-right: 16px !important; }
+        }
+      `}</style>
     </div>
   )
 }
