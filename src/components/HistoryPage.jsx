@@ -11,7 +11,6 @@ function getDateRange(days) {
   const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   return { from: fmt(from), to: fmt(today) }
 }
-
 function getDateKey(iso) { return iso ? iso.slice(0, 10) : '' }
 
 function useRecentTracks(days) {
@@ -37,11 +36,8 @@ function useRecentTracks(days) {
 
 function pctColor(v) {
   if (v == null) return '#A1A1AA'
-  if (v > 0) return '#DC2626'
-  if (v < 0) return '#2563EB'
-  return '#71717A'
+  return v > 0 ? '#DC2626' : v < 0 ? '#2563EB' : '#71717A'
 }
-
 function fmtPct(v) {
   if (v == null) return '—'
   return `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`
@@ -71,8 +67,7 @@ export default function HistoryPage({ onViewCard }) {
   const activeList = direction === 'up' ? upRanked : downRanked
   const accentColor = direction === 'up' ? '#DC2626' : '#2563EB'
   const visibleItems = showAll ? activeList.slice(0, 30) : activeList.slice(0, 10)
-
-  const sep = dark ? '#1E1E22' : '#F4F4F5'
+  const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
   return (
     <div className="page-enter" style={{
@@ -80,31 +75,31 @@ export default function HistoryPage({ onViewCard }) {
       fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
     }}>
 
-      {/* ── 히어로: 평균 수익률 ── */}
+      {/* ── 히어로 ── */}
       <div style={{ padding: '24px 24px 0' }}>
         <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 8 }}>
           공시 후 종가 기준 평균 수익률
         </div>
         <div style={{
-          fontSize: 36, fontWeight: 800, fontFamily: FONTS.mono,
-          color: pctColor(avgChange), letterSpacing: -1, lineHeight: 1,
+          fontSize: 40, fontWeight: 800, fontFamily: FONTS.mono,
+          color: pctColor(avgChange), letterSpacing: -1.5, lineHeight: 1,
         }}>{fmtPct(avgChange)}</div>
         <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 8 }}>
           최근 {days === 20 ? '1개월' : `${days}일`} · {recent.total}건 추적
         </div>
       </div>
 
-      {/* ── 섹션 타이틀 (토스 스타일) ── */}
-      <div style={{ padding: '28px 24px 0' }}>
-        <div style={{ fontSize: 19, fontWeight: 800, color: colors.textPrimary }}>
+      {/* ── 섹션 타이틀 ── */}
+      <div style={{ padding: '32px 24px 0' }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.3 }}>
           공시 후 주가 변동 TOP
         </div>
       </div>
 
-      {/* ── 기간 탭 (토스: 언더라인 탭) ── */}
+      {/* ── 기간 탭 ── */}
       <div style={{
-        display: 'flex', padding: '16px 24px 0',
-        borderBottom: `1px solid ${sep}`,
+        display: 'flex', padding: '20px 24px 0',
+        borderBottom: `1px solid ${lineSep}`,
       }}>
         {PERIODS.map(p => {
           const active = days === p.key
@@ -112,7 +107,7 @@ export default function HistoryPage({ onViewCard }) {
             <button key={p.key} className="touch-press"
               onClick={() => { setDays(p.key); setShowAll(false) }}
               style={{
-                padding: '10px 18px 14px', border: 'none', cursor: 'pointer',
+                padding: '10px 18px 16px', border: 'none', cursor: 'pointer',
                 background: 'transparent', position: 'relative',
                 fontSize: 15, fontWeight: active ? 700 : 400,
                 color: active ? colors.textPrimary : colors.textMuted,
@@ -120,8 +115,8 @@ export default function HistoryPage({ onViewCard }) {
               {p.label}
               {active && (
                 <div style={{
-                  position: 'absolute', bottom: -1, left: 18, right: 18,
-                  height: 2.5, borderRadius: 1.5, background: colors.textPrimary,
+                  position: 'absolute', bottom: -1, left: 14, right: 14,
+                  height: 3, borderRadius: 1.5, background: colors.textPrimary,
                 }} />
               )}
             </button>
@@ -129,44 +124,44 @@ export default function HistoryPage({ onViewCard }) {
         })}
       </div>
 
-      {/* ── pill 토글 (토스: 순매수/순매도) ── */}
-      <div style={{ padding: '16px 24px 0' }}>
+      {/* ── pill 토글 ── */}
+      <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
-          display: 'inline-flex', borderRadius: 22, overflow: 'hidden',
-          background: dark ? '#1A1A1E' : '#F4F4F5',
+          display: 'inline-flex', borderRadius: 24,
+          background: dark ? '#1A1A1E' : '#F4F4F5', padding: 3,
         }}>
           {[
-            { key: 'up', label: '상승', color: '#DC2626' },
-            { key: 'down', label: '하락', color: '#2563EB' },
+            { key: 'up', label: '순매수', color: '#DC2626' },
+            { key: 'down', label: '순매도', color: '#2563EB' },
           ].map(btn => {
             const active = direction === btn.key
             return (
               <button key={btn.key} className="touch-press"
                 onClick={() => { setDirection(btn.key); setShowAll(false) }}
                 style={{
-                  padding: '8px 20px', border: 'none', cursor: 'pointer',
+                  padding: '8px 22px', border: 'none', cursor: 'pointer',
                   fontSize: 14, fontWeight: active ? 700 : 500,
                   background: active ? (dark ? '#2A2A2E' : '#FFFFFF') : 'transparent',
                   color: active ? btn.color : colors.textMuted,
                   borderRadius: 22,
-                  boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  boxShadow: active ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
                   transition: 'all 0.15s',
                 }}>{btn.label}</button>
             )
           })}
         </div>
         <span style={{
-          fontSize: 13, color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 12,
+          fontSize: 13, color: colors.textMuted, fontFamily: FONTS.mono,
         }}>{activeList.length}건</span>
       </div>
 
-      {/* ── 리스트 (토스2 스타일) ── */}
-      <div style={{ padding: '0 24px' }}>
+      {/* ── 리스트 ── */}
+      <div style={{ padding: '4px 24px 0' }}>
         {recent.loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '20px 0' }}>
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} style={{
-                height: 72, borderRadius: 12,
+                height: 80, borderRadius: 12,
                 background: dark ? '#18181B' : '#F4F4F5',
                 animation: 'pulse 1.4s ease-in-out infinite',
               }} />
@@ -193,19 +188,19 @@ export default function HistoryPage({ onViewCard }) {
                 <div key={t.rcept_no || i} className="touch-press"
                   onClick={() => setModalRceptNo(t.rcept_no)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 14,
-                    padding: '18px 0', cursor: 'pointer',
-                    borderBottom: i < visibleItems.length - 1 ? `1px solid ${sep}` : 'none',
+                    display: 'flex', alignItems: 'center', gap: 16,
+                    padding: '20px 0', cursor: 'pointer',
+                    borderBottom: i < visibleItems.length - 1 ? `1px solid ${lineSep}` : 'none',
                   }}>
 
                   {/* 순번 */}
                   <span style={{
-                    fontSize: 16, fontWeight: 700, fontFamily: FONTS.mono,
-                    color: i < 3 ? accentColor : colors.textMuted,
-                    minWidth: 22, textAlign: 'right',
+                    fontSize: 17, fontWeight: 700, fontFamily: FONTS.mono,
+                    color: accentColor,
+                    minWidth: 24, textAlign: 'right',
                   }}>{i + 1}</span>
 
-                  {/* 원형 등급배지 */}
+                  {/* 원형 등급배지 48px */}
                   <div style={{
                     width: 48, height: 48, borderRadius: 24, flexShrink: 0,
                     background: gc.bg, color: gc.color,
@@ -213,11 +208,11 @@ export default function HistoryPage({ onViewCard }) {
                     fontSize: 16, fontWeight: 800, fontFamily: FONTS.mono,
                   }}>{t.grade}</div>
 
-                  {/* 기업명 + 공시 + 날짜 */}
+                  {/* 기업명 + 공시 */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
                       fontSize: 17, fontWeight: 700, color: colors.textPrimary,
-                      fontFamily: FONTS.serif, lineHeight: 1.3,
+                      fontFamily: FONTS.serif,
                     }}>{t.corp_name}</div>
                     <div style={{
                       fontSize: 13, color: colors.textMuted, marginTop: 4,
@@ -228,10 +223,10 @@ export default function HistoryPage({ onViewCard }) {
                     </div>
                   </div>
 
-                  {/* 우측 큰 수익률 (토스: 6,885억원 스타일) */}
+                  {/* 우측 큰 수익률 (토스: 6,885억원) */}
                   <span style={{
                     fontSize: 18, fontWeight: 700, fontFamily: FONTS.mono,
-                    color: accentColor, flexShrink: 0,
+                    color: accentColor, flexShrink: 0, letterSpacing: -0.5,
                   }}>
                     {change > 0 ? '+' : ''}{change.toFixed(1)}%
                   </span>
@@ -239,13 +234,12 @@ export default function HistoryPage({ onViewCard }) {
               )
             })}
 
-            {/* 더 보기 */}
             {!showAll && activeList.length > 10 && (
               <button className="touch-press" onClick={() => setShowAll(true)} style={{
-                width: '100%', padding: '18px 0', border: 'none',
+                width: '100%', padding: '20px 0', border: 'none',
                 background: 'transparent', cursor: 'pointer',
                 fontSize: 15, fontWeight: 600, color: colors.textSecondary,
-                borderTop: `1px solid ${sep}`,
+                borderTop: `1px solid ${lineSep}`,
               }}>더 보기</button>
             )}
           </>

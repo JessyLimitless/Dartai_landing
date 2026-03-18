@@ -71,8 +71,7 @@ export default function TodayPage({ onViewCard }) {
   }, [todayDisclosures, gradeFilter, search])
 
   const visibleItems = showAll ? filtered : filtered.slice(0, 20)
-
-  const sep = dark ? '#1E1E22' : '#F4F4F5'
+  const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
   return (
     <div className="page-enter" style={{
@@ -80,7 +79,7 @@ export default function TodayPage({ onViewCard }) {
       fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
     }}>
 
-      {/* ── 헤더 (토스: 심플 타이틀 + 검색 아이콘) ── */}
+      {/* ── 헤더 ── */}
       <div style={{ padding: '24px 24px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
@@ -107,23 +106,20 @@ export default function TodayPage({ onViewCard }) {
         )}
       </div>
 
-      {/* ── 섹션 타이틀 (토스: "지금 많이 사고팔리는 종목" 스타일) ── */}
+      {/* ── 섹션 타이틀 ── */}
       {!loading && todayCounts.total > 0 && (
-        <div style={{ padding: '28px 24px 0' }}>
-          <div style={{ fontSize: 19, fontWeight: 800, color: colors.textPrimary, marginBottom: 4 }}>
+        <div style={{ padding: '32px 24px 0' }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.3 }}>
             AI가 선별한 핵심 공시
-          </div>
-          <div style={{ fontSize: 13, color: colors.textMuted }}>
-            전체 {todayCounts.total}건 중 S·A·D 등급
           </div>
         </div>
       )}
 
-      {/* ── 등급 탭 (토스: 외국인 | 기관 | 개인 언더라인 탭) ── */}
+      {/* ── 등급 탭 (토스 언더라인) ── */}
       {!loading && todayCounts.total > 0 && (
         <div style={{
-          display: 'flex', padding: '16px 24px 0',
-          borderBottom: `1px solid ${sep}`,
+          display: 'flex', padding: '20px 24px 0',
+          borderBottom: `1px solid ${lineSep}`,
         }}>
           {[
             { key: null, label: '전체', count: todayCounts.total },
@@ -136,7 +132,7 @@ export default function TodayPage({ onViewCard }) {
               <button key={t.label} className="touch-press"
                 onClick={() => { setGradeFilter(active && t.key !== null ? null : t.key); setShowAll(false) }}
                 style={{
-                  padding: '10px 16px 14px', border: 'none', cursor: 'pointer',
+                  padding: '10px 18px 16px', border: 'none', cursor: 'pointer',
                   background: 'transparent', position: 'relative',
                   fontSize: 15, fontWeight: active ? 700 : 400,
                   color: active ? (t.color || colors.textPrimary) : colors.textMuted,
@@ -144,8 +140,8 @@ export default function TodayPage({ onViewCard }) {
                 {t.label}
                 {active && (
                   <div style={{
-                    position: 'absolute', bottom: -1, left: 16, right: 16,
-                    height: 2.5, borderRadius: 1.5,
+                    position: 'absolute', bottom: -1, left: 14, right: 14,
+                    height: 3, borderRadius: 1.5,
                     background: t.color || colors.textPrimary,
                   }} />
                 )}
@@ -155,8 +151,8 @@ export default function TodayPage({ onViewCard }) {
         </div>
       )}
 
-      {/* ── 리스트 (토스2: 순번 + 원형48px + 기업명18px + 가격+등락률 + 우측 큰 시간) ── */}
-      <div style={{ padding: '0 24px' }}>
+      {/* ── 리스트 ── */}
+      <div style={{ padding: '4px 24px 0' }}>
         {loading ? (
           <div style={{ padding: '20px 0' }}><FeedSkeleton /></div>
         ) : filtered.length === 0 ? (
@@ -188,19 +184,19 @@ export default function TodayPage({ onViewCard }) {
                 <div key={d.rcept_no} className="touch-press"
                   onClick={() => setModalRceptNo(d.rcept_no)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 14,
-                    padding: '18px 0', cursor: 'pointer',
-                    borderBottom: i < visibleItems.length - 1 ? `1px solid ${sep}` : 'none',
+                    display: 'flex', alignItems: 'center', gap: 16,
+                    padding: '20px 0', cursor: 'pointer',
+                    borderBottom: i < visibleItems.length - 1 ? `1px solid ${lineSep}` : 'none',
                   }}>
 
-                  {/* 순번 (토스: 빨강 숫자) */}
+                  {/* 순번 */}
                   <span style={{
-                    fontSize: 16, fontWeight: 700, fontFamily: FONTS.mono,
-                    color: i < 3 ? (gc.bg || '#DC2626') : colors.textMuted,
-                    minWidth: 22, textAlign: 'right',
+                    fontSize: 17, fontWeight: 700, fontFamily: FONTS.mono,
+                    color: gc.bg,
+                    minWidth: 24, textAlign: 'right',
                   }}>{i + 1}</span>
 
-                  {/* 원형 등급배지 (토스: 48px 로고) */}
+                  {/* 원형 등급배지 48px */}
                   <div style={{
                     width: 48, height: 48, borderRadius: 24, flexShrink: 0,
                     background: gc.bg, color: gc.color,
@@ -208,16 +204,13 @@ export default function TodayPage({ onViewCard }) {
                     fontSize: 16, fontWeight: 800, fontFamily: FONTS.mono,
                   }}>{d.grade}</div>
 
-                  {/* 기업명 + 가격/등락률 (토스: 종목명 18px + 가격 14px) */}
+                  {/* 기업명 + 가격/등락률 */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
                       fontSize: 17, fontWeight: 700, color: colors.textPrimary,
-                      fontFamily: FONTS.serif, lineHeight: 1.3,
+                      fontFamily: FONTS.serif,
                     }}>{d.corp_name}</div>
-                    <div style={{
-                      fontSize: 14, color: colors.textMuted, marginTop: 4,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
+                    <div style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
                       {hasPrice ? (
                         <>
                           <span style={{ fontFamily: FONTS.mono }}>{price.toLocaleString()}원</span>
@@ -227,29 +220,39 @@ export default function TodayPage({ onViewCard }) {
                           </span>
                         </>
                       ) : (
-                        <span style={{ fontSize: 13 }}>{d.report_nm}</span>
+                        <span style={{
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          display: 'block', fontSize: 13,
+                        }}>{d.report_nm}</span>
                       )}
                     </div>
                   </div>
 
-                  {/* 우측 시간 (토스: 큰 금액 자리) */}
-                  {kstTime && (
-                    <span style={{
-                      fontSize: 13, fontFamily: FONTS.mono,
-                      color: colors.textMuted, flexShrink: 0,
-                    }}>{kstTime}</span>
-                  )}
+                  {/* 우측 큰 변동률 or 시간 (토스: 6,885억원) */}
+                  <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                    {hasPrice ? (
+                      <span style={{
+                        fontSize: 17, fontWeight: 700, fontFamily: FONTS.mono,
+                        color: priceColor,
+                      }}>
+                        {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
+                      </span>
+                    ) : kstTime ? (
+                      <span style={{
+                        fontSize: 14, fontFamily: FONTS.mono, color: colors.textMuted,
+                      }}>{kstTime}</span>
+                    ) : null}
+                  </div>
                 </div>
               )
             })}
 
-            {/* 더 보기 (토스 하단) */}
             {!showAll && filtered.length > 20 && (
               <button className="touch-press" onClick={() => setShowAll(true)} style={{
-                width: '100%', padding: '18px 0', border: 'none',
+                width: '100%', padding: '20px 0', border: 'none',
                 background: 'transparent', cursor: 'pointer',
                 fontSize: 15, fontWeight: 600, color: colors.textSecondary,
-                borderTop: `1px solid ${sep}`,
+                borderTop: `1px solid ${lineSep}`,
               }}>더 보기</button>
             )}
           </>
@@ -263,18 +266,15 @@ export default function TodayPage({ onViewCard }) {
   )
 }
 
-
-// ══ 검색바 ══
 function SearchBar({ search, setSearch, colors, dark, onClose }) {
   const [val, setVal] = useState(search || '')
   const inputRef = useRef(null)
   useEffect(() => { inputRef.current?.focus() }, [])
-
   return (
     <div style={{ marginTop: 14 }}>
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10,
-        padding: '0 14px', borderRadius: 12, height: 44,
+        padding: '0 14px', borderRadius: 12, height: 46,
         background: dark ? '#1A1A1E' : '#F4F4F5',
       }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
@@ -288,7 +288,7 @@ function SearchBar({ search, setSearch, colors, dark, onClose }) {
           }} />
         <button onClick={onClose} style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: colors.textMuted, fontSize: 13, fontWeight: 600, padding: '4px 2px',
+          color: colors.textMuted, fontSize: 14, fontWeight: 600,
         }}>취소</button>
       </div>
     </div>
