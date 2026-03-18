@@ -29,19 +29,26 @@ export default function TodayPage({ onViewCard }) {
 
   const now = new Date()
   const dayNames = ['일', '월', '화', '수', '목', '금', '토']
-  const dateStr = `${now.getMonth() + 1}.${now.getDate()} ${dayNames[now.getDay()]}요일`
+
+  // KST 9시 전이면 전일 공시를 보여줌
+  const kstNow = new Date(now.getTime() + 9 * 3600000)
+  const kstHour = kstNow.getUTCHours()
+  const targetDate = kstHour < 9
+    ? new Date(kstNow.getTime() - 24 * 3600000) // 전일
+    : kstNow
+  const targetStr = targetDate.toISOString().slice(0, 10)
+  const displayDate = new Date(targetStr + 'T00:00:00')
+  const dateStr = `${displayDate.getMonth() + 1}.${displayDate.getDate()} ${dayNames[displayDate.getDay()]}요일`
 
   const todayDisclosures = useMemo(() => {
     if (!disclosures) return []
-    const kstNow = new Date(now.getTime() + 9 * 3600000)
-    const todayStr = kstNow.toISOString().slice(0, 10)
     return disclosures.filter(d => {
       if (!d.created_at) return false
       const dt = new Date(d.created_at)
       const kst = new Date(dt.getTime() + 9 * 3600000)
-      return kst.toISOString().slice(0, 10) === todayStr
+      return kst.toISOString().slice(0, 10) === targetStr
     })
-  }, [disclosures])
+  }, [disclosures, targetStr])
 
   const todayCounts = useMemo(() => {
     const c = { S: 0, A: 0, D: 0, total: 0 }
@@ -104,7 +111,9 @@ export default function TodayPage({ onViewCard }) {
             <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
               오늘의 공시
             </div>
-            <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>{dateStr}</div>
+            <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>
+              {dateStr}{kstHour < 9 && ' · 09시부터 오늘 공시로 전환'}
+            </div>
           </div>
           <button className="touch-press" onClick={() => setSearchOpen(!searchOpen)}
             style={{
