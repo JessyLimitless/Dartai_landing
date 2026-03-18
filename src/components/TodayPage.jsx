@@ -217,22 +217,24 @@ export default function TodayPage({ onViewCard }) {
               description="보통 오전 9시부터 올라와요" />
           )
         ) : (
-          <div className="today-card-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: 8,
-          }}>
-            {listItems.map((d) => (
-              <FeedCard key={d.rcept_no} d={d}
-                onOpenModal={setModalRceptNo} colors={colors} dark={dark}
-                priceData={prices[d.stock_code]} c={c} />
-            ))}
-          </div>
-          <style>{`
-            @media (max-width: 480px) {
-              .today-card-grid { grid-template-columns: 1fr !important; }
-            }
-          `}</style>
+          <>
+            <div className="today-card-grid" style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: 8,
+            }}>
+              {listItems.map((d) => (
+                <FeedCard key={d.rcept_no} d={d}
+                  onOpenModal={setModalRceptNo} colors={colors} dark={dark}
+                  priceData={prices[d.stock_code]} c={c} />
+              ))}
+            </div>
+            <style>{`
+              @media (max-width: 480px) {
+                .today-card-grid { grid-template-columns: 1fr !important; }
+              }
+            `}</style>
+          </>
         )}
       </div>
 
