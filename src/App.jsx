@@ -18,6 +18,7 @@ const CompanyCard = lazy(() => import('./components/CompanyCard'))
 const DeepDataPage = lazy(() => import('./components/DeepDataPage'))
 const PremiumPage = lazy(() => import('./components/PremiumPage'))
 const DartEventPage = lazy(() => import('./components/DartEventPage'))
+const LibraryPage = lazy(() => import('./components/LibraryPage'))
 import BuffettChatPanel from './components/BuffettChat'
 import DisclosureModal from './components/DisclosureModal'
 import EmailCapture from './components/EmailCapture'
@@ -100,6 +101,7 @@ export default function App() {
               <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
               <Route path="/deep-data" element={<DeepDataPage onViewCard={navigateToCard} />} />
               <Route path="/dart-event" element={<DartEventPage />} />
+              <Route path="/library" element={<LibraryPage />} />
               <Route path="/premium" element={<PremiumPage />} />
               {/* Legacy redirects */}
               <Route path="/surge" element={<Navigate to="/today" replace />} />
