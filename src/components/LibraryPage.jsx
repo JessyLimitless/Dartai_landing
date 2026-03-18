@@ -2,50 +2,79 @@ import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM } from '../constants/theme'
 
+// SVG 아이콘 (세련된 라인 아이콘)
+const BookIcons = {
+  signal: (color) => (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+    </svg>
+  ),
+  philosophy: (color) => (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+      <path d="M2 12h20" />
+    </svg>
+  ),
+  quant: (color) => (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v18h18" />
+      <path d="M7 16l4-8 4 4 4-10" />
+    </svg>
+  ),
+  math: (color) => (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h6v6H4z" /><path d="M14 4h6v6h-6z" /><path d="M4 14h6v6H4z" />
+      <circle cx="17" cy="17" r="3" />
+      <path d="M7 4v6" /><path d="M4 7h6" /><path d="M17 4v6" /><path d="M14 7h6" />
+    </svg>
+  ),
+}
+
 const BOOKS = [
   {
     id: 'dart-signal-advanced',
     title: '전자공시 시그널',
-    subtitle: '고급 투자 가이드',
+    subtitle: 'Advanced Guide',
     url: 'https://jessylimitless.github.io/dartbookhigh/',
     color: '#1E293B',
     accentColor: '#DC2626',
-    icon: '\uD83D\uDCCA',
+    iconKey: 'signal',
     description: 'DART 공시에서 숨겨진 투자 시그널을 포착하는 고급 전략서',
-    tags: ['공시분석', 'S등급', '실전투자'],
+    tags: ['공시분석', 'S등급', '실전'],
   },
   {
     id: 'kostolany',
     title: '코스톨라니',
-    subtitle: '투자 철학의 정수',
+    subtitle: 'Investment Philosophy',
     url: 'https://jessylimitless.github.io/Kostolanypil/',
     color: '#1C1917',
     accentColor: '#D97706',
-    icon: '\uD83C\uDFA9',
-    description: '20세기 최고의 투기가 앙드레 코스톨라니의 투자 원칙과 지혜',
+    iconKey: 'philosophy',
+    description: '20세기 최고의 투기가 앙드레 코스톨라니의 투자 원칙과 시장 심리',
     tags: ['투자철학', '거장', '심리'],
   },
   {
     id: 'data-quant',
     title: '데이터 퀀트',
-    subtitle: '투자 입문서',
+    subtitle: 'Quantitative Investing',
     url: 'https://jessylimitless.github.io/dataquent/',
     color: '#0F172A',
     accentColor: '#2563EB',
-    icon: '\uD83D\uDCC8',
-    description: '데이터 기반의 체계적인 퀀트 투자, 처음 시작하는 분을 위한 안내서',
-    tags: ['퀀트', '데이터분석', '입문'],
+    iconKey: 'quant',
+    description: '데이터 기반의 체계적인 퀀트 투자, 처음 시작하는 분을 위한 입문서',
+    tags: ['퀀트', '데이터', '입문'],
   },
   {
     id: 'ai-math',
     title: 'AI 핵심원리',
-    subtitle: '수학으로 이해하는 인공지능',
+    subtitle: 'Mathematics of AI',
     url: 'https://jessylimitless.github.io/mathplay/',
     color: '#170F2E',
     accentColor: '#7C3AED',
-    icon: '\uD83E\uDDE0',
-    description: '인공지능의 핵심 원리와 정수를 정리한 우리 시대의 필독서',
-    tags: ['AI', '딥러닝', '필독서'],
+    iconKey: 'math',
+    description: '인공지능을 움직이는 핵심 수학적 원리와 알고리즘의 정수',
+    tags: ['수학', '알고리즘', 'AI원리'],
   },
 ]
 
@@ -149,13 +178,13 @@ function BookCard({ book, index, dark }) {
 
         {/* Icon */}
         <div style={{
-          fontSize: 40,
           marginBottom: 16,
-          filter: hovered ? 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))' : 'none',
-          transition: 'filter 0.3s ease',
+          opacity: hovered ? 1 : 0.7,
+          transform: hovered ? 'scale(1.1)' : 'scale(1)',
+          transition: 'all 0.3s ease',
           position: 'relative',
         }}>
-          {book.icon}
+          {BookIcons[book.iconKey]?.(book.accentColor)}
         </div>
 
         {/* Title */}
