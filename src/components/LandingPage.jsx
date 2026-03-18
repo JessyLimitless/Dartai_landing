@@ -12,6 +12,21 @@ export default function LandingPage() {
   const { disclosures, stats, loading } = useLandingData()
   const [showPopup, setShowPopup] = useState(false)
   const [showInsight, setShowInsight] = useState(false)
+  const [dateFilter, setDateFilter] = useState('today')
+
+  // 오늘 날짜 기준 필터링 (KST)
+  const filteredDisclosures = useMemo(() => {
+    if (!disclosures || dateFilter === 'all') return disclosures
+    const now = new Date()
+    const kstNow = new Date(now.getTime() + 9 * 3600000)
+    const todayStr = kstNow.toISOString().slice(0, 10)
+    return disclosures.filter(d => {
+      if (!d.created_at) return false
+      const dt = new Date(d.created_at)
+      const kst = new Date(dt.getTime() + 9 * 3600000)
+      return kst.toISOString().slice(0, 10) === todayStr
+    })
+  }, [disclosures, dateFilter])
 
   // 24시간 내 닫은 적 있으면 표시 안 함
   useEffect(() => {
@@ -137,10 +152,10 @@ export default function LandingPage() {
               display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
               gap: '12px', marginBottom: '24px',
             }}>
-              <CounterCard label={isCumulative ? '분석 완료' : '오늘 공시'} value={totalCount} color={PREMIUM.accent} delay={0} />
-              <CounterCard label="S Grade" value={sCount} color={GRADE_COLORS.S.bg} delay={100} />
-              <CounterCard label="A Grade" value={aCount} color={GRADE_COLORS.A.bg} delay={200} />
-              <CounterCard label="D Grade" value={dCount} color={GRADE_COLORS.D.bg} delay={300} />
+              <CounterCard label={isCumulative ? '분석 완료' : '오늘 공시'} value={totalCount} color={PREMIUM.accent} delay={0} onClick={() => navigate('/today')} />
+              <CounterCard label="S Grade" value={sCount} color={GRADE_COLORS.S.bg} delay={100} onClick={() => navigate('/today?grade=S')} />
+              <CounterCard label="A Grade" value={aCount} color={GRADE_COLORS.A.bg} delay={200} onClick={() => navigate('/today?grade=A')} />
+              <CounterCard label="D Grade" value={dCount} color={GRADE_COLORS.D.bg} delay={300} onClick={() => navigate('/today?grade=D')} />
             </div>
           </Reveal>
 
@@ -240,9 +255,28 @@ export default function LandingPage() {
         <div style={{ maxWidth: '960px', margin: '0 auto', padding: '40px clamp(20px, 5vw, 64px)' }}>
           <Reveal>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, fontFamily: FONTS.serif, margin: 0 }}>
-                최신 공시
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, fontFamily: FONTS.serif, margin: 0 }}>
+                  최신 공시
+                </h2>
+                <div style={{
+                  display: 'inline-flex', borderRadius: '6px', overflow: 'hidden',
+                  border: '1px solid #E4E4E7',
+                }}>
+                  {[{ key: 'today', label: '오늘' }, { key: 'all', label: '전체' }].map(opt => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setDateFilter(opt.key)}
+                      style={{
+                        padding: '4px 12px', border: 'none', cursor: 'pointer',
+                        fontSize: '12px', fontWeight: 600, transition: 'all 0.15s',
+                        background: dateFilter === opt.key ? PREMIUM.accent : 'transparent',
+                        color: dateFilter === opt.key ? '#fff' : '#71717A',
+                      }}
+                    >{opt.label}</button>
+                  ))}
+                </div>
+              </div>
               <button onClick={go} style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 fontSize: '13px', fontWeight: 600, color: PREMIUM.accent,
@@ -253,7 +287,7 @@ export default function LandingPage() {
               >전체 보기 &rarr;</button>
             </div>
           </Reveal>
-          <DisclosureTable disclosures={disclosures} loading={loading} navigate={navigate} />
+          <DisclosureTable disclosures={filteredDisclosures} loading={loading} navigate={navigate} />
         </div>
       </section>
 
@@ -415,7 +449,7 @@ function PulseDot() {
 }
 
 
-function CounterCard({ label, value, color, delay = 0 }) {
+function CounterCard({ label, value, color, delay = 0, onClick }) {
   const [display, setDisplay] = useState(0)
   const ref = useRef(null)
   const visible = useRef(false)
@@ -460,14 +494,15 @@ function CounterCard({ label, value, color, delay = 0 }) {
   }, [value])
 
   return (
-    <div ref={ref} style={{
+    <div ref={ref} onClick={onClick} style={{
       padding: '16px', borderRadius: '10px',
       backgroundColor: 'rgba(255,255,255,0.04)',
       border: '1px solid rgba(255,255,255,0.08)',
-      transition: 'border-color 0.3s',
+      transition: 'border-color 0.3s, transform 0.2s',
+      cursor: onClick ? 'pointer' : 'default',
     }}
-      onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)'}
-      onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)'; if (onClick) e.currentTarget.style.transform = 'translateY(-2px)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'none' }}
     >
       <div style={{
         fontSize: '24px', fontWeight: 700, fontFamily: FONTS.mono,

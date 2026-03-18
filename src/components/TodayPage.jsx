@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import EmptyState from './EmptyState'
 import FeedSkeleton from './skeletons/FeedSkeleton'
 import DisclosureModal from './DisclosureModal'
@@ -10,6 +11,7 @@ export default function TodayPage({ onViewCard }) {
   const { colors, dark } = useTheme()
   const [tab, setTab] = useState('all') // 'all' | 'up' | 'down'
   const [modalRceptNo, setModalRceptNo] = useState(null)
+  const [searchParams, setSearchParams] = useSearchParams()
   const {
     disclosures, counts, loading,
     gradeFilter, setGradeFilter,
@@ -17,19 +19,53 @@ export default function TodayPage({ onViewCard }) {
     prices,
   } = useDisclosures()
 
+  // URL ?grade=S 파라미터로 등급 필터 초기화
+  useEffect(() => {
+    const urlGrade = searchParams.get('grade')
+    if (urlGrade && ['S', 'A', 'D'].includes(urlGrade)) {
+      setGradeFilter(urlGrade)
+      setSearchParams({}, { replace: true })
+    }
+  }, [])
+
   const now = new Date()
   const dayNames = ['일', '월', '화', '수', '목', '금', '토']
   const dateStr = `${now.getMonth() + 1}.${now.getDate()} ${dayNames[now.getDay()]}`
 
-  // 가격 데이터 있는 종목 분류
-  const withPrice = disclosures
+  // 오늘(KST) 공시만 필터링
+  const todayDisclosures = useMemo(() => {
+    if (!disclosures) return []
+    const kstNow = new Date(now.getTime() + 9 * 3600000)
+    const todayStr = kstNow.toISOString().slice(0, 10)
+    return disclosures.filter(d => {
+      if (!d.created_at) return false
+      const dt = new Date(d.created_at)
+      const kst = new Date(dt.getTime() + 9 * 3600000)
+      return kst.toISOString().slice(0, 10) === todayStr
+    })
+  }, [disclosures])
+
+  // 오늘 기준 등급 카운트 재계산
+  const todayCounts = useMemo(() => {
+    const c = { S: 0, A: 0, D: 0, total: 0 }
+    todayDisclosures.forEach(d => {
+      if (d.grade === 'S') c.S++
+      else if (d.grade === 'A') c.A++
+      else if (d.grade === 'D') c.D++
+      c.total++
+    })
+    return c
+  }, [todayDisclosures])
+
+  // 가격 데이터 있는 종목 분류 (오늘 공시 기준)
+  const withPrice = todayDisclosures
     .filter(d => prices[d.stock_code]?.change_pct != null)
     .map(d => ({ ...d, changePct: prices[d.stock_code].change_pct, price: prices[d.stock_code].price }))
   const upList = withPrice.filter(d => d.changePct > 0).sort((a, b) => b.changePct - a.changePct)
   const downList = withPrice.filter(d => d.changePct < 0).sort((a, b) => a.changePct - b.changePct)
 
   const TABS = [
-    { key: 'all', label: '전체', count: counts.total || 0, color: colors.textPrimary, icon: null },
+    { key: 'all', label: '전체', count: todayCounts.total || 0, color: colors.textPrimary, icon: null },
     { key: 'up', label: '상승', count: upList.length, color: '#DC2626', icon: <svg width="8" height="8" viewBox="0 0 8 8" fill="#DC2626"><path d="M4 1L7 6H1L4 1Z" /></svg> },
     { key: 'down', label: '하락', count: downList.length, color: '#2563EB', icon: <svg width="8" height="8" viewBox="0 0 8 8" fill="#2563EB"><path d="M4 7L1 2H7L4 7Z" /></svg> },
   ]
@@ -39,12 +75,47 @@ export default function TodayPage({ onViewCard }) {
   return (
     <div className="page-enter" style={{ maxWidth: 640, margin: '0 auto', padding: '0 0 80px', fontFamily: FONTS.body, backgroundColor: colors.bgPrimary }}>
 
-      {/* 헤더 */}
+      {/* 헤더 + 집계 카드 */}
       <div style={{ padding: '16px 20px 12px' }}>
         <div style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary, marginBottom: 2 }}>
           Today
         </div>
-        <div style={{ fontSize: 13, color: colors.textMuted }}>{dateStr}</div>
+        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 14 }}>{dateStr}</div>
+
+        {/* 등급별 집계 요약 */}
+        {!loading && todayCounts.total > 0 && (
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '8px', marginBottom: 6,
+          }}>
+            {[
+              { label: '전체', value: todayCounts.total, color: colors.textPrimary, grade: null },
+              { label: 'S 긴급', value: todayCounts.S || 0, color: GRADE_COLORS.S.bg, grade: 'S' },
+              { label: 'A 주목', value: todayCounts.A || 0, color: GRADE_COLORS.A.bg, grade: 'A' },
+              { label: 'D 위험', value: todayCounts.D || 0, color: GRADE_COLORS.D.bg, grade: 'D' },
+            ].map(item => {
+              const active = gradeFilter === item.grade || (!gradeFilter && item.grade === null)
+              return (
+                <button key={item.label} onClick={() => setGradeFilter(item.grade === gradeFilter ? null : item.grade)} style={{
+                  padding: '10px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  background: active
+                    ? (dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)')
+                    : (dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
+                  transition: 'all 0.15s',
+                  outline: active ? `2px solid ${item.color}` : '2px solid transparent',
+                }}>
+                  <div style={{
+                    fontSize: 20, fontWeight: 800, fontFamily: FONTS.mono,
+                    color: item.color, lineHeight: 1,
+                  }}>{item.value}</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: colors.textMuted, marginTop: 4 }}>
+                    {item.label}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* 탭 — 토스 스타일 밑줄 */}
@@ -87,7 +158,7 @@ export default function TodayPage({ onViewCard }) {
             emptyTitle="장중에 업데이트돼요" emptyDesc="장 운영 시간(09:00~15:30)에 공시 종목의 실시간 하락률이 표시됩니다" />
         )}
         {tab === 'all' && (
-          <AllDisclosures disclosures={disclosures} counts={counts} loading={loading} prices={prices}
+          <AllDisclosures disclosures={todayDisclosures} counts={todayCounts} loading={loading} prices={prices}
             gradeFilter={gradeFilter} setGradeFilter={setGradeFilter}
             search={search} setSearch={setSearch} onOpenModal={setModalRceptNo} />
         )}
