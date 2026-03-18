@@ -73,17 +73,20 @@ export default function TodayPage({ onViewCard }) {
   const visibleItems = showAll ? filtered : filtered.slice(0, 20)
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
-  // 실시간 상승 TOP 5
-  const topMovers = useMemo(() => {
+  // 공시 후 상승 종목 (중복 제거, 상승률 TOP 5)
+  const risers = useMemo(() => {
+    const seen = new Set()
     return todayDisclosures
       .filter(d => {
         const pd = prices[d.stock_code]
-        return pd?.change_pct != null && pd?.price > 0
+        if (!pd || pd.change_pct == null || pd.price <= 0 || pd.change_pct <= 0) return false
+        if (seen.has(d.stock_code)) return false
+        seen.add(d.stock_code)
+        return true
       })
       .map(d => ({ ...d, changePct: prices[d.stock_code].change_pct, price: prices[d.stock_code].price }))
       .sort((a, b) => b.changePct - a.changePct)
       .slice(0, 5)
-      .filter(d => d.changePct > 0)
   }, [todayDisclosures, prices])
 
   return (
@@ -120,65 +123,9 @@ export default function TodayPage({ onViewCard }) {
         )}
       </div>
 
-      {/* ── 실시간 상승 TOP 5 ── */}
-      {!loading && topMovers.length > 0 && (
-        <div className="today-pad" style={{ paddingTop: 28 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="#DC2626">
-              <path d="M8 2L13 9H3L8 2Z" />
-            </svg>
-            <span className="today-section-title" style={{ fontWeight: 800, color: '#DC2626', letterSpacing: -0.3 }}>
-              실시간 급등 TOP
-            </span>
-          </div>
-          <div style={{
-            display: 'flex', gap: 10, overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch', paddingBottom: 4,
-          }}>
-            {topMovers.map((d, i) => {
-              const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
-              return (
-                <div key={d.rcept_no} className="touch-press"
-                  onClick={() => setModalRceptNo(d.rcept_no)}
-                  style={{
-                    minWidth: 140, padding: '14px 16px', borderRadius: 14, cursor: 'pointer',
-                    background: dark ? '#1A1A1E' : '#FEF2F2',
-                    border: `1px solid ${dark ? '#2A1A1A' : '#FECACA'}`,
-                    flexShrink: 0,
-                  }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                    <span style={{
-                      fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono, color: '#DC2626',
-                    }}>{i + 1}</span>
-                    <div style={{
-                      width: 22, height: 22, borderRadius: 11,
-                      background: gc.bg, color: gc.color,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 10, fontWeight: 800, fontFamily: FONTS.mono,
-                    }}>{d.grade}</div>
-                  </div>
-                  <div style={{
-                    fontSize: 15, fontWeight: 700, color: colors.textPrimary,
-                    fontFamily: FONTS.serif, marginBottom: 4,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>{d.corp_name}</div>
-                  <div style={{
-                    fontSize: 20, fontWeight: 800, fontFamily: FONTS.mono,
-                    color: '#DC2626', letterSpacing: -0.5,
-                  }}>+{d.changePct.toFixed(1)}%</div>
-                  <div style={{
-                    fontSize: 12, fontFamily: FONTS.mono, color: colors.textMuted, marginTop: 2,
-                  }}>{d.price.toLocaleString()}원</div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {/* ── 섹션 타이틀 ── */}
       {!loading && todayCounts.total > 0 && (
-        <div className="today-pad" style={{ paddingTop: 24 }}>
+        <div className="today-pad" style={{ paddingTop: 28 }}>
           <div className="today-section-title" style={{ fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.3 }}>
             AI가 선별한 핵심 공시
           </div>
@@ -245,13 +192,6 @@ export default function TodayPage({ onViewCard }) {
               const hasPrice = price != null && price > 0
               const priceColor = changePct > 0 ? '#DC2626' : changePct < 0 ? '#2563EB' : colors.textMuted
 
-              const kstTime = (() => {
-                if (!d.created_at) return ''
-                const dt = new Date(d.created_at)
-                const kst = new Date(dt.getTime() + 9 * 60 * 60 * 1000)
-                return `${String(kst.getUTCHours()).padStart(2, '0')}:${String(kst.getUTCMinutes()).padStart(2, '0')}`
-              })()
-
               return (
                 <div key={d.rcept_no} className="touch-press today-row"
                   onClick={() => setModalRceptNo(d.rcept_no)}
@@ -261,26 +201,18 @@ export default function TodayPage({ onViewCard }) {
                     borderBottom: i < visibleItems.length - 1 ? `1px solid ${lineSep}` : 'none',
                     minHeight: 64,
                   }}>
-
-                  {/* 순번 (모바일에서 숨김) */}
                   <span className="today-rank" style={{
-                    fontWeight: 700, fontFamily: FONTS.mono,
-                    color: gc.bg, textAlign: 'right',
+                    fontWeight: 700, fontFamily: FONTS.mono, color: gc.bg, textAlign: 'right',
                   }}>{i + 1}</span>
-
-                  {/* 원형 등급배지 */}
                   <div className="today-badge" style={{
                     borderRadius: '50%', flexShrink: 0,
                     background: gc.bg, color: gc.color,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontWeight: 800, fontFamily: FONTS.mono,
                   }}>{d.grade}</div>
-
-                  {/* 기업명 + 공시사유·시세 (2줄 컴팩트) */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="today-corp" style={{
-                      fontWeight: 700, color: colors.textPrimary,
-                      fontFamily: FONTS.serif,
+                      fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif,
                     }}>{d.corp_name}</div>
                     <div className="today-sub" style={{
                       color: colors.textMuted, marginTop: 3,
@@ -299,8 +231,6 @@ export default function TodayPage({ onViewCard }) {
                       )}
                     </div>
                   </div>
-
-                  {/* 우측 */}
                   <div style={{ flexShrink: 0, textAlign: 'right' }}>
                     {hasPrice ? (
                       <span className="today-right-num" style={{
@@ -308,16 +238,11 @@ export default function TodayPage({ onViewCard }) {
                       }}>
                         {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
                       </span>
-                    ) : kstTime ? (
-                      <span style={{ fontSize: 13, fontFamily: FONTS.mono, color: colors.textMuted }}>
-                        {kstTime}
-                      </span>
                     ) : null}
                   </div>
                 </div>
               )
             })}
-
             {!showAll && filtered.length > 20 && (
               <button className="touch-press" onClick={() => setShowAll(true)} style={{
                 width: '100%', padding: '18px 0', border: 'none',
@@ -330,12 +255,17 @@ export default function TodayPage({ onViewCard }) {
         )}
       </div>
 
+      {/* ── 실시간 급등 플로팅 위젯 (우측 사이드) ── */}
+      {risers.length > 0 && (
+        <LiveRiserWidget risers={risers} dark={dark} colors={colors}
+          onOpenModal={setModalRceptNo} />
+      )}
+
       {modalRceptNo && (
         <DisclosureModal rcept_no={modalRceptNo} onClose={() => setModalRceptNo(null)} onViewCard={onViewCard} />
       )}
 
       <style>{`
-        /* 데스크톱 기본값 */
         .today-pad { padding-left: 24px; padding-right: 24px; }
         .today-title { font-size: 22px; }
         .today-section-title { font-size: 20px; }
@@ -345,13 +275,7 @@ export default function TodayPage({ onViewCard }) {
         .today-corp { font-size: 17px; }
         .today-sub { font-size: 14px; }
         .today-right-num { font-size: 17px; }
-
-        /* 태블릿 */
-        @media (max-width: 768px) {
-          .today-pad { padding-left: 20px; padding-right: 20px; }
-        }
-
-        /* 모바일 */
+        @media (max-width: 768px) { .today-pad { padding-left: 20px; padding-right: 20px; } }
         @media (max-width: 480px) {
           .today-pad { padding-left: 16px; padding-right: 16px; }
           .today-title { font-size: 20px; }
@@ -363,8 +287,6 @@ export default function TodayPage({ onViewCard }) {
           .today-sub { font-size: 13px; }
           .today-right-num { font-size: 15px; }
         }
-
-        /* 극소 모바일 */
         @media (max-width: 360px) {
           .today-pad { padding-left: 12px; padding-right: 12px; }
           .today-rank { display: none; }
@@ -377,6 +299,123 @@ export default function TodayPage({ onViewCard }) {
     </div>
   )
 }
+
+
+// ══ 실시간 급등 플로팅 위젯 ══
+function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
+  const [open, setOpen] = useState(false)
+  const [pulse, setPulse] = useState(true)
+
+  // 3초 후 펄스 끄기
+  useEffect(() => {
+    const t = setTimeout(() => setPulse(false), 3000)
+    return () => clearTimeout(t)
+  }, [risers])
+
+  return (
+    <>
+      {/* 플로팅 버튼 (접힌 상태) */}
+      {!open && (
+        <button className="touch-press" onClick={() => setOpen(true)} style={{
+          position: 'fixed',
+          right: 16, bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+          width: 56, height: 56, borderRadius: 28,
+          background: '#DC2626', color: '#fff', border: 'none',
+          cursor: 'pointer', zIndex: 90,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(220,38,38,0.4)',
+          animation: pulse ? 'riser-pulse 1.5s ease-in-out infinite' : 'none',
+        }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#fff">
+            <path d="M8 2L13 9H3L8 2Z" />
+          </svg>
+          <span style={{ fontSize: 9, fontWeight: 800, marginTop: 1 }}>LIVE</span>
+        </button>
+      )}
+
+      {/* 펼친 패널 */}
+      {open && (
+        <div style={{
+          position: 'fixed',
+          right: 16, bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+          width: 220, zIndex: 90,
+          background: dark ? '#141416' : '#FFFFFF',
+          borderRadius: 16,
+          border: `1px solid ${dark ? '#2A1A1A' : '#FECACA'}`,
+          boxShadow: dark
+            ? '0 8px 32px rgba(0,0,0,0.5)'
+            : '0 8px 32px rgba(220,38,38,0.15)',
+          overflow: 'hidden',
+        }}>
+          {/* 헤더 */}
+          <div style={{
+            padding: '10px 14px',
+            background: dark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.04)',
+            borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="#DC2626">
+                <path d="M8 2L13 9H3L8 2Z" />
+              </svg>
+              <span style={{ fontSize: 12, fontWeight: 800, color: '#DC2626' }}>실시간 급등</span>
+              <span style={{
+                fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
+                background: '#DC2626', color: '#fff',
+              }}>LIVE</span>
+            </div>
+            <button onClick={() => setOpen(false)} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: colors.textMuted, fontSize: 14, padding: '2px 4px',
+            }}>✕</button>
+          </div>
+
+          {/* 리스트 */}
+          <div style={{ padding: '6px 0' }}>
+            {risers.map((d, i) => {
+              const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8' }
+              return (
+                <div key={d.rcept_no} className="touch-press"
+                  onClick={() => { onOpenModal(d.rcept_no); setOpen(false) }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 14px', cursor: 'pointer',
+                  }}>
+                  <span style={{
+                    fontSize: 12, fontWeight: 800, fontFamily: FONTS.mono,
+                    color: '#DC2626', minWidth: 14, textAlign: 'right',
+                  }}>{i + 1}</span>
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 10,
+                    background: gc.bg, color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 9, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
+                  }}>{d.grade}</div>
+                  <span style={{
+                    fontSize: 13, fontWeight: 600, color: colors.textPrimary,
+                    flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{d.corp_name}</span>
+                  <span style={{
+                    fontSize: 13, fontWeight: 700, fontFamily: FONTS.mono,
+                    color: '#DC2626', flexShrink: 0,
+                  }}>+{d.changePct.toFixed(1)}%</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes riser-pulse {
+          0%, 100% { box-shadow: 0 4px 20px rgba(220,38,38,0.4); }
+          50% { box-shadow: 0 4px 30px rgba(220,38,38,0.7); }
+        }
+      `}</style>
+    </>
+  )
+}
+
 
 function SearchBar({ search, setSearch, colors, dark, onClose }) {
   const [val, setVal] = useState(search || '')
