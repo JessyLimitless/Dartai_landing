@@ -73,6 +73,19 @@ export default function TodayPage({ onViewCard }) {
   const visibleItems = showAll ? filtered : filtered.slice(0, 20)
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
+  // 실시간 상승 TOP 5
+  const topMovers = useMemo(() => {
+    return todayDisclosures
+      .filter(d => {
+        const pd = prices[d.stock_code]
+        return pd?.change_pct != null && pd?.price > 0
+      })
+      .map(d => ({ ...d, changePct: prices[d.stock_code].change_pct, price: prices[d.stock_code].price }))
+      .sort((a, b) => b.changePct - a.changePct)
+      .slice(0, 5)
+      .filter(d => d.changePct > 0)
+  }, [todayDisclosures, prices])
+
   return (
     <div className="page-enter today-page" style={{
       maxWidth: 640, margin: '0 auto',
@@ -107,9 +120,65 @@ export default function TodayPage({ onViewCard }) {
         )}
       </div>
 
+      {/* ── 실시간 상승 TOP 5 ── */}
+      {!loading && topMovers.length > 0 && (
+        <div className="today-pad" style={{ paddingTop: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="#DC2626">
+              <path d="M8 2L13 9H3L8 2Z" />
+            </svg>
+            <span className="today-section-title" style={{ fontWeight: 800, color: '#DC2626', letterSpacing: -0.3 }}>
+              실시간 급등 TOP
+            </span>
+          </div>
+          <div style={{
+            display: 'flex', gap: 10, overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch', paddingBottom: 4,
+          }}>
+            {topMovers.map((d, i) => {
+              const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
+              return (
+                <div key={d.rcept_no} className="touch-press"
+                  onClick={() => setModalRceptNo(d.rcept_no)}
+                  style={{
+                    minWidth: 140, padding: '14px 16px', borderRadius: 14, cursor: 'pointer',
+                    background: dark ? '#1A1A1E' : '#FEF2F2',
+                    border: `1px solid ${dark ? '#2A1A1A' : '#FECACA'}`,
+                    flexShrink: 0,
+                  }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                    <span style={{
+                      fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono, color: '#DC2626',
+                    }}>{i + 1}</span>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: 11,
+                      background: gc.bg, color: gc.color,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 10, fontWeight: 800, fontFamily: FONTS.mono,
+                    }}>{d.grade}</div>
+                  </div>
+                  <div style={{
+                    fontSize: 15, fontWeight: 700, color: colors.textPrimary,
+                    fontFamily: FONTS.serif, marginBottom: 4,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{d.corp_name}</div>
+                  <div style={{
+                    fontSize: 20, fontWeight: 800, fontFamily: FONTS.mono,
+                    color: '#DC2626', letterSpacing: -0.5,
+                  }}>+{d.changePct.toFixed(1)}%</div>
+                  <div style={{
+                    fontSize: 12, fontFamily: FONTS.mono, color: colors.textMuted, marginTop: 2,
+                  }}>{d.price.toLocaleString()}원</div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ── 섹션 타이틀 ── */}
       {!loading && todayCounts.total > 0 && (
-        <div className="today-pad" style={{ paddingTop: 28 }}>
+        <div className="today-pad" style={{ paddingTop: 24 }}>
           <div className="today-section-title" style={{ fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.3 }}>
             AI가 선별한 핵심 공시
           </div>
