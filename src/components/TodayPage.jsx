@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import EmptyState from './EmptyState'
 import FeedSkeleton from './skeletons/FeedSkeleton'
 import DisclosureModal from './DisclosureModal'
 import { useDisclosures } from '../hooks/useDisclosures'
-import { FONTS, GRADE_COLORS, MARKET_LABELS, getBoxStyle } from '../constants/theme'
+import { FONTS, GRADE_COLORS } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
 
 export default function TodayPage({ onViewCard }) {
   const { colors, dark } = useTheme()
-  const [tab, setTab] = useState('all') // 'all' | 'up' | 'down'
   const [modalRceptNo, setModalRceptNo] = useState(null)
   const [searchParams, setSearchParams] = useSearchParams()
+  const [searchOpen, setSearchOpen] = useState(false)
   const {
     disclosures, counts, loading,
     gradeFilter, setGradeFilter,
@@ -19,7 +19,6 @@ export default function TodayPage({ onViewCard }) {
     prices,
   } = useDisclosures()
 
-  // URL ?grade=S 파라미터로 등급 필터 초기화
   useEffect(() => {
     const urlGrade = searchParams.get('grade')
     if (urlGrade && ['S', 'A', 'D'].includes(urlGrade)) {
@@ -30,9 +29,8 @@ export default function TodayPage({ onViewCard }) {
 
   const now = new Date()
   const dayNames = ['일', '월', '화', '수', '목', '금', '토']
-  const dateStr = `${now.getMonth() + 1}.${now.getDate()} ${dayNames[now.getDay()]}`
+  const dateStr = `${now.getMonth() + 1}.${now.getDate()} ${dayNames[now.getDay()]}요일`
 
-  // 오늘(KST) 공시만 필터링
   const todayDisclosures = useMemo(() => {
     if (!disclosures) return []
     const kstNow = new Date(now.getTime() + 9 * 3600000)
@@ -45,7 +43,6 @@ export default function TodayPage({ onViewCard }) {
     })
   }, [disclosures])
 
-  // 오늘 기준 등급 카운트 재계산
   const todayCounts = useMemo(() => {
     const c = { S: 0, A: 0, D: 0, total: 0 }
     todayDisclosures.forEach(d => {
@@ -57,110 +54,185 @@ export default function TodayPage({ onViewCard }) {
     return c
   }, [todayDisclosures])
 
-  // 가격 데이터 있는 종목 분류 (오늘 공시 기준)
-  const withPrice = todayDisclosures
-    .filter(d => prices[d.stock_code]?.change_pct != null)
-    .map(d => ({ ...d, changePct: prices[d.stock_code].change_pct, price: prices[d.stock_code].price }))
-  const upList = withPrice.filter(d => d.changePct > 0).sort((a, b) => b.changePct - a.changePct)
-  const downList = withPrice.filter(d => d.changePct < 0).sort((a, b) => a.changePct - b.changePct)
+  // S등급 분리 (최대 4개만 히어로)
+  const allSGrade = todayDisclosures.filter(d => d.grade === 'S')
+  const sGradeItems = allSGrade.slice(0, 4)
+  const sGradeOverflow = allSGrade.slice(4) // 나머지는 전체 리스트로
+  const hasHero = sGradeItems.length > 0 && !gradeFilter
 
-  const TABS = [
-    { key: 'all', label: '전체', count: todayCounts.total || 0, color: colors.textPrimary, icon: null },
-    { key: 'up', label: '상승', count: upList.length, color: '#DC2626', icon: <svg width="8" height="8" viewBox="0 0 8 8" fill="#DC2626"><path d="M4 1L7 6H1L4 1Z" /></svg> },
-    { key: 'down', label: '하락', count: downList.length, color: '#2563EB', icon: <svg width="8" height="8" viewBox="0 0 8 8" fill="#2563EB"><path d="M4 7L1 2H7L4 7Z" /></svg> },
+  // 필터링
+  const filtered = useMemo(() => {
+    let list = todayDisclosures
+    if (gradeFilter) list = list.filter(d => d.grade === gradeFilter)
+    if (search) {
+      const q = search.toLowerCase()
+      list = list.filter(d =>
+        d.corp_name?.toLowerCase().includes(q) || d.report_nm?.toLowerCase().includes(q)
+      )
+    }
+    return list
+  }, [todayDisclosures, gradeFilter, search])
+
+  // 히어로에 표시된 S등급은 리스트에서 제외 (overflow분은 리스트에 포함)
+  const heroRceptNos = hasHero ? new Set(sGradeItems.map(d => d.rcept_no)) : new Set()
+  const listItems = hasHero ? filtered.filter(d => !heroRceptNos.has(d.rcept_no)) : filtered
+
+  const FILTER_PILLS = [
+    { key: null, label: '전체', count: todayCounts.total },
+    { key: 'S', label: 'S', count: todayCounts.S, color: GRADE_COLORS.S.bg },
+    { key: 'A', label: 'A', count: todayCounts.A, color: GRADE_COLORS.A.bg },
+    { key: 'D', label: 'D', count: todayCounts.D, color: GRADE_COLORS.D.bg },
   ]
 
-  const sep = dark ? '#1E1E22' : '#F0F0F2'
+  const c = {
+    sep: dark ? '#1E1E22' : '#F0F0F2',
+    cardBg: dark ? '#141416' : '#FFFFFF',
+    pillBg: dark ? '#1A1A1E' : '#F4F4F5',
+    pillActiveBg: dark ? '#2A2A2E' : '#18181B',
+  }
 
   return (
-    <div className="page-enter" style={{ maxWidth: 640, margin: '0 auto', padding: '0 0 80px', fontFamily: FONTS.body, backgroundColor: colors.bgPrimary }}>
+    <div className="page-enter" style={{
+      maxWidth: 640, margin: '0 auto', padding: '0 0 80px',
+      fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
+    }}>
 
-      {/* 헤더 + 집계 카드 */}
-      <div style={{ padding: '16px 20px 12px' }}>
-        <div style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary, marginBottom: 2 }}>
-          Today
+      {/* ── 헤더 ── */}
+      <div style={{ padding: '20px 24px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
+              오늘의 공시
+            </div>
+            <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>{dateStr}</div>
+          </div>
+          <button className="touch-press" onClick={() => setSearchOpen(!searchOpen)}
+            style={{
+              width: 40, height: 40, borderRadius: 20, border: 'none',
+              background: searchOpen ? (dark ? '#2A2A2E' : '#F0F0F2') : 'transparent',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={colors.textSecondary} strokeWidth="2" strokeLinecap="round">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+            </svg>
+          </button>
         </div>
-        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 14 }}>{dateStr}</div>
+        {searchOpen && (
+          <SearchBar search={search} setSearch={setSearch} colors={colors} dark={dark}
+            onClose={() => { setSearchOpen(false); setSearch('') }} />
+        )}
+      </div>
 
-        {/* 등급별 집계 요약 */}
-        {!loading && todayCounts.total > 0 && (
+      {/* ── 요약 바 ── */}
+      {!loading && todayCounts.total > 0 && (
+        <div style={{
+          display: 'flex', gap: 1, margin: '16px 24px 0',
+          background: c.sep, borderRadius: 12, overflow: 'hidden',
+        }}>
+          {[
+            { label: '전체', value: todayCounts.total, color: colors.textPrimary },
+            { label: 'S등급', value: todayCounts.S, color: GRADE_COLORS.S.bg },
+            { label: 'A등급', value: todayCounts.A, color: GRADE_COLORS.A.bg },
+            { label: 'D등급', value: todayCounts.D, color: GRADE_COLORS.D.bg },
+          ].map(item => (
+            <div key={item.label} style={{
+              flex: 1, padding: '12px 8px', textAlign: 'center', background: c.cardBg,
+            }}>
+              <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>{item.label}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono, color: item.color, lineHeight: 1 }}>
+                {item.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── S등급 히어로 (컴팩트, 시세 우측) ── */}
+      {!loading && hasHero && (
+        <div style={{ padding: '20px 24px 0' }}>
+          <div style={{ fontSize: 17, fontWeight: 800, color: colors.textPrimary, marginBottom: 10 }}>
+            핵심 공시
+          </div>
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '8px', marginBottom: 6,
+            display: 'grid',
+            gridTemplateColumns: sGradeItems.length === 1 ? '1fr' : 'repeat(2, 1fr)',
+            gap: 8,
           }}>
-            {[
-              { label: '전체', value: todayCounts.total, color: colors.textPrimary, grade: null },
-              { label: 'S 긴급', value: todayCounts.S || 0, color: GRADE_COLORS.S.bg, grade: 'S' },
-              { label: 'A 주목', value: todayCounts.A || 0, color: GRADE_COLORS.A.bg, grade: 'A' },
-              { label: 'D 위험', value: todayCounts.D || 0, color: GRADE_COLORS.D.bg, grade: 'D' },
-            ].map(item => {
-              const active = gradeFilter === item.grade || (!gradeFilter && item.grade === null)
-              return (
-                <button key={item.label} onClick={() => setGradeFilter(item.grade === gradeFilter ? null : item.grade)} style={{
-                  padding: '10px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  background: active
-                    ? (dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)')
-                    : (dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
+            {sGradeItems.map(d => (
+              <HeroCard key={d.rcept_no} d={d} dark={dark} colors={colors}
+                priceData={prices[d.stock_code]} onOpenModal={setModalRceptNo} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 필터 pill ── */}
+      {!loading && todayCounts.total > 0 && (
+        <div style={{
+          display: 'flex', gap: 8, padding: '20px 24px 0',
+          overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+        }}>
+          {FILTER_PILLS.filter(p => p.key === null || p.count > 0).map(p => {
+            const active = gradeFilter === p.key
+            return (
+              <button key={p.label} className="touch-press"
+                onClick={() => setGradeFilter(active && p.key !== null ? null : p.key)}
+                style={{
+                  padding: '8px 16px', borderRadius: 20, border: 'none',
+                  cursor: 'pointer', whiteSpace: 'nowrap',
+                  fontSize: 13, fontWeight: active ? 700 : 500,
+                  background: active ? c.pillActiveBg : c.pillBg,
+                  color: active ? (dark ? '#FAFAFA' : '#FFFFFF') : colors.textSecondary,
                   transition: 'all 0.15s',
-                  outline: active ? `2px solid ${item.color}` : '2px solid transparent',
                 }}>
-                  <div style={{
-                    fontSize: 20, fontWeight: 800, fontFamily: FONTS.mono,
-                    color: item.color, lineHeight: 1,
-                  }}>{item.value}</div>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: colors.textMuted, marginTop: 4 }}>
-                    {item.label}
-                  </div>
-                </button>
-              )
-            })}
+                {p.label}
+                {p.count > 0 && (
+                  <span style={{
+                    marginLeft: 4, fontFamily: FONTS.mono, fontSize: 12,
+                    color: active ? (p.color || (dark ? '#FAFAFA' : '#FFFFFF')) : colors.textMuted,
+                  }}>{p.count}</span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── 전체 공시 (2컬럼 카드 그리드) ── */}
+      <div style={{ padding: '16px 24px 0' }}>
+        {!loading && listItems.length > 0 && !gradeFilter && !search && (
+          <div style={{ fontSize: 17, fontWeight: 800, color: colors.textPrimary, marginBottom: 10 }}>
+            전체 공시
           </div>
         )}
-      </div>
 
-      {/* 탭 — 토스 스타일 밑줄 */}
-      <div style={{
-        display: 'flex', padding: '0 20px',
-        borderBottom: `1px solid ${sep}`,
-        marginBottom: 0,
-      }}>
-        {TABS.map(t => {
-          const active = tab === t.key
-          return (
-            <button key={t.key} className="touch-press" onClick={() => setTab(t.key)} style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              padding: '10px 14px 12px', border: 'none', cursor: 'pointer',
-              background: 'transparent', position: 'relative',
-              fontSize: 14, fontWeight: active ? 700 : 400,
-              color: active ? t.color : colors.textMuted,
-            }}>
-              {t.icon}
-              {t.label} {t.count > 0 && <span style={{ fontFamily: FONTS.mono, fontSize: 12 }}>{t.count}</span>}
-              {active && (
-                <div style={{
-                  position: 'absolute', bottom: -1, left: 14, right: 14,
-                  height: 2, borderRadius: 1, background: t.color,
-                }} />
-              )}
-            </button>
+        {loading ? (
+          <div style={{ padding: '12px 0' }}><FeedSkeleton /></div>
+        ) : filtered.length === 0 ? (
+          (gradeFilter || search) ? (
+            <EmptyState icon="search" title="검색 결과가 없어요"
+              action="초기화" onAction={() => { setGradeFilter(null); setSearch('') }} />
+          ) : (
+            <EmptyState icon="calendar" title="아직 오늘 공시가 없어요"
+              description="보통 오전 9시부터 올라와요" />
           )
-        })}
-      </div>
-
-      {/* 탭 콘텐츠 */}
-      <div key={tab} className="tab-fade" style={{ padding: '14px 20px 0' }}>
-        {tab === 'up' && (
-          <RankedList items={upList} accentColor="#DC2626" loading={loading} onOpenModal={setModalRceptNo}
-            emptyTitle="장중에 업데이트돼요" emptyDesc="장 운영 시간(09:00~15:30)에 공시 종목의 실시간 상승률이 표시됩니다" />
-        )}
-        {tab === 'down' && (
-          <RankedList items={downList} accentColor="#2563EB" loading={loading} onOpenModal={setModalRceptNo}
-            emptyTitle="장중에 업데이트돼요" emptyDesc="장 운영 시간(09:00~15:30)에 공시 종목의 실시간 하락률이 표시됩니다" />
-        )}
-        {tab === 'all' && (
-          <AllDisclosures disclosures={todayDisclosures} counts={todayCounts} loading={loading} prices={prices}
-            gradeFilter={gradeFilter} setGradeFilter={setGradeFilter}
-            search={search} setSearch={setSearch} onOpenModal={setModalRceptNo} />
+        ) : (
+          <div className="today-card-grid" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: 8,
+          }}>
+            {listItems.map((d) => (
+              <FeedCard key={d.rcept_no} d={d}
+                onOpenModal={setModalRceptNo} colors={colors} dark={dark}
+                priceData={prices[d.stock_code]} c={c} />
+            ))}
+          </div>
+          <style>{`
+            @media (max-width: 480px) {
+              .today-card-grid { grid-template-columns: 1fr !important; }
+            }
+          `}</style>
         )}
       </div>
 
@@ -171,218 +243,15 @@ export default function TodayPage({ onViewCard }) {
   )
 }
 
-// ══ 순위 리스트 (상승/하락 공용) ══
-function RankedList({ items, accentColor, loading, onOpenModal, emptyTitle, emptyDesc }) {
-  const { colors, dark } = useTheme()
-  const c = { sep: dark ? '#1E1E22' : '#F4F4F5', text1: dark ? '#FAFAFA' : '#18181B', text3: dark ? '#52525B' : '#A1A1AA' }
 
-  if (loading) return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} style={{ height: 56, borderRadius: 8, background: dark ? '#18181B' : '#F4F4F5', animation: 'pulse 1.4s ease-in-out infinite' }} />
-      ))}
-    </div>
-  )
-
-  if (items.length === 0) return (
-    <div style={{ padding: '48px 20px', textAlign: 'center' }}>
-      <div style={{ fontSize: 15, color: c.text1, fontWeight: 600, marginBottom: 6 }}>{emptyTitle}</div>
-      <div style={{ fontSize: 13, color: c.text3 }}>{emptyDesc}</div>
-    </div>
-  )
-
-  return items.map((d, i) => {
-    const gc = GRADE_COLORS[d.grade] || { bg: '#A1A1AA', color: '#fff' }
-    const kstTime = (() => {
-      if (!d.created_at) return ''
-      const dt = new Date(d.created_at)
-      const kst = new Date(dt.getTime() + 9 * 60 * 60 * 1000)
-      return `${String(kst.getUTCHours()).padStart(2, '0')}:${String(kst.getUTCMinutes()).padStart(2, '0')}`
-    })()
-    return (
-      <div key={d.rcept_no} className="touch-press" onClick={() => onOpenModal?.(d.rcept_no)} style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '14px 2px', cursor: 'pointer',
-        borderBottom: i < items.length - 1 ? `1px solid ${c.sep}` : 'none',
-      }}>
-        <span style={{ fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono, color: i < 3 ? accentColor : c.text3, minWidth: 20, textAlign: 'right' }}>{i + 1}</span>
-        <span style={{ background: gc.bg, color: gc.color, fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, fontFamily: FONTS.mono, flexShrink: 0 }}>{d.grade}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: c.text1, fontFamily: FONTS.serif }}>{d.corp_name}</span>
-            {kstTime && <span style={{ fontSize: 10, color: c.text3, fontFamily: FONTS.mono }}>{kstTime}</span>}
-          </div>
-          <div style={{ fontSize: 11, color: c.text3, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.report_nm}</div>
-        </div>
-        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono, color: accentColor, lineHeight: 1 }}>
-            {d.changePct > 0 ? '+' : ''}{d.changePct.toFixed(2)}%
-          </div>
-          <div style={{ fontSize: 11, color: c.text3, fontFamily: FONTS.mono, marginTop: 3 }}>{d.price?.toLocaleString()}</div>
-        </div>
-      </div>
-    )
-  })
-}
-
-// ══ 전체 공시 ══
-function AllDisclosures({ disclosures, counts, loading, prices, gradeFilter, setGradeFilter, search, setSearch, onOpenModal }) {
-  const { colors, dark } = useTheme()
-
-  return (
-    <>
-      {/* 등급 필터 */}
-      {!loading && counts.total > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-          {[
-            { key: 'S', count: counts.S, color: GRADE_COLORS.S.bg },
-            { key: 'A', count: counts.A, color: GRADE_COLORS.A.bg },
-            { key: 'D', count: counts.D, color: GRADE_COLORS.D.bg },
-          ].filter(g => g.count > 0).map(g => {
-            const active = gradeFilter === g.key
-            return (
-              <button key={g.key} className="touch-press" onClick={() => setGradeFilter(active ? null : g.key)} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                padding: '4px 12px', borderRadius: 20, border: 'none', cursor: 'pointer',
-                background: active ? `${g.color}20` : `${g.color}10`, minHeight: 32,
-              }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color: g.color, fontFamily: FONTS.mono }}>{g.key}</span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: g.color, fontFamily: FONTS.mono }}>{g.count}</span>
-              </button>
-            )
-          })}
-          {gradeFilter && (
-            <button className="touch-press" onClick={() => setGradeFilter(null)} style={{
-              padding: '4px 10px', borderRadius: 20, border: 'none', background: 'transparent',
-              cursor: 'pointer', fontSize: 12, color: colors.textMuted,
-            }}>초기화</button>
-          )}
-        </div>
-      )}
-
-      <SearchBar search={search} setSearch={setSearch} colors={colors} dark={dark} />
-
-      {loading ? (
-        <div style={{ padding: 12 }}><FeedSkeleton /></div>
-      ) : disclosures.length === 0 ? (
-        (gradeFilter || search) ? (
-          <EmptyState icon="search" title="검색 결과가 없어요" action="초기화" onAction={() => { setGradeFilter(null); setSearch('') }} />
-        ) : (
-          <EmptyState icon="calendar" title="아직 오늘 공시가 없어요" description="보통 오전 9시부터 올라와요" />
-        )
-      ) : (
-        disclosures.map((d, i) => (
-          <FeedRow key={d.rcept_no} d={d} isLast={i === disclosures.length - 1}
-            onOpenModal={onOpenModal} colors={colors} dark={dark}
-            priceData={prices[d.stock_code]} />
-        ))
-      )}
-    </>
-  )
-}
-
-
-// TodayTopMovers removed — replaced by tab structure
-function _unused_TodayTopMovers({ disclosures, prices, loading, onOpenModal }) {
-  const { colors, dark } = useTheme()
-  if (loading || !disclosures.length) return null
-
-  // 가격 데이터 있는 종목만
-  const withPrice = disclosures
-    .filter(d => prices[d.stock_code]?.change_pct != null)
-    .map(d => ({ ...d, changePct: prices[d.stock_code].change_pct, price: prices[d.stock_code].price }))
-
-  if (withPrice.length === 0) return null
-
-  const top10Up = [...withPrice].filter(d => d.changePct > 0).sort((a, b) => b.changePct - a.changePct).slice(0, 10)
-  const top10Down = [...withPrice].filter(d => d.changePct < 0).sort((a, b) => a.changePct - b.changePct).slice(0, 10)
-
-  const c = {
-    sep: dark ? '#1E1E22' : '#F4F4F5',
-    text1: dark ? '#FAFAFA' : '#18181B',
-    text3: dark ? '#52525B' : '#A1A1AA',
-  }
-
-  const renderSection = (items, label, icon, accentColor) => {
-    if (items.length === 0) return null
-    return (
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
-          {icon}
-          <span style={{ fontSize: 13, fontWeight: 800, color: accentColor }}>{label}</span>
-          <span style={{ fontSize: 11, color: c.text3 }}>{items.length}</span>
-        </div>
-        {items.map((d, i) => {
-          const gc = GRADE_COLORS[d.grade] || { bg: '#A1A1AA', color: '#fff' }
-          return (
-            <div key={d.rcept_no} className="touch-press"
-              onClick={() => onOpenModal?.(d.rcept_no)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 2px', cursor: 'pointer',
-                borderBottom: i < items.length - 1 ? `1px solid ${c.sep}` : 'none',
-              }}
-            >
-              <span style={{ fontSize: 12, fontWeight: 800, fontFamily: FONTS.mono, color: i < 3 ? accentColor : c.text3, minWidth: 18, textAlign: 'right' }}>{i + 1}</span>
-              <span style={{ background: gc.bg, color: gc.color, fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, fontFamily: FONTS.mono, flexShrink: 0 }}>{d.grade}</span>
-              <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: c.text1, fontFamily: FONTS.serif, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.corp_name}</span>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FONTS.mono, color: accentColor }}>
-                  {d.changePct > 0 ? '+' : ''}{d.changePct.toFixed(2)}%
-                </div>
-                <div style={{ fontSize: 10, color: c.text3, fontFamily: FONTS.mono }}>{d.price?.toLocaleString()}</div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ marginBottom: 20 }}>
-      {renderSection(top10Up, '실시간 상승', <svg width="9" height="9" viewBox="0 0 8 8" fill="#DC2626"><path d="M4 1L7 6H1L4 1Z" /></svg>, '#DC2626')}
-      {renderSection(top10Down, '실시간 하락', <svg width="9" height="9" viewBox="0 0 8 8" fill="#2563EB"><path d="M4 7L1 2H7L4 7Z" /></svg>, '#2563EB')}
-    </div>
-  )
-}
-
-
-function SearchBar({ search, setSearch, colors, dark }) {
-  const [val, setVal] = useState('')
-  const [focused, setFocused] = useState(false)
-  return (
-    <form onSubmit={e => { e.preventDefault(); setSearch(val) }} style={{ marginBottom: 12 }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '0 12px', borderRadius: 12,
-        border: `1px solid ${focused ? '#DC2626' : (dark ? '#232328' : '#EBEBEB')}`,
-        background: dark ? '#141416' : '#F8F8FA',
-        transition: 'border-color 0.15s',
-      }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
-          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-        </svg>
-        <input type="text" placeholder="기업명 또는 공시 검색..." value={val} autoComplete="off"
-          onChange={e => setVal(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => { setFocused(false); setSearch(val) }}
-          style={{ flex: 1, padding: '10px 4px', fontSize: 14, border: 'none', background: 'transparent', color: colors.textPrimary, outline: 'none' }}
-        />
-        {val && <button type="button" onClick={() => { setVal(''); setSearch('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.textMuted, padding: '4px', fontSize: 14 }}>x</button>}
-      </div>
-    </form>
-  )
-}
-
-
-function FeedRow({ d, isLast, onOpenModal, colors, dark, priceData }) {
-  const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
+// ══ S등급 히어로 카드 (컴팩트 + 시세 우측) ══
+function HeroCard({ d, dark, colors, priceData, onOpenModal }) {
   const changePct = priceData?.change_pct
   const price = priceData?.price
   const hasPrice = price != null && price > 0
   const priceColor = changePct > 0 ? '#DC2626' : changePct < 0 ? '#2563EB' : colors.textMuted
-  const timeStr = (() => {
+
+  const kstTime = (() => {
     if (!d.created_at) return ''
     const dt = new Date(d.created_at)
     const kst = new Date(dt.getTime() + 9 * 60 * 60 * 1000)
@@ -391,51 +260,162 @@ function FeedRow({ d, isLast, onOpenModal, colors, dark, priceData }) {
 
   return (
     <div className="touch-press" onClick={() => onOpenModal?.(d.rcept_no)} style={{
+      padding: '14px 16px', borderRadius: 14, cursor: 'pointer',
+      background: dark ? '#1A1A1E' : '#FEF2F2',
+      border: `1px solid ${dark ? '#2A1A1A' : '#FECACA'}`,
       display: 'flex', alignItems: 'center', gap: 12,
-      padding: '14px 4px', cursor: 'pointer',
-      borderBottom: isLast ? 'none' : `1px solid ${dark ? '#1E1E22' : '#F4F4F5'}`,
-      minHeight: 56,
+      transition: 'transform 0.1s',
     }}>
-      <span style={{
-        flexShrink: 0, background: gc.bg, color: gc.color,
-        fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 5,
-        fontFamily: FONTS.mono, minWidth: 24, textAlign: 'center',
-      }}>{d.grade}</span>
-
+      {/* 좌: 등급 + 기업명 + 공시 */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{
-            fontWeight: 700, fontSize: 15, color: dark ? '#FAFAFA' : '#18181B',
-            fontFamily: FONTS.serif,
-          }}>{d.corp_name}</span>
-          {timeStr && (
-            <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0 }}>
-              {timeStr}
-            </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+          <div style={{
+            width: 24, height: 24, borderRadius: 12,
+            background: GRADE_COLORS.S.bg, color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
+          }}>S</div>
+          {kstTime && (
+            <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{kstTime}</span>
           )}
         </div>
         <div style={{
-          fontSize: 12, color: colors.textMuted, marginTop: 2,
+          fontSize: 15, fontWeight: 700, color: dark ? '#FAFAFA' : '#18181B',
+          fontFamily: FONTS.serif, marginBottom: 2,
+        }}>
+          {d.corp_name}
+        </div>
+        <div style={{
+          fontSize: 12, color: colors.textMuted, lineHeight: 1.4,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>{d.report_nm}</div>
+        }}>
+          {d.report_nm}
+        </div>
       </div>
 
-      {hasPrice ? (
+      {/* 우: 시세 */}
+      {hasPrice && (
         <div style={{ flexShrink: 0, textAlign: 'right' }}>
-          <div style={{ fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono, color: priceColor }}>
-            {changePct > 0 ? '+' : ''}{changePct.toFixed(2)}%
+          <div style={{
+            fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono, color: priceColor, lineHeight: 1,
+          }}>
+            {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
           </div>
-          <div style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 1 }}>
+          <div style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 4 }}>
             {price.toLocaleString()}
           </div>
         </div>
-      ) : priceData && price === 0 ? (
-        <span style={{ fontSize: 11, color: '#A1A1AA', background: 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: 4 }}>장외</span>
-      ) : d.stock_code ? (
-        <span style={{ flexShrink: 0, fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, opacity: 0.5 }}>
-          {d.stock_code}
+      )}
+    </div>
+  )
+}
+
+
+// ══ 카드형 피드 아이템 (2컬럼용) ══
+function FeedCard({ d, onOpenModal, colors, dark, priceData, c }) {
+  const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
+  const changePct = priceData?.change_pct
+  const price = priceData?.price
+  const hasPrice = price != null && price > 0
+  const priceColor = changePct > 0 ? '#DC2626' : changePct < 0 ? '#2563EB' : colors.textMuted
+
+  const kstTime = (() => {
+    if (!d.created_at) return ''
+    const dt = new Date(d.created_at)
+    const kst = new Date(dt.getTime() + 9 * 60 * 60 * 1000)
+    return `${String(kst.getUTCHours()).padStart(2, '0')}:${String(kst.getUTCMinutes()).padStart(2, '0')}`
+  })()
+
+  return (
+    <div className="touch-press" onClick={() => onOpenModal?.(d.rcept_no)} style={{
+      padding: '14px', borderRadius: 12, cursor: 'pointer',
+      background: c.cardBg,
+      border: `1px solid ${c.sep}`,
+      display: 'flex', flexDirection: 'column',
+      height: 120,
+      transition: 'transform 0.1s',
+    }}>
+      {/* 1행: 등급배지 + 기업명 + 변동률 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <div style={{
+          width: 24, height: 24, borderRadius: 12,
+          background: gc.bg, color: gc.color,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
+        }}>
+          {d.grade}
+        </div>
+        <span style={{
+          fontSize: 15, fontWeight: 700, color: dark ? '#FAFAFA' : '#18181B',
+          fontFamily: FONTS.serif, flex: 1, overflow: 'hidden',
+          textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {d.corp_name}
         </span>
-      ) : null}
+        {hasPrice ? (
+          <span style={{
+            fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono,
+            color: priceColor, flexShrink: 0,
+          }}>
+            {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
+          </span>
+        ) : kstTime ? (
+          <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0 }}>{kstTime}</span>
+        ) : null}
+      </div>
+
+      {/* 2행: 공시제목 */}
+      <div style={{
+        fontSize: 12, color: colors.textMuted, lineHeight: 1.5, flex: 1,
+        overflow: 'hidden', textOverflow: 'ellipsis',
+        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+      }}>
+        {d.report_nm}
+      </div>
+
+      {/* 3행: 가격 */}
+      {hasPrice && (
+        <div style={{
+          fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono,
+          marginTop: 'auto', paddingTop: 6,
+        }}>
+          {price.toLocaleString()}원
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// ══ 검색바 ══
+function SearchBar({ search, setSearch, colors, dark, onClose }) {
+  const [val, setVal] = useState(search || '')
+  const inputRef = useRef(null)
+
+  useEffect(() => { inputRef.current?.focus() }, [])
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '0 14px', borderRadius: 12, height: 44,
+        background: dark ? '#1A1A1E' : '#F4F4F5',
+      }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
+          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+        </svg>
+        <input ref={inputRef} type="text" placeholder="기업명 또는 공시 검색" value={val} autoComplete="off"
+          onChange={e => { setVal(e.target.value); setSearch(e.target.value) }}
+          style={{
+            flex: 1, padding: '10px 0', fontSize: 15, border: 'none',
+            background: 'transparent', color: colors.textPrimary, outline: 'none',
+          }}
+        />
+        <button onClick={onClose} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: colors.textMuted, fontSize: 13, fontWeight: 600, padding: '4px 2px',
+        }}>취소</button>
+      </div>
     </div>
   )
 }

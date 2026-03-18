@@ -8,9 +8,9 @@ const TABS = [
   { key: '/today', label: 'Today', icon: 'today', mobileLabel: '홈', mobileIcon: 'home' },
   { key: '/history', label: 'History', icon: 'chart', mobileLabel: '추적', mobileIcon: 'chart' },
   { key: '/deep-dive', label: 'Company Card', icon: 'deepdive', mobileLabel: '종목', mobileIcon: 'deepdive' },
-  { key: '/dart-event', label: 'Insight', icon: 'dartevent', desktopOnly: true },
-  { key: '/library', label: 'Library', icon: 'library', mobileLabel: '서재', mobileIcon: 'library' },
+  { key: '/dart-event', label: 'Event', icon: 'dartevent', desktopOnly: true },
   { key: '/premium', label: 'Premium', icon: 'premium', premium: true, mobileLabel: 'AI', mobileIcon: 'premium' },
+  { key: '/library', label: 'Book', icon: 'library', book: true, mobileLabel: '서재', mobileIcon: 'library' },
 ]
 
 const MOBILE_TABS = TABS.filter(t => !t.desktopOnly)
@@ -64,8 +64,8 @@ const TAB_ICONS = {
   ),
   library: (color, size = 14) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
     </svg>
   ),
   premium: (color, size = 14) => (
@@ -167,12 +167,19 @@ export default function Header({
           {TABS.map((tab) => {
             const active = isActive(tab.key)
             const isPremium = tab.premium
-            const activeColor = isPremium ? PREMIUM_GOLD.primary : '#DC2626'
-            const iconColor = active ? activeColor : colors.textMuted
+            const isBook = tab.book
+            const activeColor = isPremium ? PREMIUM_GOLD.primary : isBook ? '#0EA5E9' : '#DC2626'
+            const iconColor = active ? activeColor : (isBook ? '#0EA5E9' : colors.textMuted)
             const IconFn = TAB_ICONS[tab.icon]
             return (
+              <React.Fragment key={tab.key}>
+              {isBook && (
+                <div style={{
+                  width: 1, height: 20, margin: '0 12px',
+                  background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                }} />
+              )}
               <button
-                key={tab.key}
                 onClick={() => handleNav(tab.key)}
                 style={{
                   display: 'flex',
@@ -187,20 +194,20 @@ export default function Header({
                   backgroundColor: active
                     ? (dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)')
                     : 'transparent',
-                  color: active ? activeColor : (isPremium ? PREMIUM_GOLD.primary : colors.textSecondary),
+                  color: active ? activeColor : (isPremium ? PREMIUM_GOLD.primary : isBook ? '#0EA5E9' : colors.textSecondary),
                   transition: 'all 0.15s',
                   position: 'relative',
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
                     e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
-                    e.currentTarget.style.color = isPremium ? PREMIUM_GOLD.primary : colors.textPrimary
+                    e.currentTarget.style.color = isPremium ? PREMIUM_GOLD.primary : isBook ? '#0EA5E9' : colors.textPrimary
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!active) {
                     e.currentTarget.style.backgroundColor = 'transparent'
-                    e.currentTarget.style.color = isPremium ? PREMIUM_GOLD.primary : colors.textSecondary
+                    e.currentTarget.style.color = isPremium ? PREMIUM_GOLD.primary : isBook ? '#0EA5E9' : colors.textSecondary
                   }
                 }}
               >
@@ -214,8 +221,15 @@ export default function Header({
                     letterSpacing: '0.4px',
                   }}>PRO</span>
                 )}
-                {/* Active underline dot */}
-                {active && !isPremium && (
+                {isBook && (
+                  <span style={{
+                    fontSize: '9px', fontWeight: 800,
+                    padding: '2px 5px', borderRadius: 4,
+                    background: 'linear-gradient(135deg, #0EA5E9, #38BDF8)', color: '#fff',
+                    letterSpacing: '0.3px',
+                  }}>BOOK</span>
+                )}
+                {active && !isPremium && !isBook && (
                   <span style={{
                     position: 'absolute', bottom: 2, left: '50%',
                     transform: 'translateX(-50%)',
@@ -224,32 +238,13 @@ export default function Header({
                   }} />
                 )}
               </button>
+              </React.Fragment>
             )
           })}
         </nav>
 
         {/* Right: Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-          <a
-            href="https://jessylimitless.github.io/dartbook/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="전자공시 시그널 전자책"
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'none', border: 'none', cursor: 'pointer',
-              padding: '6px', lineHeight: 1,
-              color: colors.textMuted, transition: 'all 0.15s',
-              borderRadius: 6, textDecoration: 'none',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#9E7A2F'; e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; e.currentTarget.style.backgroundColor = 'transparent' }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-            </svg>
-          </a>
           <button
             onClick={toggle}
             aria-label={dark ? 'Light mode' : 'Dark mode'}
@@ -294,8 +289,9 @@ export default function Header({
         {MOBILE_TABS.map((tab) => {
           const active = isActive(tab.key)
           const isPremium = tab.premium
-          const activeCol = isPremium ? PREMIUM_GOLD.primary : '#DC2626'
-          const iconColor = active ? activeCol : '#94A3B8'
+          const isBook = tab.book
+          const activeCol = isPremium ? PREMIUM_GOLD.primary : isBook ? '#0EA5E9' : '#DC2626'
+          const iconColor = active ? activeCol : isBook ? '#0EA5E9' : '#94A3B8'
           const IconFn = TAB_ICONS[tab.mobileIcon || tab.icon]
           return (
             <button
