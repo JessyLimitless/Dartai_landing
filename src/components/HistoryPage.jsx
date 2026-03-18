@@ -61,8 +61,14 @@ export default function HistoryPage({ onViewCard }) {
   const upRanked = withChange.filter(t => t.change_close > 0).sort((a, b) => b.change_close - a.change_close)
   const downRanked = withChange.filter(t => t.change_close < 0).sort((a, b) => a.change_close - b.change_close)
 
-  const avgChange = recent.total > 0
-    ? recent.tracks.reduce((s, t) => s + (t.change_close ?? 0), 0) / recent.total : 0
+  // S등급 적중률 (공시 후 상승 비율)
+  const sGrade = withChange.filter(t => t.grade === 'S')
+  const sHitRate = sGrade.length > 0
+    ? Math.round(sGrade.filter(t => t.change_close > 0).length / sGrade.length * 100)
+    : null
+  const totalHitRate = withChange.length > 0
+    ? Math.round(upRanked.length / withChange.length * 100)
+    : 0
 
   const activeList = direction === 'up' ? upRanked : downRanked
   const accentColor = direction === 'up' ? '#DC2626' : '#2563EB'
@@ -76,17 +82,25 @@ export default function HistoryPage({ onViewCard }) {
       fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
     }}>
 
-      {/* ── 히어로 ── */}
+      {/* ── 히어로: 적중률 ── */}
       <div className="hist-pad" style={{ paddingTop: 24 }}>
         <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 8 }}>
-          공시 후 종가 기준 평균 수익률
+          공시 후 주가 상승 적중률
         </div>
-        <div className="hist-hero-num" style={{
-          fontWeight: 800, fontFamily: FONTS.mono,
-          color: pctColor(avgChange), letterSpacing: -1.5, lineHeight: 1,
-        }}>{fmtPct(avgChange)}</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+          <div className="hist-hero-num" style={{
+            fontWeight: 800, fontFamily: FONTS.mono,
+            color: totalHitRate >= 50 ? '#DC2626' : '#2563EB',
+            letterSpacing: -1.5, lineHeight: 1,
+          }}>{totalHitRate}%</div>
+          {sHitRate !== null && (
+            <span style={{ fontSize: 14, color: colors.textMuted }}>
+              S등급 <span style={{ fontWeight: 700, color: sHitRate >= 50 ? '#DC2626' : '#2563EB', fontFamily: FONTS.mono }}>{sHitRate}%</span>
+            </span>
+          )}
+        </div>
         <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 8 }}>
-          최근 {days === 20 ? '1개월' : `${days}일`} · {recent.total}건 추적
+          최근 {days === 20 ? '1개월' : `${days}일`} · {withChange.length}건 중 {upRanked.length}건 상승
         </div>
       </div>
 
