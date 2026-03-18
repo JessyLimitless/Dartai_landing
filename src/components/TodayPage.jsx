@@ -207,28 +207,29 @@ export default function TodayPage({ onViewCard }) {
                     fontWeight: 800, fontFamily: FONTS.mono,
                   }}>{d.grade}</div>
 
-                  {/* 기업명 + 가격/등락률 */}
+                  {/* 기업명 + 공시사유 + 시세 */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="today-corp" style={{
                       fontWeight: 700, color: colors.textPrimary,
                       fontFamily: FONTS.serif,
                     }}>{d.corp_name}</div>
-                    <div className="today-sub" style={{ color: colors.textMuted, marginTop: 3 }}>
-                      {hasPrice ? (
-                        <>
-                          <span style={{ fontFamily: FONTS.mono }}>{price.toLocaleString()}원</span>
-                          {' '}
-                          <span style={{ color: priceColor, fontWeight: 600 }}>
-                            {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
-                          </span>
-                        </>
-                      ) : (
-                        <span style={{
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          display: 'block',
-                        }}>{d.report_nm}</span>
-                      )}
+                    <div className="today-sub" style={{
+                      color: colors.textMuted, marginTop: 3,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {d.report_nm}
                     </div>
+                    {hasPrice && (
+                      <div style={{ marginTop: 3 }}>
+                        <span className="today-sub" style={{ fontFamily: FONTS.mono, color: colors.textMuted }}>
+                          {price.toLocaleString()}원
+                        </span>
+                        {' '}
+                        <span className="today-sub" style={{ color: priceColor, fontWeight: 600 }}>
+                          {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* 우측 */}

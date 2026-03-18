@@ -266,10 +266,19 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
             DART 원문
           </a>
 
-          {raw.corp_code && (
+          {(raw.corp_code || data?.corp_code || raw.stock_code) && (
             <button
               className="touch-press"
-              onClick={() => { onViewCard?.(raw.corp_code); handleClose() }}
+              onClick={() => {
+                const cc = raw.corp_code || data?.corp_code
+                if (cc) {
+                  onViewCard?.(cc)
+                } else if (raw.stock_code) {
+                  // corp_code 없으면 stock_code 기반으로 기업카드 검색 페이지로 이동
+                  onViewCard?.(raw.stock_code)
+                }
+                handleClose()
+              }}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 flex: 1, padding: '12px', borderRadius: 12,
