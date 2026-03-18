@@ -207,7 +207,7 @@ export default function TodayPage({ onViewCard }) {
                     fontWeight: 800, fontFamily: FONTS.mono,
                   }}>{d.grade}</div>
 
-                  {/* 기업명 + 공시사유 + 시세 */}
+                  {/* 기업명 + 공시사유·시세 (2줄 컴팩트) */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="today-corp" style={{
                       fontWeight: 700, color: colors.textPrimary,
@@ -218,18 +218,17 @@ export default function TodayPage({ onViewCard }) {
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {d.report_nm}
+                      {hasPrice && (
+                        <>
+                          <span style={{ margin: '0 5px', opacity: 0.4 }}>·</span>
+                          <span style={{ fontFamily: FONTS.mono }}>{price.toLocaleString()}원</span>
+                          {' '}
+                          <span style={{ color: priceColor, fontWeight: 600 }}>
+                            {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
+                          </span>
+                        </>
+                      )}
                     </div>
-                    {hasPrice && (
-                      <div style={{ marginTop: 3 }}>
-                        <span className="today-sub" style={{ fontFamily: FONTS.mono, color: colors.textMuted }}>
-                          {price.toLocaleString()}원
-                        </span>
-                        {' '}
-                        <span className="today-sub" style={{ color: priceColor, fontWeight: 600 }}>
-                          {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
-                        </span>
-                      </div>
-                    )}
                   </div>
 
                   {/* 우측 */}
