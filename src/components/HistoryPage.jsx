@@ -78,36 +78,13 @@ export default function HistoryPage({ onViewCard }) {
       fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
     }}>
 
-      {/* ── 히어로: 적중률 ── */}
+      {/* ── 헤더 ── */}
       <div className="hist-pad" style={{ paddingTop: 24 }}>
-        <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 8 }}>
-          공시 후 5거래일 상승 적중률
-        </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-          <div className="hist-hero-num" style={{
-            fontWeight: 800, fontFamily: FONTS.mono,
-            color: totalHitRate >= 50 ? '#DC2626' : '#2563EB',
-            letterSpacing: -1.5, lineHeight: 1,
-          }}>{totalHitRate}%</div>
-          {sHitRate !== null && (
-            <span style={{ fontSize: 14, color: colors.textMuted }}>
-              S등급 <span style={{ fontWeight: 700, color: sHitRate >= 50 ? '#DC2626' : '#2563EB', fontFamily: FONTS.mono }}>{sHitRate}%</span>
-            </span>
-          )}
-        </div>
-        <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 8 }}>
-          최근 5거래일 · {withChange.length}건 중 {upRanked.length}건 상승
-        </div>
-      </div>
-
-      {/* ── 섹션 타이틀 ── */}
-      <div className="hist-pad" style={{ paddingTop: 28 }}>
         <div className="hist-section-title" style={{ fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.3 }}>
-          공시 후 주가 변동 TOP
+          공시 후 5거래일 변동률
         </div>
       </div>
 
-      {/* 구분선 */}
       <div style={{ borderBottom: `1px solid ${lineSep}`, marginTop: 16 }} />
 
       {/* ── pill 토글 ── */}
