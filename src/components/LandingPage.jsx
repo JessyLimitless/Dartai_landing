@@ -115,9 +115,18 @@ export default function LandingPage() {
             DART <span style={{ color: PREMIUM.accent }}>Insight</span>
           </span>
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div
+              onClick={() => { localStorage.removeItem('dart_user'); setUser(null) }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', transition: 'opacity 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              title="클릭하면 로그아웃"
+            >
               {user.picture && <img src={user.picture} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} />}
               <span style={{ fontSize: 13, color: '#FAFAFA', fontWeight: 500 }}>{user.name?.split(' ')[0]}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
             </div>
           ) : (
             <button onClick={handleGoogleLogin} style={{
