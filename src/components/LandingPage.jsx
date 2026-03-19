@@ -216,6 +216,9 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
+              <div onClick={() => navigate('/today')} style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: '#DC2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                공시 확인하기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+              </div>
             </div>
 
             {/* 2. 브리핑 + Pick */}
@@ -238,6 +241,9 @@ export default function LandingPage() {
                 <div style={{ fontSize: 12, color: '#A1A1AA' }}>
                   DART Pick: <span style={{ fontWeight: 600, color: '#18181B' }}>아이씨디</span> — 실적 턴어라운드 + 자사주 소각
                 </div>
+              </div>
+              <div onClick={() => navigate('/briefing')} style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: '#DC2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                브리핑 읽기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
               </div>
             </div>
 
@@ -264,6 +270,9 @@ export default function LandingPage() {
                     <div style={{ fontSize: 15, fontWeight: 800, color: ex.color, fontFamily: FONTS.mono }}>{ex.change}</div>
                   </div>
                 ))}
+              </div>
+              <div onClick={() => navigate('/history')} style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: '#2563EB', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                추적 현황 보기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
               </div>
             </div>
           </div>
@@ -298,6 +307,9 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
+            <div onClick={() => navigate('/premium')} style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: '#D97706', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              AI 분석 체험하기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </div>
           </div>
 
           {/* 서재 + 이벤트 — 2열 */}
@@ -321,6 +333,9 @@ export default function LandingPage() {
                   </div>
                 ))}
                 <div style={{ fontSize: 11, color: '#A1A1AA', marginTop: 2 }}>외 2권</div>
+              </div>
+              <div onClick={() => navigate('/library')} style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: '#0EA5E9', cursor: 'pointer' }}>
+                서재 열기 →
               </div>
             </div>
 
@@ -348,6 +363,9 @@ export default function LandingPage() {
                     <span style={{ color: '#18181B', fontWeight: i === 0 ? 600 : 400 }}>{ev.title}</span>
                   </div>
                 ))}
+              </div>
+              <div onClick={() => navigate('/dart-event')} style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: '#16A34A', cursor: 'pointer' }}>
+                이벤트 보기 →
               </div>
             </div>
           </div>
