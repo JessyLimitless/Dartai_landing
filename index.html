@@ -83,26 +83,6 @@
   <body>
     <div id="root"></div>
 
-    <!-- PWA 스플래시 스크린 (React 로드 전 표시, 로드 후 자동 제거) -->
-    <div id="splash" style="
-      position:fixed;inset:0;z-index:99999;
-      background:#09090B;
-      display:flex;align-items:center;justify-content:center;
-      transition:opacity 0.3s;
-    ">
-      <img src="/icon-512.png" alt="DART Insight" style="width:96px;height:96px;border-radius:20px;" />
-    </div>
-    <script>
-      // React가 렌더링되면 스플래시 제거
-      const _ro = new MutationObserver(() => {
-        if (document.getElementById('root')?.children.length > 0) {
-          const s = document.getElementById('splash');
-          if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 300); }
-          _ro.disconnect();
-        }
-      });
-      _ro.observe(document.getElementById('root'), { childList: true });
-    </script>
 
     <script type="module" src="/src/main.jsx"></script>
   </body>
