@@ -442,35 +442,45 @@ export default function LandingPage() {
               공시 읽는 법부터 퀀트 투자까지, <span style={{ color: '#18181B', fontWeight: 600 }}>실전에 바로 쓸 수 있는 전자책 5권</span>을 무료로 제공합니다. 회원가입만 하면 전부 열람 가능합니다.
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
               {[
-                { tag: 'NEW', tagColor: '#DC2626', title: '전자공시 시그널 가이드', desc: '공시 읽는 법을 모른다면 여기서부터. S/A/D 등급의 의미와 실전 매매 타이밍.' },
-                { tag: '실전', tagColor: '#0EA5E9', title: '전자공시 시그널', desc: '자사주 소각, 대형 공급계약, CB 발행 — 공시 유형별 주가 반응 패턴 분석.' },
-                { tag: '철학', tagColor: '#7C3AED', title: '코스톨라니의 달걀', desc: '금리·심리·유동성으로 시장 사이클을 읽는 코스톨라니 달걀 모형 해설.' },
-                { tag: '퀀트', tagColor: '#16A34A', title: '데이터 퀀트', desc: 'PER·PBR·ROE 스크리닝부터 팩터 투자까지, 데이터 기반 종목 선정법.' },
-                { tag: 'AI', tagColor: '#D97706', title: 'AI 핵심원리', desc: '투자에 쓰이는 AI/ML의 수학적 원리. 회귀분석부터 신경망까지 쉽게.' },
+                { tag: 'NEW', tagColor: '#DC2626', title: '전자공시 시그널 가이드', desc: 'S/A/D 등급의 의미와 실전 매매 타이밍' },
+                { tag: '실전', tagColor: '#0EA5E9', title: '전자공시 시그널', desc: '공시 유형별 주가 반응 패턴 분석' },
+                { tag: '철학', tagColor: '#7C3AED', title: '코스톨라니의 달걀', desc: '금리·심리·유동성으로 시장 사이클 읽기' },
+                { tag: '퀀트', tagColor: '#16A34A', title: '데이터 퀀트', desc: '팩터 투자와 데이터 기반 종목 선정법' },
               ].map((book, i) => (
                 <div key={i} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 10,
-                  padding: '12px 14px', borderRadius: 10,
+                  padding: '12px', borderRadius: 10,
                   background: '#FFFFFF', border: '1px solid #F0F0F2',
                   transition: 'transform 0.15s, box-shadow 0.15s', cursor: 'pointer',
                 }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(4px)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)' }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
                   onClick={() => navigate('/library')}
                 >
                   <span style={{
                     fontSize: 8, fontWeight: 800, padding: '2px 5px', borderRadius: 3,
-                    background: book.tagColor, color: '#fff', flexShrink: 0, marginTop: 2,
-                    letterSpacing: '0.04em',
+                    background: book.tagColor, color: '#fff', letterSpacing: '0.04em',
                   }}>{book.tag}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#18181B', marginBottom: 2 }}>{book.title}</div>
-                    <div style={{ fontSize: 12, color: '#71717A', lineHeight: 1.5 }}>{book.desc}</div>
-                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#18181B', marginTop: 6, marginBottom: 3 }}>{book.title}</div>
+                  <div style={{ fontSize: 11, color: '#A1A1AA', lineHeight: 1.4 }}>{book.desc}</div>
                 </div>
               ))}
+            </div>
+            {/* 5번째 책 — 풀 와이드 */}
+            <div style={{
+              marginTop: 8, padding: '10px 12px', borderRadius: 10,
+              background: '#FFFFFF', border: '1px solid #F0F0F2',
+              display: 'flex', alignItems: 'center', gap: 10,
+              transition: 'transform 0.15s, box-shadow 0.15s', cursor: 'pointer',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+              onClick={() => navigate('/library')}
+            >
+              <span style={{ fontSize: 8, fontWeight: 800, padding: '2px 5px', borderRadius: 3, background: '#D97706', color: '#fff', letterSpacing: '0.04em', flexShrink: 0 }}>AI</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>AI 핵심원리</span>
+              <span style={{ fontSize: 11, color: '#A1A1AA' }}>— 회귀분석부터 신경망까지, 투자 AI의 수학</span>
             </div>
 
             <div onClick={() => navigate('/library')} style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: '#0EA5E9', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
