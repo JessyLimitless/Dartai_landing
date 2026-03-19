@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FONTS, PREMIUM, GRADE_COLORS } from '../constants/theme'
+import { API } from '../lib/api'
 import { useLandingData } from '../hooks/useLandingData'
 import { CURRENT_EVENT } from '../data/weeklyEvents'
 
@@ -13,6 +14,37 @@ export default function LandingPage() {
   const [showPopup, setShowPopup] = useState(false)
   const [showInsight, setShowInsight] = useState(false)
   const [showLoginToast, setShowLoginToast] = useState(false)
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
+  })
+
+  const handleGoogleLogin = () => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: '20826231899-mfkodjf7svaafnr63ne773g5s6cf5k1m.apps.googleusercontent.com',
+        callback: async (response) => {
+          try {
+            const res = await fetch(`${API || ''}/api/auth/google`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ credential: response.credential }),
+            })
+            if (res.ok) {
+              const data = await res.json()
+              if (data.user) {
+                setUser(data.user)
+                localStorage.setItem('dart_user', JSON.stringify(data.user))
+              }
+            }
+          } catch {}
+        },
+      })
+      window.google.accounts.id.prompt()
+    } else {
+      setShowLoginToast(true)
+      setTimeout(() => setShowLoginToast(false), 2500)
+    }
+  }
 
   // KST 9시 전이면 전일 공시 표시
   const recentDisclosures = useMemo(() => {
@@ -81,16 +113,23 @@ export default function LandingPage() {
           }}>
             DART <span style={{ color: PREMIUM.accent }}>Insight</span>
           </span>
-          <button onClick={() => { setShowLoginToast(true); setTimeout(() => setShowLoginToast(false), 2500) }} style={{
-            padding: '7px 18px', borderRadius: 6,
-            border: '1px solid rgba(255,255,255,0.12)',
-            background: 'transparent', color: '#A1A1AA',
-            fontSize: 13, fontWeight: 500, cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-            onMouseEnter={e => { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.color = '#FAFAFA' }}
-            onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; e.target.style.color = '#A1A1AA' }}
-          >로그인</button>
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {user.picture && <img src={user.picture} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} />}
+              <span style={{ fontSize: 13, color: '#FAFAFA', fontWeight: 500 }}>{user.name?.split(' ')[0]}</span>
+            </div>
+          ) : (
+            <button onClick={handleGoogleLogin} style={{
+              padding: '7px 18px', borderRadius: 6,
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'transparent', color: '#A1A1AA',
+              fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+              onMouseEnter={e => { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.color = '#FAFAFA' }}
+              onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; e.target.style.color = '#A1A1AA' }}
+            >로그인</button>
+          )}
         </nav>
 
         <div style={{ maxWidth: 640, width: '100%', textAlign: 'center' }}>
