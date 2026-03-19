@@ -12,6 +12,7 @@ export default function LandingPage() {
   const { disclosures, stats, loading } = useLandingData()
   const [showPopup, setShowPopup] = useState(false)
   const [showInsight, setShowInsight] = useState(false)
+  const [showLoginToast, setShowLoginToast] = useState(false)
 
   // KST 9시 전이면 전일 공시 표시
   const recentDisclosures = useMemo(() => {
@@ -80,7 +81,7 @@ export default function LandingPage() {
           }}>
             DART <span style={{ color: PREMIUM.accent }}>Insight</span>
           </span>
-          <button onClick={() => alert('로그인 기능은 준비 중입니다.')} style={{
+          <button onClick={() => { setShowLoginToast(true); setTimeout(() => setShowLoginToast(false), 2500) }} style={{
             padding: '7px 18px', borderRadius: 6,
             border: '1px solid rgba(255,255,255,0.12)',
             background: 'transparent', color: '#A1A1AA',
@@ -293,6 +294,26 @@ export default function LandingPage() {
           </a>
         </div>
       </section>
+
+      {/* 로그인 토스트 */}
+      {showLoginToast && (
+        <div style={{
+          position: 'fixed', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 10000,
+          background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)',
+          borderRadius: 16, padding: '24px 32px',
+          textAlign: 'center',
+          animation: 'fadeIn 0.2s ease',
+        }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#FAFAFA', marginBottom: 6 }}>
+            Beta Version
+          </div>
+          <div style={{ fontSize: 13, color: '#A1A1AA', lineHeight: 1.5 }}>
+            현재 테스트 버전으로 운영 중입니다
+          </div>
+        </div>
+      )}
 
       {/* ━━━ 푸터 ━━━ */}
       <footer style={{
