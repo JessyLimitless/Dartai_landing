@@ -1,0 +1,230 @@
+import React, { useState, useEffect } from 'react'
+import { useTheme } from '../contexts/ThemeContext'
+import { FONTS, PREMIUM } from '../constants/theme'
+import { API } from '../lib/api'
+
+export default function BriefingPage() {
+  const { colors, dark } = useTheme()
+  const [briefings, setBriefings] = useState([])
+  const [selected, setSelected] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`${API}/api/briefings`)
+      .then(r => r.json())
+      .then(d => {
+        const list = d.briefings || []
+        setBriefings(list)
+        if (list.length > 0) setSelected(list[0])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+
+  return (
+    <div className="page-enter" style={{
+      maxWidth: 640, margin: '0 auto',
+      paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+      fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
+    }}>
+
+      {/* 헤더 */}
+      <div style={{ padding: '24px 24px 0' }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
+          오늘의 브리핑
+        </div>
+        <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
+          매일 저녁 7시, 전문가가 해석한 핵심 공시
+        </div>
+      </div>
+
+      {/* 날짜 리스트 (수평 스크롤) */}
+      {briefings.length > 1 && (
+        <div style={{
+          display: 'flex', gap: 8, padding: '16px 24px',
+          overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+        }}>
+          {briefings.map(b => {
+            const active = selected?.id === b.id
+            return (
+              <button key={b.id} className="touch-press"
+                onClick={() => setSelected(b)}
+                style={{
+                  padding: '8px 16px', borderRadius: 20, border: 'none',
+                  cursor: 'pointer', whiteSpace: 'nowrap',
+                  fontSize: 13, fontWeight: active ? 700 : 500,
+                  background: active ? (dark ? '#2A2A2E' : '#18181B') : (dark ? '#1A1A1E' : '#F4F4F5'),
+                  color: active ? (dark ? '#FAFAFA' : '#FFFFFF') : colors.textSecondary,
+                  transition: 'all 0.15s',
+                }}>
+                {b.date_label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* 콘텐츠 */}
+      <div style={{ padding: '0 24px' }}>
+        {loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '24px 0' }}>
+            {[80, 100, 60, 90, 70].map((w, i) => (
+              <div key={i} style={{
+                height: 16, width: `${w}%`, borderRadius: 8,
+                background: dark ? '#1A1A1E' : '#F4F4F5',
+                animation: 'pulse 1.4s ease-in-out infinite',
+              }} />
+            ))}
+          </div>
+        ) : !selected ? (
+          <div style={{ padding: '60px 0', textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.5" strokeLinecap="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, marginBottom: 6 }}>
+              아직 브리핑이 없어요
+            </div>
+            <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.6 }}>
+              매일 저녁 7시에 전문가의 공시 해석이 업로드됩니다
+            </div>
+          </div>
+        ) : (
+          <div style={{ paddingTop: 8 }}>
+            {/* 브리핑 헤더 */}
+            <div style={{
+              padding: '20px 0', borderBottom: `1px solid ${lineSep}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4,
+                  background: 'rgba(220,38,38,0.10)', color: '#DC2626',
+                  letterSpacing: '0.05em',
+                }}>DAILY BRIEF</span>
+                <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                  {selected.date_label}
+                </span>
+              </div>
+              <h2 style={{
+                fontSize: 20, fontWeight: 800, color: colors.textPrimary,
+                fontFamily: FONTS.serif, margin: 0, lineHeight: 1.4,
+              }}>
+                {selected.title}
+              </h2>
+              {selected.summary && (
+                <p style={{ fontSize: 14, color: colors.textMuted, marginTop: 8, lineHeight: 1.6 }}>
+                  {selected.summary}
+                </p>
+              )}
+            </div>
+
+            {/* MD 본문 */}
+            <div style={{ padding: '20px 0' }}>
+              <MarkdownBody content={selected.content} colors={colors} dark={dark} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
+    </div>
+  )
+}
+
+
+// ── 마크다운 렌더러 ──
+function MarkdownBody({ content, colors, dark }) {
+  if (!content) return null
+
+  const lines = content.split('\n')
+  const elements = []
+  let tableRows = []
+  let tableHeaders = []
+  let inTable = false
+
+  const renderInline = (text) => {
+    const parts = []
+    let idx = 0, lastEnd = 0
+    const re = /\*\*(.+?)\*\*/g
+    let match
+    while ((match = re.exec(text)) !== null) {
+      if (match.index > lastEnd) parts.push(<span key={`t${idx++}`}>{text.slice(lastEnd, match.index)}</span>)
+      parts.push(<strong key={`b${idx++}`} style={{ color: colors.textPrimary, fontWeight: 600 }}>{match[1]}</strong>)
+      lastEnd = match.index + match[0].length
+    }
+    if (lastEnd < text.length) parts.push(<span key={`t${idx++}`}>{text.slice(lastEnd)}</span>)
+    return parts.length > 0 ? parts : text
+  }
+
+  const flushTable = () => {
+    if (tableHeaders.length > 0) {
+      elements.push(
+        <div key={`tbl-${elements.length}`} style={{ overflowX: 'auto', margin: '16px 0' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>{tableHeaders.map((h, i) => (
+                <th key={i} style={{
+                  padding: '8px 12px', textAlign: 'left',
+                  borderBottom: `2px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+                  color: colors.textSecondary, fontWeight: 600, fontSize: 13,
+                }}>{renderInline(h)}</th>
+              ))}</tr>
+            </thead>
+            <tbody>
+              {tableRows.map((row, ri) => (
+                <tr key={ri}>{row.map((cell, ci) => (
+                  <td key={ci} style={{
+                    padding: '8px 12px',
+                    borderBottom: `1px solid ${dark ? '#1E1E22' : '#F4F4F5'}`,
+                    color: colors.textSecondary, fontSize: 13, lineHeight: 1.5,
+                  }}>{renderInline(cell)}</td>
+                ))}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+    tableHeaders = []; tableRows = []; inTable = false
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+
+    if (line.startsWith('|') && line.endsWith('|')) {
+      const cells = line.split('|').filter(c => c.trim()).map(c => c.trim())
+      if (!inTable) { tableHeaders = cells; inTable = true; continue }
+      if (cells.every(c => /^[-:]+$/.test(c))) continue
+      tableRows.push(cells); continue
+    } else if (inTable) { flushTable() }
+
+    if (line.startsWith('# ')) {
+      elements.push(<h1 key={i} style={{ fontSize: 20, fontWeight: 800, fontFamily: FONTS.serif, color: colors.textPrimary, margin: '24px 0 12px' }}>{line.slice(2)}</h1>)
+    } else if (line.startsWith('## ')) {
+      elements.push(<h2 key={i} style={{ fontSize: 17, fontWeight: 700, fontFamily: FONTS.serif, color: colors.textPrimary, margin: '20px 0 8px', paddingTop: 12, borderTop: `1px solid ${dark ? '#27272A' : '#E4E4E7'}` }}>{line.slice(3)}</h2>)
+    } else if (line.startsWith('### ')) {
+      elements.push(<h3 key={i} style={{ fontSize: 15, fontWeight: 700, color: colors.textSecondary, margin: '16px 0 6px' }}>{line.slice(4)}</h3>)
+    } else if (line.startsWith('---')) {
+      elements.push(<hr key={i} style={{ border: 'none', borderTop: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`, margin: '16px 0' }} />)
+    } else if (line.startsWith('- ')) {
+      elements.push(
+        <div key={i} style={{ display: 'flex', gap: 8, padding: '3px 0', fontSize: 14, color: colors.textMuted, lineHeight: 1.7 }}>
+          <span style={{ color: PREMIUM.accent, flexShrink: 0 }}>•</span>
+          <span>{renderInline(line.slice(2))}</span>
+        </div>
+      )
+    } else if (line.trim() === '') {
+      elements.push(<div key={i} style={{ height: 6 }} />)
+    } else {
+      elements.push(<p key={i} style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.8, margin: '4px 0' }}>{renderInline(line)}</p>)
+    }
+  }
+  if (inTable) flushTable()
+  return <>{elements}</>
+}
