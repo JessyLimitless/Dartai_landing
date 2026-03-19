@@ -557,39 +557,49 @@ export default function LandingPage() {
         background: '#111113', color: '#71717A',
         borderTop: '1px solid #27272A',
       }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px clamp(20px, 5vw, 40px) 24px' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px clamp(24px, 5vw, 48px) 40px' }}>
           {/* 상단: 로고 + CTA */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <span style={{ fontSize: 15, fontFamily: FONTS.serif, fontWeight: 700, color: '#FAFAFA' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+            <span style={{ fontSize: 20, fontFamily: FONTS.serif, fontWeight: 700, color: '#FAFAFA' }}>
               DART <span style={{ color: PREMIUM.accent }}>Insight</span>
             </span>
             <button onClick={go} style={{
-              padding: '7px 18px', borderRadius: 6, border: 'none',
+              padding: '10px 24px', borderRadius: 8, border: 'none',
               background: PREMIUM.accent, color: '#fff',
-              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>대시보드 열기</button>
           </div>
 
           {/* 회사 정보 */}
-          <div style={{ fontSize: 12, lineHeight: 1.8, color: '#52525B', marginBottom: 20 }}>
-            <div style={{ fontWeight: 600, color: '#A1A1AA', marginBottom: 4 }}>주식회사 뮤즈에이아이</div>
-            <div>사업자등록번호: 764-88-03375</div>
-            <div>주소: 서울특별시 은평구 통일로62길 7, 3층</div>
+          <div style={{ fontSize: 14, lineHeight: 2, color: '#71717A', marginBottom: 28 }}>
+            <div style={{ fontWeight: 700, color: '#A1A1AA', marginBottom: 6, fontSize: 15 }}>주식회사 뮤즈에이아이</div>
+            <div>사업자등록번호 : 764-88-03375</div>
+            <div>서울특별시 은평구 통일로62길 7, 3층</div>
           </div>
 
           {/* 약관 링크 */}
-          <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
-            <span onClick={() => setShowTerms('terms')} style={{ fontSize: 12, color: '#71717A', cursor: 'pointer', borderBottom: '1px solid #333' }}>
+          <div style={{ display: 'flex', gap: 24, marginBottom: 28 }}>
+            <span onClick={() => setShowTerms('terms')} style={{
+              fontSize: 14, color: '#A1A1AA', cursor: 'pointer',
+              borderBottom: '1px solid #52525B', paddingBottom: 2,
+            }}>
               서비스 이용약관
             </span>
-            <span onClick={() => setShowTerms('privacy')} style={{ fontSize: 12, color: '#71717A', cursor: 'pointer', borderBottom: '1px solid #333' }}>
+            <span onClick={() => setShowTerms('privacy')} style={{
+              fontSize: 14, color: '#A1A1AA', cursor: 'pointer',
+              borderBottom: '1px solid #52525B', paddingBottom: 2,
+            }}>
               개인정보 처리방침
             </span>
           </div>
 
           {/* 저작권 */}
-          <div style={{ fontSize: 11, color: '#3F3F46', borderTop: '1px solid #1E1E22', paddingTop: 16 }}>
-            © 2026 MuseAI Inc. All rights reserved. DART Insight는 주식회사 뮤즈에이아이의 서비스입니다.
+          <div style={{
+            fontSize: 13, color: '#52525B', lineHeight: 1.6,
+            borderTop: '1px solid #1E1E22', paddingTop: 20,
+          }}>
+            © 2026 MuseAI Inc. All rights reserved.<br />
+            DART Insight는 주식회사 뮤즈에이아이의 서비스입니다.
           </div>
         </div>
       </footer>
