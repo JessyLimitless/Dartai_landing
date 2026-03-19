@@ -194,8 +194,11 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
           {loading && (
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
               <img src="/bufit.png" alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', marginTop: 2 }} />
-              <div style={{ padding: '14px 18px', borderRadius: 16, background: dimBg, border: `1px solid ${sep}`, borderBottomLeftRadius: 4, display: 'flex', gap: 5 }}>
-                {[0, 1, 2].map(d => <span key={d} style={{ width: 6, height: 6, borderRadius: '50%', background: colors.textMuted, animation: `bfDot 1.4s infinite ${d * 0.2}s` }} />)}
+              <div style={{
+                padding: '14px 18px', borderRadius: 16, background: dimBg,
+                border: `1px solid ${sep}`, borderBottomLeftRadius: 4,
+              }}>
+                <LoadingSteps colors={colors} />
               </div>
             </div>
           )}
@@ -345,6 +348,57 @@ function VerdictCard({ scorecard, colors, dark }) {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ══ 검색 중 로딩 단계 표시 ══
+function LoadingSteps({ colors }) {
+  const [step, setStep] = useState(0)
+  const steps = [
+    { icon: '🔍', text: 'DART · KIND 공시 정보 검색 중' },
+    { icon: '📊', text: '재무 데이터 분석 중' },
+    { icon: '🤖', text: 'AI 인사이트 생성 중' },
+  ]
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setStep(1), 2000)
+    const t2 = setTimeout(() => setStep(2), 5000)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {steps.map((s, i) => {
+        const active = i === step
+        const done = i < step
+        return (
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            opacity: i > step ? 0.3 : 1,
+            transition: 'opacity 0.3s',
+          }}>
+            {done ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="3" strokeLinecap="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : active ? (
+              <div style={{
+                width: 14, height: 14, borderRadius: 7,
+                border: '2px solid #DC2626', borderTopColor: 'transparent',
+                animation: 'bfSpin 0.8s linear infinite',
+              }} />
+            ) : (
+              <div style={{ width: 14, height: 14, borderRadius: 7, background: colors.textMuted, opacity: 0.3 }} />
+            )}
+            <span style={{
+              fontSize: 13, color: active ? colors.textPrimary : done ? '#16A34A' : colors.textMuted,
+              fontWeight: active ? 600 : 400,
+            }}>{s.text}</span>
+          </div>
+        )
+      })}
+      <style>{`@keyframes bfSpin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 }
