@@ -268,43 +268,88 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* 보조 3개 — 컴팩트 가로 그리드 */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            {[
-              {
-                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>,
-                title: 'Buffett AI',
-                desc: '내재가치 분석',
-                accent: '#D97706',
-              },
-              {
-                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>,
-                title: '서재',
-                desc: '전자책 5권',
-                accent: '#0EA5E9',
-              },
-              {
-                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
-                title: '이벤트',
-                desc: '글로벌 일정',
-                accent: '#16A34A',
-              },
-            ].map((item, i) => (
-              <div key={i} style={{
-                padding: '16px 12px', borderRadius: 12, textAlign: 'center',
-                background: '#FAFAFA', border: '1px solid #F0F0F2',
-              }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 10, margin: '0 auto 10px',
-                  background: `${item.accent}10`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>{item.icon}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#18181B', marginBottom: 2 }}>
-                  {item.title}
-                </div>
-                <div style={{ fontSize: 11, color: '#A1A1AA' }}>{item.desc}</div>
+          {/* Buffett AI */}
+          <div style={{
+            padding: '20px', borderRadius: 14, marginBottom: 14,
+            background: 'rgba(217,119,6,0.04)', border: '1px solid rgba(217,119,6,0.08)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+              <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#D97706', color: '#fff', letterSpacing: '0.05em' }}>AI</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>Buffett AI · 가치투자 분석</span>
+            </div>
+            <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.6, marginBottom: 14 }}>
+              종목명만 입력하면 내재가치 기반 6가지 관점으로 분석합니다
+            </div>
+            <div style={{ padding: '12px 14px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #F0F0F2' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <img src="/bufit.png" alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
+                <span style={{ fontSize: 13, color: '#71717A' }}>"삼성전자 지금 사야 할까?"</span>
               </div>
-            ))}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {[
+                  { label: '안전마진', value: '+12%', color: '#D97706' },
+                  { label: 'ROE', value: '8.6%', color: '#71717A' },
+                  { label: '부채비율', value: '28%', color: '#16A34A' },
+                ].map((m, i) => (
+                  <div key={i} style={{ padding: '4px 10px', borderRadius: 6, background: '#FAFAFA', fontSize: 12 }}>
+                    <span style={{ color: '#A1A1AA' }}>{m.label} </span>
+                    <span style={{ fontWeight: 700, color: m.color, fontFamily: FONTS.mono }}>{m.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 서재 + 이벤트 — 2열 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+            {/* 서재 */}
+            <div style={{
+              padding: '16px', borderRadius: 12,
+              background: 'rgba(14,165,233,0.04)', border: '1px solid rgba(14,165,233,0.08)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>서재</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {['전자공시 시그널 가이드', '전자공시 시그널', '코스톨라니'].map((t, i) => (
+                  <div key={i} style={{ fontSize: 12, color: i === 0 ? '#0EA5E9' : '#71717A', fontWeight: i === 0 ? 600 : 400 }}>
+                    {t}
+                  </div>
+                ))}
+                <div style={{ fontSize: 11, color: '#A1A1AA', marginTop: 2 }}>외 2권</div>
+              </div>
+            </div>
+
+            {/* 이벤트 */}
+            <div style={{
+              padding: '16px', borderRadius: 12,
+              background: 'rgba(22,163,74,0.04)', border: '1px solid rgba(22,163,74,0.08)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>이벤트</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {[
+                  { tag: '글로벌', title: '미·일 정상회담' },
+                  { tag: '산업', title: 'NVIDIA GTC 2026' },
+                  { tag: '매크로', title: '슈퍼 목요일' },
+                ].map((ev, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: '#16A34A', color: '#fff' }}>{ev.tag}</span>
+                    <span style={{ color: '#18181B', fontWeight: i === 0 ? 600 : 400 }}>{ev.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
