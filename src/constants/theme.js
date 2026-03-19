@@ -32,7 +32,7 @@ export const VARIABLE_GRADE_COLORS = {
 
 export const FONTS = {
   body: "'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  mono: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
+  mono: "'Inter', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   serif: "'Noto Serif KR', 'Georgia', serif",
 }
 
