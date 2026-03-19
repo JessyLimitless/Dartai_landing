@@ -2008,18 +2008,37 @@ function CardListView({ onSelectCard }) {
 // ── 관심 종목 버튼 ─────────────────────────────────────────────
 
 function WatchlistButton({ corpCode, dark, colors }) {
-  const [watching, setWatching] = React.useState(() => {
-    try { return JSON.parse(localStorage.getItem('dart_watchlist') || '[]').includes(corpCode) }
-    catch { return false }
-  })
+  const [watching, setWatching] = React.useState(false)
+  const user = React.useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
+  }, [])
 
-  const toggle = () => {
+  // 서버에서 관심종목 확인
+  React.useEffect(() => {
+    if (!user?.email || !corpCode) return
+    fetch(`${API}/api/watchlist?email=${encodeURIComponent(user.email)}`)
+      .then(r => r.json())
+      .then(d => {
+        const found = (d.items || []).some(i => i.corp_code === corpCode || i.stock_code === corpCode)
+        setWatching(found)
+      })
+      .catch(() => {})
+  }, [user?.email, corpCode])
+
+  const toggle = async () => {
+    if (!user?.email) {
+      alert('로그인이 필요합니다')
+      return
+    }
+    const endpoint = watching ? '/api/watchlist/remove' : '/api/watchlist/add'
     try {
-      const list = JSON.parse(localStorage.getItem('dart_watchlist') || '[]')
-      const next = watching ? list.filter(c => c !== corpCode) : [...list, corpCode].slice(-30)
-      localStorage.setItem('dart_watchlist', JSON.stringify(next))
+      await fetch(`${API}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, stock_code: corpCode, corp_code: corpCode }),
+      })
       setWatching(!watching)
-    } catch { /* ignore */ }
+    } catch {}
   }
 
   return (

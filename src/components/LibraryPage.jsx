@@ -348,8 +348,42 @@ export default function LibraryPage() {
   const { dark, colors } = useTheme()
   const [hoveredId, setHoveredId] = useState(null)
 
+  const user = (() => {
+    try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
+  })()
+
   const topRow = BOOKS.slice(0, 3)
   const bottomRow = BOOKS.slice(3, 5)
+
+  // 로그인 안 했으면 로그인 유도
+  if (!user) {
+    return (
+      <div style={{
+        fontFamily: FONTS.body, minHeight: '100vh',
+        background: dark ? '#09090B' : '#FAFAFA',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: '40px 24px', textAlign: 'center',
+      }}>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.5" strokeLinecap="round" style={{ marginBottom: 20 }}>
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </svg>
+        <div style={{ fontSize: 20, fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif, marginBottom: 8 }}>
+          서재는 회원 전용입니다
+        </div>
+        <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.6, marginBottom: 24 }}>
+          로그인하시면 5권의 전자책을 무료로 열람할 수 있습니다
+        </div>
+        <button onClick={() => window.location.href = '/'} style={{
+          padding: '12px 28px', borderRadius: 10, border: 'none',
+          background: PREMIUM.accent, color: '#fff',
+          fontSize: 15, fontWeight: 700, cursor: 'pointer',
+        }}>
+          로그인하러 가기
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div style={{
