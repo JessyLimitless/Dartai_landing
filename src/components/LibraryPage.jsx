@@ -33,6 +33,17 @@ const BookIcons = {
 
 const BOOKS = [
   {
+    id: 'dart-signal-guide',
+    title: '전자공시 시그널 가이드',
+    subtitle: 'Beginner Guide',
+    url: 'https://jessylimitless.github.io/dartbook/',
+    color: '#0F2440',
+    accentColor: '#C9A84C',
+    iconKey: 'signal',
+    description: '공시로 읽는 투자의 기술 — 800건의 공시에서 진짜 시그널을 찾아내는 체계적 방법론',
+    tags: ['입문', '공시기초', '가이드'],
+  },
+  {
     id: 'dart-signal-advanced',
     title: '전자공시 시그널',
     subtitle: 'Advanced Guide',
@@ -337,8 +348,8 @@ export default function LibraryPage() {
   const { dark, colors } = useTheme()
   const [hoveredId, setHoveredId] = useState(null)
 
-  const topRow = BOOKS.slice(0, 2)
-  const bottomRow = BOOKS.slice(2, 4)
+  const topRow = BOOKS.slice(0, 3)
+  const bottomRow = BOOKS.slice(3, 5)
 
   return (
     <div style={{

@@ -226,6 +226,7 @@ html { scroll-behavior: smooth; }
 .mobile-menu button.active { background: #FEF2F2; color: #DC2626; }
 
 /* ═══ Bottom Tab Bar — hidden by default ════════════════════════════════ */
+.mobile-library-bar { display: none; }
 .bottom-tab-bar {
   display: none;
   position: fixed;
@@ -312,6 +313,7 @@ html { scroll-behavior: smooth; }
 
   /* ── Navigation ── */
   .bottom-tab-bar   { display: flex !important; }
+  .mobile-library-bar { display: flex !important; }
   .hamburger-btn    { display: none !important; }
   .desktop-nav      { display: none !important; }
   .mobile-menu,
