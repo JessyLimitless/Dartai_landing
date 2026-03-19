@@ -173,14 +173,19 @@ function MarkdownBody({ content, colors, dark }) {
   const flushTable = () => {
     if (tableHeaders.length > 0) {
       elements.push(
-        <div key={`tbl-${elements.length}`} style={{ overflowX: 'auto', margin: '16px 0' }}>
+        <div key={`tbl-${elements.length}`} style={{
+          overflowX: 'auto', margin: '18px 0',
+          borderRadius: 10, border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+        }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>{tableHeaders.map((h, i) => (
                 <th key={i} style={{
-                  padding: '8px 12px', textAlign: 'left',
-                  borderBottom: `2px solid ${dark ? '#27272A' : '#E4E4E7'}`,
-                  color: colors.textSecondary, fontWeight: 600, fontSize: 13,
+                  padding: '10px 14px', textAlign: 'left',
+                  borderBottom: `2px solid ${dark ? '#333' : '#D4D4D8'}`,
+                  background: dark ? '#0F0F11' : '#FAFAFA',
+                  color: colors.textMuted, fontWeight: 600, fontSize: 12,
+                  letterSpacing: '0.02em',
                 }}>{renderInline(h)}</th>
               ))}</tr>
             </thead>
@@ -188,9 +193,9 @@ function MarkdownBody({ content, colors, dark }) {
               {tableRows.map((row, ri) => (
                 <tr key={ri}>{row.map((cell, ci) => (
                   <td key={ci} style={{
-                    padding: '8px 12px',
-                    borderBottom: `1px solid ${dark ? '#1E1E22' : '#F4F4F5'}`,
-                    color: colors.textSecondary, fontSize: 13, lineHeight: 1.5,
+                    padding: '10px 14px',
+                    borderBottom: ri < tableRows.length - 1 ? `1px solid ${dark ? '#1E1E22' : '#F4F4F5'}` : 'none',
+                    color: colors.textSecondary, fontSize: 14, lineHeight: 1.6,
                   }}>{renderInline(cell)}</td>
                 ))}</tr>
               ))}
@@ -201,6 +206,9 @@ function MarkdownBody({ content, colors, dark }) {
     }
     tableHeaders = []; tableRows = []; inTable = false
   }
+
+  // 이모지 정리
+  const clean = (t) => t.replace(/[\u{1F300}-\u{1FAD6}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}\u{2B50}\u{2702}-\u{27B0}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}]/gu, '').trim()
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -213,24 +221,61 @@ function MarkdownBody({ content, colors, dark }) {
     } else if (inTable) { flushTable() }
 
     if (line.startsWith('# ')) {
-      elements.push(<h1 key={i} style={{ fontSize: 20, fontWeight: 800, fontFamily: FONTS.serif, color: colors.textPrimary, margin: '24px 0 12px' }}>{line.slice(2)}</h1>)
+      elements.push(<h1 key={i} style={{
+        fontSize: 22, fontWeight: 800, fontFamily: FONTS.serif,
+        color: colors.textPrimary, margin: '32px 0 14px',
+        letterSpacing: -0.3, lineHeight: 1.3,
+      }}>{clean(line.slice(2))}</h1>)
     } else if (line.startsWith('## ')) {
-      elements.push(<h2 key={i} style={{ fontSize: 17, fontWeight: 700, fontFamily: FONTS.serif, color: colors.textPrimary, margin: '20px 0 8px', paddingTop: 12, borderTop: `1px solid ${dark ? '#27272A' : '#E4E4E7'}` }}>{line.slice(3)}</h2>)
+      elements.push(<h2 key={i} style={{
+        fontSize: 18, fontWeight: 700, fontFamily: FONTS.serif,
+        color: colors.textPrimary, margin: '28px 0 12px',
+        paddingTop: 20, borderTop: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+        lineHeight: 1.3,
+      }}>{clean(line.slice(3))}</h2>)
     } else if (line.startsWith('### ')) {
-      elements.push(<h3 key={i} style={{ fontSize: 15, fontWeight: 700, color: colors.textSecondary, margin: '16px 0 6px' }}>{line.slice(4)}</h3>)
+      elements.push(<h3 key={i} style={{
+        fontSize: 16, fontWeight: 700, color: colors.textPrimary,
+        margin: '20px 0 8px', lineHeight: 1.4,
+      }}>{clean(line.slice(4))}</h3>)
+    } else if (line.startsWith('> ')) {
+      // 인용문 블록
+      elements.push(
+        <div key={i} style={{
+          borderLeft: `3px solid ${PREMIUM.accent}`,
+          padding: '10px 16px', margin: '14px 0',
+          background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.03)',
+          borderRadius: '0 8px 8px 0',
+        }}>
+          <span style={{
+            fontSize: 14, color: colors.textPrimary, fontWeight: 500,
+            lineHeight: 1.7, fontStyle: 'italic',
+          }}>{renderInline(line.slice(2))}</span>
+        </div>
+      )
     } else if (line.startsWith('---')) {
-      elements.push(<hr key={i} style={{ border: 'none', borderTop: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`, margin: '16px 0' }} />)
+      elements.push(<hr key={i} style={{
+        border: 'none', borderTop: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+        margin: '24px 0',
+      }} />)
     } else if (line.startsWith('- ')) {
       elements.push(
-        <div key={i} style={{ display: 'flex', gap: 8, padding: '3px 0', fontSize: 14, color: colors.textMuted, lineHeight: 1.7 }}>
-          <span style={{ color: PREMIUM.accent, flexShrink: 0 }}>•</span>
+        <div key={i} style={{
+          display: 'flex', gap: 10, padding: '4px 0',
+          fontSize: 15, color: colors.textSecondary, lineHeight: 1.8,
+        }}>
+          <span style={{ color: PREMIUM.accent, flexShrink: 0, marginTop: 1 }}>•</span>
           <span>{renderInline(line.slice(2))}</span>
         </div>
       )
     } else if (line.trim() === '') {
-      elements.push(<div key={i} style={{ height: 6 }} />)
+      elements.push(<div key={i} style={{ height: 10 }} />)
     } else {
-      elements.push(<p key={i} style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.8, margin: '4px 0' }}>{renderInline(line)}</p>)
+      elements.push(<p key={i} style={{
+        fontSize: 15, color: colors.textSecondary,
+        lineHeight: 1.9, margin: '6px 0',
+        wordBreak: 'keep-all',
+      }}>{renderInline(line)}</p>)
     }
   }
   if (inTable) flushTable()
