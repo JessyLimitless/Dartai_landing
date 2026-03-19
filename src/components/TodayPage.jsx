@@ -4,8 +4,9 @@ import EmptyState from './EmptyState'
 import FeedSkeleton from './skeletons/FeedSkeleton'
 import DisclosureModal from './DisclosureModal'
 import { useDisclosures } from '../hooks/useDisclosures'
-import { FONTS, GRADE_COLORS } from '../constants/theme'
+import { FONTS, GRADE_COLORS, PREMIUM } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
+import { API } from '../lib/api'
 
 export default function TodayPage({ onViewCard }) {
   const { colors, dark } = useTheme()
@@ -89,6 +90,15 @@ export default function TodayPage({ onViewCard }) {
       .slice(0, 5)
   }, [todayDisclosures, prices])
 
+  // DART Pick
+  const [pick, setPick] = useState(null)
+  useEffect(() => {
+    fetch(`${API}/api/pick/today`)
+      .then(r => r.json())
+      .then(d => { if (d?.corp_name) setPick(d) })
+      .catch(() => {})
+  }, [])
+
   return (
     <div className="page-enter today-page" style={{
       maxWidth: 640, margin: '0 auto',
@@ -123,6 +133,61 @@ export default function TodayPage({ onViewCard }) {
         )}
       </div>
 
+      {/* ── 오늘의 DART Pick ── */}
+      {pick && (
+        <div className="today-pad" style={{ paddingTop: 20 }}>
+          <div className="touch-press" onClick={() => {
+            if (pick.stock_code) {
+              const cc = pick.corp_code || pick.stock_code
+              window.location.href = `/deep-dive/${cc}`
+            }
+          }} style={{
+            padding: '16px 18px', borderRadius: 14, cursor: 'pointer',
+            background: dark
+              ? 'linear-gradient(135deg, rgba(220,38,38,0.08), rgba(220,38,38,0.02))'
+              : 'linear-gradient(135deg, rgba(220,38,38,0.06), rgba(220,38,38,0.02))',
+            border: `1px solid ${dark ? 'rgba(220,38,38,0.15)' : 'rgba(220,38,38,0.12)'}`,
+            transition: 'all 0.2s',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{
+                fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 4,
+                background: PREMIUM.accent, color: '#fff', letterSpacing: '0.05em',
+              }}>DART PICK</span>
+              <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                {pick.date}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{
+                  fontSize: 18, fontWeight: 800, color: colors.textPrimary,
+                  fontFamily: FONTS.serif, marginBottom: 3,
+                }}>{pick.corp_name}</div>
+                <div style={{ fontSize: 13, color: colors.textMuted }}>
+                  {pick.reason}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+                <div style={{
+                  fontSize: 16, fontWeight: 700, fontFamily: FONTS.mono,
+                  color: colors.textPrimary,
+                }}>{pick.price}</div>
+                <div style={{
+                  fontSize: 11, color: colors.textMuted, marginTop: 2,
+                }}>PBR {pick.pbr}</div>
+              </div>
+            </div>
+            {pick.detail && (
+              <div style={{
+                fontSize: 12, color: colors.textMuted, marginTop: 10,
+                paddingTop: 10, borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+                lineHeight: 1.5,
+              }}>{pick.detail}</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── 등급 탭 ── */}
       {!loading && todayCounts.total > 0 && (
