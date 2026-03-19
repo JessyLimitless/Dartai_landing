@@ -252,6 +252,48 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ━━━ 전자공시 시그널 가이드 ━━━ */}
+      <section style={{
+        background: '#FAF8F5', borderTop: '1px solid #E8E4DD',
+        padding: 'clamp(40px, 6vh, 64px) clamp(20px, 5vw, 40px)',
+      }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
+          <span style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
+            padding: '3px 8px', borderRadius: 4,
+            background: 'linear-gradient(135deg, #9E7A2F, #C9A84C)', color: '#fff',
+          }}>GUIDE</span>
+          <h2 style={{
+            fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 700,
+            fontFamily: FONTS.serif, color: '#1A1A1A',
+            lineHeight: 1.3, margin: '14px 0 8px',
+          }}>
+            전자공시 시그널 <span style={{ color: '#9E7A2F' }}>가이드</span>
+          </h2>
+          <p style={{ fontSize: 14, color: '#71717A', lineHeight: 1.7, margin: '0 0 24px' }}>
+            800건의 공시에서 진짜 시그널을 찾아내는 체계적 방법론
+          </p>
+          <a href="https://jessylimitless.github.io/dartbook/" target="_blank" rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '12px 28px', borderRadius: 12, border: 'none',
+              background: 'linear-gradient(135deg, #9E7A2F, #B8922E)', color: '#fff',
+              fontSize: 14, fontWeight: 600, textDecoration: 'none',
+              boxShadow: '0 2px 8px rgba(158,122,47,0.3)',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+            무료로 읽기
+          </a>
+        </div>
+      </section>
+
       {/* ━━━ 푸터 ━━━ */}
       <footer style={{
         background: '#18181B', color: '#A1A1AA',
