@@ -78,16 +78,17 @@ export default function App() {
   return (
     <ErrorProvider addToast={addToast}>
       <div style={{ minHeight: '100vh', backgroundColor: isLanding ? '#FFFFFF' : colors.bgPrimary, fontFamily: FONTS.body }}>
+        <Header
+          notifications={notifications}
+          unreadCount={unreadCount}
+          loading={loading}
+          onRead={markAsRead}
+          onMarkAllRead={markAllAsRead}
+          onSelectNotification={handleSelectNotification}
+          hiddenTopBar={isLanding}
+        />
         {!isLanding && (
           <>
-            <Header
-              notifications={notifications}
-              unreadCount={unreadCount}
-              loading={loading}
-              onRead={markAsRead}
-              onMarkAllRead={markAllAsRead}
-              onSelectNotification={handleSelectNotification}
-            />
             <PushSubscribeBanner />
             <PwaInstallBanner />
           </>

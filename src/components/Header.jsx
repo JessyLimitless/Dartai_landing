@@ -5,13 +5,14 @@ import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM, PREMIUM_GOLD } from '../constants/theme'
 
 const TABS = [
-  { key: '/today', label: 'Today', icon: 'today', mobileLabel: '홈', mobileIcon: 'home' },
+  { key: '/', label: 'Home', icon: 'home', mobileLabel: '홈', mobileIcon: 'home', exact: true },
   { key: '/briefing', label: 'Briefing', icon: 'dartevent', mobileLabel: '브리핑', mobileIcon: 'dartevent' },
+  { key: '/today', label: 'Today', icon: 'today', mobileLabel: '투데이', mobileIcon: 'today' },
   { key: '/history', label: 'History', icon: 'chart', mobileLabel: '추적', mobileIcon: 'chart' },
   { key: '/deep-dive', label: 'Company Card', icon: 'deepdive', mobileLabel: '종목', mobileIcon: 'deepdive' },
   { key: '/dart-event', label: 'Event', icon: 'dartevent', desktopOnly: true },
   { key: '/premium', label: 'Premium', icon: 'premium', premium: true, mobileLabel: 'AI', mobileIcon: 'premium' },
-  { key: '/library', label: 'Book', icon: 'library', book: true, mobileLabel: '서재', mobileIcon: 'library' },
+  { key: '/library', label: 'Book', icon: 'library', book: true, desktopOnly: true },
 ]
 
 const MOBILE_TABS = TABS.filter(t => !t.desktopOnly)
@@ -85,6 +86,7 @@ export default function Header({
   onRead,
   onMarkAllRead,
   onSelectNotification,
+  hiddenTopBar = false,
 }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -103,7 +105,7 @@ export default function Header({
 
   return (
     <>
-      <header style={{
+      {!hiddenTopBar && <header style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -270,20 +272,20 @@ export default function Header({
             onSelect={onSelectNotification}
           />
         </div>
-      </header>
+      </header>}
 
       {/* Mobile menu overlay */}
-      {mobileMenuOpen && (
+      {!hiddenTopBar && mobileMenuOpen && (
         <div className="mobile-menu-overlay open" onClick={() => setMobileMenuOpen(false)} />
       )}
 
-      <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
+      {!hiddenTopBar && <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
         {TABS.map((tab) => (
           <button key={tab.key} className={isActive(tab.key) ? 'active' : ''} onClick={() => handleNav(tab.key)}>
             {tab.label}
           </button>
         ))}
-      </div>
+      </div>}
 
       {/* Bottom tab bar (mobile only) */}
       <nav className="bottom-tab-bar">
