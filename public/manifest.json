@@ -2,7 +2,7 @@
   "name": "DART Insight — AI 공시 큐레이션",
   "short_name": "DART Insight",
   "description": "800건의 공시에서 핵심 공시만 골라드립니다",
-  "start_url": "/today",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#09090B",
   "theme_color": "#DC2626",
