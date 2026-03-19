@@ -142,7 +142,15 @@ export default function BriefingPage() {
 function MarkdownBody({ content, colors, dark }) {
   if (!content) return null
 
-  const lines = content.split('\n')
+  // 첫 번째 # 제목 + > 인용문은 헤더에서 이미 표시하므로 스킵
+  let rawLines = content.split('\n')
+  let startIdx = 0
+  if (rawLines[0]?.startsWith('# ')) startIdx = 1
+  // # 다음 빈 줄 + > 인용문 스킵
+  while (startIdx < rawLines.length && (rawLines[startIdx].trim() === '' || rawLines[startIdx].startsWith('>'))) {
+    startIdx++
+  }
+  const lines = rawLines.slice(startIdx)
   const elements = []
   let tableRows = []
   let tableHeaders = []
