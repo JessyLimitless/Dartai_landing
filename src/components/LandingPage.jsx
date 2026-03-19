@@ -228,38 +228,32 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* 핵심 3개 — 실제 예시 포함 대형 카드 */}
+          {/* 핵심 3개 — 동적 카드 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 16 }}>
 
-            {/* 1. 실시간 공시 */}
-            <div style={{
-              padding: '20px', borderRadius: 14,
-              background: 'rgba(220,38,38,0.04)', border: '1px solid rgba(220,38,38,0.08)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>CORE</span>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>실시간 공시 · S/A/D 등급</span>
+            {/* 1. 실시간 공시 — 자동 순환 예시 */}
+            <GuideCard delay={0}>
+              <div style={{
+                padding: '24px', borderRadius: 16,
+                background: 'rgba(220,38,38,0.04)', border: '1px solid rgba(220,38,38,0.08)',
+                transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'default',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(220,38,38,0.08)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                  <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>CORE</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>실시간 공시 · S/A/D 등급</span>
+                </div>
+                <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
+                  DART · KIND에서 매일 쏟아지는 800건의 공시 중에서 주가에 직접 영향을 주는 <span style={{ color: '#18181B', fontWeight: 600 }}>자사주 취득, 대형 계약, 실적 급변, 투자경고</span> 등을 AI가 자동으로 선별하여 S/A/D 등급으로 분류합니다. 장중은 물론 <span style={{ color: '#DC2626', fontWeight: 600 }}>장 마감 후 18시에 집중되는 핵심 공시</span>도 놓치지 않습니다.
+                </div>
+                <LiveExamples />
+                <div onClick={() => navigate('/today')} style={{ marginTop: 14, fontSize: 14, fontWeight: 600, color: '#DC2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  공시 확인하기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+                </div>
               </div>
-              <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
-                DART · KIND에서 매일 쏟아지는 800건의 공시 중에서 주가에 직접 영향을 주는 <span style={{ color: '#18181B', fontWeight: 600 }}>자사주 취득, 대형 계약, 실적 급변, 투자경고</span> 등을 AI가 자동으로 선별하여 S/A/D 등급으로 분류합니다. 장중은 물론 <span style={{ color: '#DC2626', fontWeight: 600 }}>장 마감 후 18시에 집중되는 핵심 공시</span>도 놓치지 않습니다.
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {[
-                  { grade: 'S', color: '#DC2626', name: '삼양사', desc: '주식소각결정' },
-                  { grade: 'S', color: '#DC2626', name: '아이씨디', desc: '자기주식취득결정' },
-                  { grade: 'A', color: '#0D9488', name: '삼성전자', desc: '영업(잠정)실적 YoY +30%' },
-                ].map((ex, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: '#FFFFFF' }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: ex.color, padding: '1px 6px', borderRadius: 4, fontFamily: FONTS.mono }}>{ex.grade}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#18181B' }}>{ex.name}</span>
-                    <span style={{ fontSize: 12, color: '#A1A1AA' }}>{ex.desc}</span>
-                  </div>
-                ))}
-              </div>
-              <div onClick={() => navigate('/today')} style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: '#DC2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                공시 확인하기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-              </div>
-            </div>
+            </GuideCard>
 
             {/* 2. 브리핑 + Pick */}
             <div style={{
@@ -906,6 +900,73 @@ function InsightModal({ event, onClose }) {
           {renderMarkdown(event.insight)}
         </div>
       </div>
+    </div>
+  )
+}
+
+
+// ── 가이드 카드 래퍼 (스크롤 애니메이션) ──
+function GuideCard({ children, delay = 0 }) {
+  const ref = useRef(null)
+  const [v, setV] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const ob = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setV(true); ob.disconnect() }
+    }, { threshold: 0.15 })
+    ob.observe(el)
+    return () => ob.disconnect()
+  }, [])
+  return (
+    <div ref={ref} style={{
+      opacity: v ? 1 : 0,
+      transform: v ? 'translateY(0)' : 'translateY(24px)',
+      transition: `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`,
+    }}>{children}</div>
+  )
+}
+
+
+// ── 실시간 공시 자동 순환 예시 ──
+function LiveExamples() {
+  const examples = [
+    { grade: 'S', color: '#DC2626', name: '삼양사', desc: '주식소각결정' },
+    { grade: 'S', color: '#DC2626', name: '아이씨디', desc: '자기주식취득결정' },
+    { grade: 'A', color: '#0D9488', name: '삼성전자', desc: '영업(잠정)실적 YoY +30%' },
+    { grade: 'S', color: '#DC2626', name: '휴마시스', desc: '주식소각결정 (211억)' },
+    { grade: 'D', color: '#1D4ED8', name: '씨에스베어링', desc: '환기종목 지정' },
+    { grade: 'S', color: '#DC2626', name: '빅텍', desc: '단일판매·공급계약체결' },
+  ]
+  const [idx, setIdx] = useState(0)
+
+  useEffect(() => {
+    const iv = setInterval(() => setIdx(p => (p + 1) % (examples.length - 2)), 2500)
+    return () => clearInterval(iv)
+  }, [])
+
+  const visible = examples.slice(idx, idx + 3)
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minHeight: 108 }}>
+      {visible.map((ex, i) => (
+        <div key={`${ex.name}-${idx}-${i}`} style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '8px 12px', borderRadius: 10, background: '#FFFFFF',
+          animation: 'fadeIn 0.4s ease',
+        }}>
+          <span style={{
+            fontSize: 11, fontWeight: 800, color: '#fff', background: ex.color,
+            padding: '2px 7px', borderRadius: 5, fontFamily: "'Inter', sans-serif",
+          }}>{ex.grade}</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#18181B' }}>{ex.name}</span>
+          <span style={{ fontSize: 13, color: '#A1A1AA', flex: 1 }}>{ex.desc}</span>
+          <div style={{
+            width: 6, height: 6, borderRadius: 3, background: ex.color,
+            animation: 'pulse 1.5s infinite',
+          }} />
+        </div>
+      ))}
     </div>
   )
 }
