@@ -43,15 +43,9 @@ function fmtPct(v) {
   return `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`
 }
 
-const PERIODS = [
-  { key: 5, label: '5일' },
-  { key: 10, label: '10일' },
-  { key: 20, label: '1개월' },
-]
-
 export default function HistoryPage({ onViewCard }) {
   const { colors, dark } = useTheme()
-  const [days, setDays] = useState(5)
+  const days = 5 // 최근 5거래일 고정
   const [direction, setDirection] = useState('up')
   const [showAll, setShowAll] = useState(false)
   const [modalRceptNo, setModalRceptNo] = useState(null)
@@ -102,7 +96,7 @@ export default function HistoryPage({ onViewCard }) {
           )}
         </div>
         <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 8 }}>
-          최근 {days === 20 ? '1개월' : `${days}일`} · {withChange.length}건 중 {upRanked.length}건 상승
+          최근 5거래일 · {withChange.length}건 중 {upRanked.length}건 상승
         </div>
       </div>
 
@@ -113,34 +107,8 @@ export default function HistoryPage({ onViewCard }) {
         </div>
       </div>
 
-      {/* ── 기간 탭 ── */}
-      <div style={{
-        display: 'flex', overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-        borderBottom: `1px solid ${lineSep}`, marginTop: 16,
-      }}>
-        <div style={{ width: 24, flexShrink: 0 }} />
-        {PERIODS.map(p => {
-          const active = days === p.key
-          return (
-            <button key={p.key} className="touch-press"
-              onClick={() => { setDays(p.key); setShowAll(false) }}
-              style={{
-                padding: '10px 16px 14px', border: 'none', cursor: 'pointer',
-                background: 'transparent', position: 'relative', whiteSpace: 'nowrap',
-                fontSize: 14, fontWeight: active ? 700 : 400, minHeight: 44,
-                color: active ? colors.textPrimary : colors.textMuted,
-              }}>
-              {p.label}
-              {active && (
-                <div style={{
-                  position: 'absolute', bottom: -1, left: 12, right: 12,
-                  height: 3, borderRadius: 1.5, background: colors.textPrimary,
-                }} />
-              )}
-            </button>
-          )
-        })}
-      </div>
+      {/* 구분선 */}
+      <div style={{ borderBottom: `1px solid ${lineSep}`, marginTop: 16 }} />
 
       {/* ── pill 토글 ── */}
       <div className="hist-pad" style={{ paddingTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
