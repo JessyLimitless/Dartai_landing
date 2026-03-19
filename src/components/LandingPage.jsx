@@ -217,19 +217,19 @@ export default function LandingPage() {
 
       {/* ━━━ 서비스 활용 가이드 ━━━ */}
       <section style={{ background: '#FFFFFF', borderTop: '1px solid #E4E4E7' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px clamp(20px, 5vw, 40px)' }}>
-          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '56px clamp(24px, 5vw, 48px)' }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <h2 style={{
-              fontSize: 22, fontWeight: 800, fontFamily: FONTS.serif,
-              color: '#18181B', margin: '0 0 6px',
+              fontSize: 26, fontWeight: 800, fontFamily: FONTS.serif,
+              color: '#18181B', margin: '0 0 8px',
             }}>이렇게 활용하세요</h2>
-            <p style={{ fontSize: 14, color: '#71717A' }}>
+            <p style={{ fontSize: 16, color: '#71717A' }}>
               매일 저녁 7시, 3분이면 충분합니다
             </p>
           </div>
 
           {/* 핵심 3개 — 실제 예시 포함 대형 카드 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 16 }}>
 
             {/* 1. 실시간 공시 */}
             <div style={{
@@ -238,9 +238,9 @@ export default function LandingPage() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                 <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>CORE</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>실시간 공시 · S/A/D 등급</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>실시간 공시 · S/A/D 등급</span>
               </div>
-              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.7, marginBottom: 14 }}>
+              <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
                 DART · KIND에서 매일 쏟아지는 800건의 공시 중에서 주가에 직접 영향을 주는 <span style={{ color: '#18181B', fontWeight: 600 }}>자사주 취득, 대형 계약, 실적 급변, 투자경고</span> 등을 AI가 자동으로 선별하여 S/A/D 등급으로 분류합니다. 장중은 물론 <span style={{ color: '#DC2626', fontWeight: 600 }}>장 마감 후 18시에 집중되는 핵심 공시</span>도 놓치지 않습니다.
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -268,9 +268,9 @@ export default function LandingPage() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                 <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>DAILY 19:00</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>저녁 브리핑 · DART Pick</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>저녁 브리핑 · DART Pick</span>
               </div>
-              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.7, marginBottom: 14 }}>
+              <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
                 공시 제목만으로는 알 수 없는 <span style={{ color: '#18181B', fontWeight: 600 }}>숫자 뒤에 숨겨진 의도</span>를 전문가가 해석합니다. "자사주 소각인데 왜 주가가 안 오르지?" 같은 의문에 답합니다. 매일 저녁 7시, 다음 날 장 시작 전에 반드시 읽어야 할 브리핑과 함께 <span style={{ color: '#DC2626', fontWeight: 600 }}>데이터가 가리키는 오늘의 DART Pick</span>을 선정합니다.
               </div>
               <div style={{ padding: '12px 14px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #F0F0F2' }}>
@@ -294,9 +294,9 @@ export default function LandingPage() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                 <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#2563EB', color: '#fff', letterSpacing: '0.05em' }}>TRACK</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>공시 후 5거래일 추적</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>공시 후 5거래일 추적</span>
               </div>
-              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.7, marginBottom: 14 }}>
+              <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
                 S/A/D 등급 공시가 발표된 <span style={{ color: '#18181B', fontWeight: 600 }}>그 시각의 실제 주가</span>를 기준으로 5거래일간 주가 변동을 추적합니다. "이 공시가 정말 주가를 올렸는가?" — 감이 아닌 <span style={{ color: '#2563EB', fontWeight: 600 }}>데이터로 증명</span>합니다.
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -324,9 +324,9 @@ export default function LandingPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
               <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#D97706', color: '#fff', letterSpacing: '0.05em' }}>AI</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>Buffett AI · 가치투자 분석</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>Buffett AI · 가치투자 분석</span>
             </div>
-            <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.7, marginBottom: 14 }}>
+            <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
               종목명만 입력하면 워런 버핏의 가치투자 원칙으로 <span style={{ color: '#18181B', fontWeight: 600 }}>내재가치, 경제적 해자, 재무 건전성, 자본 배분, 경영진, 레드플래그</span> 6가지 관점에서 분석합니다. DART 재무제표 + 실시간 시세 + AI 추론을 결합한 리포트를 받아보세요.
             </div>
             <div style={{ padding: '12px 14px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #F0F0F2' }}>
@@ -353,7 +353,7 @@ export default function LandingPage() {
           </div>
 
           {/* 서재 + 이벤트 — 2열 */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
             {/* 서재 */}
             <div style={{
               padding: '16px', borderRadius: 12,
