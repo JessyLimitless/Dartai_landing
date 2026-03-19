@@ -14,6 +14,7 @@ export default function LandingPage() {
   const [showPopup, setShowPopup] = useState(false)
   const [showInsight, setShowInsight] = useState(false)
   const [showLoginToast, setShowLoginToast] = useState(false)
+  const [showTerms, setShowTerms] = useState(null) // 'terms' | 'privacy' | null
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
   })
@@ -553,24 +554,86 @@ export default function LandingPage() {
 
       {/* ━━━ 푸터 ━━━ */}
       <footer style={{
-        background: '#18181B', color: '#A1A1AA',
-        padding: '20px clamp(20px, 5vw, 64px)',
+        background: '#111113', color: '#71717A',
         borderTop: '1px solid #27272A',
       }}>
-        <div style={{
-          maxWidth: 640, margin: '0 auto',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        }}>
-          <span style={{ fontSize: 14, fontFamily: FONTS.serif, fontWeight: 700, color: '#FAFAFA' }}>
-            DART <span style={{ color: PREMIUM.accent }}>Insight</span>
-          </span>
-          <button onClick={go} style={{
-            padding: '7px 18px', borderRadius: 6, border: 'none',
-            background: PREMIUM.accent, color: '#fff',
-            fontSize: 12, fontWeight: 600, cursor: 'pointer',
-          }}>대시보드 열기</button>
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px clamp(20px, 5vw, 40px) 24px' }}>
+          {/* 상단: 로고 + CTA */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <span style={{ fontSize: 15, fontFamily: FONTS.serif, fontWeight: 700, color: '#FAFAFA' }}>
+              DART <span style={{ color: PREMIUM.accent }}>Insight</span>
+            </span>
+            <button onClick={go} style={{
+              padding: '7px 18px', borderRadius: 6, border: 'none',
+              background: PREMIUM.accent, color: '#fff',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            }}>대시보드 열기</button>
+          </div>
+
+          {/* 회사 정보 */}
+          <div style={{ fontSize: 12, lineHeight: 1.8, color: '#52525B', marginBottom: 20 }}>
+            <div style={{ fontWeight: 600, color: '#A1A1AA', marginBottom: 4 }}>주식회사 뮤즈에이아이</div>
+            <div>사업자등록번호: 764-88-03375</div>
+            <div>주소: 서울특별시 은평구 통일로62길 7, 3층</div>
+          </div>
+
+          {/* 약관 링크 */}
+          <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
+            <span onClick={() => setShowTerms('terms')} style={{ fontSize: 12, color: '#71717A', cursor: 'pointer', borderBottom: '1px solid #333' }}>
+              서비스 이용약관
+            </span>
+            <span onClick={() => setShowTerms('privacy')} style={{ fontSize: 12, color: '#71717A', cursor: 'pointer', borderBottom: '1px solid #333' }}>
+              개인정보 처리방침
+            </span>
+          </div>
+
+          {/* 저작권 */}
+          <div style={{ fontSize: 11, color: '#3F3F46', borderTop: '1px solid #1E1E22', paddingTop: 16 }}>
+            © 2026 MuseAI Inc. All rights reserved. DART Insight는 주식회사 뮤즈에이아이의 서비스입니다.
+          </div>
         </div>
       </footer>
+
+      {/* 약관/개인정보 모달 */}
+      {showTerms && (
+        <div onClick={() => setShowTerms(null)} style={{
+          position: 'fixed', inset: 0, zIndex: 10000,
+          background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#FFFFFF', borderRadius: 16, width: '100%', maxWidth: 560,
+            maxHeight: '80vh', overflow: 'auto', padding: '28px 24px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+                {showTerms === 'terms' ? '서비스 이용약관' : '개인정보 처리방침'}
+              </h3>
+              <button onClick={() => setShowTerms(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#71717A' }}>✕</button>
+            </div>
+            {showTerms === 'terms' ? (
+              <div style={{ fontSize: 13, color: '#52525B', lineHeight: 1.8 }}>
+                <p><strong>제1조 (목적)</strong><br/>이 약관은 주식회사 뮤즈에이아이(이하 "회사")가 제공하는 DART Insight 서비스(이하 "서비스")의 이용 조건 및 절차에 관한 사항을 규정함을 목적으로 합니다.</p>
+                <p><strong>제2조 (서비스 내용)</strong><br/>회사는 DART·KIND 공시 정보의 수집, 분류, 분석 및 관련 콘텐츠를 제공합니다. 서비스의 구체적인 내용은 회사의 정책에 따라 변경될 수 있습니다.</p>
+                <p><strong>제3조 (이용자의 의무)</strong><br/>이용자는 서비스를 통해 제공되는 정보를 투자 판단의 참고 자료로만 활용해야 하며, 이를 근거로 한 투자 손실에 대해 회사는 책임을 지지 않습니다.</p>
+                <p><strong>제4조 (면책)</strong><br/>본 서비스에서 제공하는 모든 정보는 참고용이며, 특정 종목에 대한 매수·매도 추천이 아닙니다. 모든 투자 판단과 그에 따른 결과는 전적으로 이용자 본인의 책임입니다.</p>
+                <p><strong>제5조 (저작권)</strong><br/>서비스 내 콘텐츠(브리핑, 분석, 전자책 등)의 저작권은 회사에 귀속되며, 무단 복제·배포를 금지합니다.</p>
+                <p><strong>제6조 (서비스 변경 및 중단)</strong><br/>회사는 운영상 필요한 경우 서비스의 전부 또는 일부를 변경하거나 중단할 수 있으며, 이에 대해 사전 공지합니다.</p>
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: '#52525B', lineHeight: 1.8 }}>
+                <p><strong>1. 수집하는 개인정보</strong><br/>회사는 Google 로그인을 통해 이메일 주소, 이름, 프로필 사진을 수집합니다. 별도의 회원가입 절차 없이 Google 계정 정보만 활용합니다.</p>
+                <p><strong>2. 개인정보의 이용 목적</strong><br/>수집된 정보는 서비스 이용자 식별, 관심종목 관리, 서비스 개선을 위한 통계 분석에 활용됩니다.</p>
+                <p><strong>3. 개인정보의 보유 및 이용 기간</strong><br/>이용자의 개인정보는 서비스 탈퇴 시까지 보유하며, 탈퇴 요청 시 지체 없이 파기합니다.</p>
+                <p><strong>4. 개인정보의 제3자 제공</strong><br/>회사는 이용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다. 다만, 법령에 의한 요청이 있는 경우 예외로 합니다.</p>
+                <p><strong>5. 개인정보의 안전성 확보 조치</strong><br/>회사는 개인정보의 안전한 처리를 위해 SSL 암호화 통신, 접근 권한 제한 등 기술적·관리적 보호 조치를 시행합니다.</p>
+                <p><strong>6. 정보주체의 권리</strong><br/>이용자는 언제든지 자신의 개인정보에 대한 열람, 수정, 삭제를 요청할 수 있으며, 회사는 이에 지체 없이 응합니다.</p>
+                <p><strong>7. 개인정보 보호 책임자</strong><br/>주식회사 뮤즈에이아이 (문의: dartinsight@museai.co.kr)</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
