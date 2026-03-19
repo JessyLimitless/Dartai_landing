@@ -123,14 +123,6 @@ export default function TodayPage({ onViewCard }) {
         )}
       </div>
 
-      {/* ── 섹션 타이틀 ── */}
-      {!loading && todayCounts.total > 0 && (
-        <div className="today-pad" style={{ paddingTop: 28 }}>
-          <div className="today-section-title" style={{ fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.3 }}>
-            AI가 선별한 핵심 공시
-          </div>
-        </div>
-      )}
 
       {/* ── 등급 탭 ── */}
       {!loading && todayCounts.total > 0 && (
