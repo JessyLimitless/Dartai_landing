@@ -20,6 +20,7 @@ const PremiumPage = lazy(() => import('./components/PremiumPage'))
 const DartEventPage = lazy(() => import('./components/DartEventPage'))
 const LibraryPage = lazy(() => import('./components/LibraryPage'))
 const BriefingPage = lazy(() => import('./components/BriefingPage'))
+const PatternPage = lazy(() => import('./components/PatternPage'))
 import BuffettChatPanel from './components/BuffettChat'
 import DisclosureModal from './components/DisclosureModal'
 import EmailCapture from './components/EmailCapture'
@@ -100,6 +101,7 @@ export default function App() {
               <Route path="/today" element={<TodayPage onViewCard={navigateToCard} />} />
               <Route path="/briefing" element={<BriefingPage />} />
               <Route path="/history" element={<HistoryPage onViewCard={navigateToCard} />} />
+              <Route path="/patterns" element={<PatternPage />} />
               <Route path="/ai-live" element={<Navigate to="/history" replace />} />
               <Route path="/deep-dive" element={<CompanyCard onViewCard={navigateToCard} />} />
               <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
