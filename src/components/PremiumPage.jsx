@@ -77,13 +77,59 @@ export default function PremiumPage() {
         }}>
           무료로 1회 체험하기
         </button>
+        {/* 프리미엄 가격 카드 */}
         <div style={{
-          width: '100%', padding: '12px', borderRadius: 10,
-          background: dark ? '#1A1A1E' : '#F4F4F5',
-          textAlign: 'center',
+          width: '100%', borderRadius: 14, overflow: 'hidden',
+          border: `1px solid ${dark ? 'rgba(220,38,38,0.2)' : 'rgba(220,38,38,0.15)'}`,
+          background: dark ? '#141416' : '#FFFFFF',
         }}>
-          <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.5 }}>
-            체험 이후 이용은 <span style={{ fontWeight: 700, color: colors.textPrimary }}>프리미엄 유료 서비스</span>로 제공됩니다
+          {/* 헤더 */}
+          <div style={{
+            padding: '16px 20px',
+            background: dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.04)',
+            borderBottom: `1px solid ${dark ? 'rgba(220,38,38,0.1)' : 'rgba(220,38,38,0.08)'}`,
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: PREMIUM.accent, letterSpacing: '0.05em', marginBottom: 4 }}>
+              PREMIUM
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4 }}>
+              <span style={{ fontSize: 32, fontWeight: 800, color: colors.textPrimary, fontFamily: "'Inter', sans-serif" }}>9,900</span>
+              <span style={{ fontSize: 14, color: colors.textMuted }}>원/월</span>
+            </div>
+          </div>
+
+          {/* 혜택 리스트 */}
+          <div style={{ padding: '16px 20px' }}>
+            {[
+              '매일 저녁 7시 브리핑 전문',
+              'DART Pick 매일 종목 선정',
+              'Buffett AI 무제한 분석',
+              'SS등급 실시간 Push 알림',
+              '관심종목 무제한 등록',
+            ].map((item, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '8px 0',
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={PREMIUM.accent} strokeWidth="2.5" strokeLinecap="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span style={{ fontSize: 14, color: colors.textPrimary }}>{item}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 결제 버튼 (준비 중) */}
+          <div style={{ padding: '0 20px 20px' }}>
+            <div style={{
+              width: '100%', padding: '14px', borderRadius: 10,
+              background: dark ? '#1A1A1E' : '#F4F4F5',
+              textAlign: 'center',
+              fontSize: 14, fontWeight: 600, color: colors.textMuted,
+            }}>
+              결제 서비스 준비 중
+            </div>
           </div>
         </div>
       </div>
