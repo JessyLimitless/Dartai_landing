@@ -61,7 +61,7 @@ export default function PwaInstallBanner() {
   return (
     <div style={{
       position: 'fixed',
-      bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+      bottom: 'calc(130px + env(safe-area-inset-bottom, 0px))',
       left: '50%', transform: 'translateX(-50%)',
       width: 'calc(100% - 32px)', maxWidth: 400,
       zIndex: 95,

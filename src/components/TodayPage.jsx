@@ -305,13 +305,10 @@ export default function TodayPage({ onViewCard }) {
         @media (max-width: 1024px) {
           .riser-panel { right: 12px; width: 220px; }
         }
-        /* 모바일: 하단 고정 카드 */
+        /* 모바일: 숨기고 FAB로 전환 */
         @media (max-width: 768px) {
-          .riser-panel {
-            top: auto; right: 12px;
-            bottom: calc(68px + env(safe-area-inset-bottom, 0px));
-            width: calc(100vw - 24px); max-width: 340px;
-          }
+          .riser-panel { display: none !important; }
+          .riser-fab { display: flex !important; }
         }
       `}</style>
     </div>
@@ -319,84 +316,132 @@ export default function TodayPage({ onViewCard }) {
 }
 
 
-// ══ 공시 후 급등 — 항상 보이는 우측 상단 고정 패널 ══
+// ══ 공시 후 급등 — 데스크톱: 우측 고정 패널, 모바일: FAB + 바텀시트 ══
 function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
+  const [mobileOpen, setMobileOpen] = useState(false)
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
-  return (
-    <div className="riser-panel" style={{
-      position: 'fixed', zIndex: 90,
-      background: dark ? '#141416' : '#FFFFFF',
-      borderRadius: 14,
-      border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#F0F0F2'}`,
-      boxShadow: dark ? '0 4px 24px rgba(0,0,0,0.4)' : '0 4px 24px rgba(0,0,0,0.06)',
-      overflow: 'hidden',
+  const RiserList = ({ onItemClick }) => (
+    <div style={{ padding: '4px 0' }}>
+      {risers.map((d, i) => {
+        const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8' }
+        return (
+          <div key={d.rcept_no} className="touch-press"
+            onClick={() => onItemClick?.(d.rcept_no)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 16px', cursor: 'pointer',
+              borderBottom: i < risers.length - 1 ? `1px solid ${lineSep}` : 'none',
+            }}>
+            <span style={{
+              fontSize: 14, fontWeight: 700, fontFamily: FONTS.mono,
+              color: '#DC2626', minWidth: 14, textAlign: 'right',
+            }}>{i + 1}</span>
+            <div style={{
+              width: 28, height: 28, borderRadius: 14,
+              background: gc.bg, color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
+            }}>{d.grade}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>{d.corp_name}</div>
+              <div style={{
+                fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 1,
+              }}>{d.price.toLocaleString()}원</div>
+            </div>
+            <span style={{
+              fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono,
+              color: '#DC2626', flexShrink: 0,
+            }}>+{d.changePct.toFixed(1)}%</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+
+  const PanelHeader = ({ onClose }) => (
+    <div style={{
+      padding: '12px 16px',
+      borderBottom: `1px solid ${lineSep}`,
+      display: 'flex', alignItems: 'center', gap: 6,
     }}>
-      {/* 헤더 */}
-      <div style={{
-        padding: '12px 16px',
-        borderBottom: `1px solid ${lineSep}`,
-        display: 'flex', alignItems: 'center', gap: 6,
+      <svg width="10" height="10" viewBox="0 0 16 16" fill="#DC2626">
+        <path d="M8 2L13 9H3L8 2Z" />
+      </svg>
+      <span style={{ fontSize: 14, fontWeight: 800, color: colors.textPrimary }}>
+        공시 후 급등
+      </span>
+      <span style={{
+        fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+        background: '#DC2626', color: '#fff', marginLeft: 2,
+      }}>LIVE</span>
+      {onClose && (
+        <button onClick={onClose} style={{
+          marginLeft: 'auto', background: 'none', border: 'none',
+          cursor: 'pointer', color: colors.textMuted, fontSize: 16, padding: '2px 4px',
+        }}>✕</button>
+      )}
+    </div>
+  )
+
+  return (
+    <>
+      {/* 데스크톱: 우측 고정 패널 */}
+      <div className="riser-panel" style={{
+        position: 'fixed', zIndex: 90,
+        background: dark ? '#141416' : '#FFFFFF',
+        borderRadius: 14,
+        border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#F0F0F2'}`,
+        boxShadow: dark ? '0 4px 24px rgba(0,0,0,0.4)' : '0 4px 24px rgba(0,0,0,0.06)',
+        overflow: 'hidden',
       }}>
-        <svg width="10" height="10" viewBox="0 0 16 16" fill="#DC2626">
+        <PanelHeader />
+        <RiserList onItemClick={onOpenModal} />
+      </div>
+
+      {/* 모바일: FAB 버튼 */}
+      <button className="riser-fab touch-press" onClick={() => setMobileOpen(true)} style={{
+        display: 'none', position: 'fixed', zIndex: 90,
+        right: 16, bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+        width: 52, height: 52, borderRadius: 26,
+        background: '#DC2626', color: '#fff', border: 'none',
+        cursor: 'pointer', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 4px 16px rgba(220,38,38,0.4)',
+      }}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="#fff">
           <path d="M8 2L13 9H3L8 2Z" />
         </svg>
-        <span style={{ fontSize: 14, fontWeight: 800, color: colors.textPrimary }}>
-          공시 후 급등
-        </span>
-        <span style={{
-          fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
-          background: '#DC2626', color: '#fff', marginLeft: 2,
-        }}>LIVE</span>
-      </div>
+        <span style={{ fontSize: 8, fontWeight: 800, marginTop: 1 }}>TOP{risers.length}</span>
+      </button>
 
-      {/* 리스트 (토스 스타일) */}
-      <div style={{ padding: '4px 0' }}>
-        {risers.map((d, i) => {
-          const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8' }
-          return (
-            <div key={d.rcept_no} className="touch-press"
-              onClick={() => onOpenModal(d.rcept_no)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 16px', cursor: 'pointer',
-                borderBottom: i < risers.length - 1 ? `1px solid ${lineSep}` : 'none',
-              }}>
-              {/* 순번 */}
-              <span style={{
-                fontSize: 14, fontWeight: 700, fontFamily: FONTS.mono,
-                color: '#DC2626', minWidth: 14, textAlign: 'right',
-              }}>{i + 1}</span>
-
-              {/* 등급 원형 */}
-              <div style={{
-                width: 28, height: 28, borderRadius: 14,
-                background: gc.bg, color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
-              }}>{d.grade}</div>
-
-              {/* 기업명 + 가격 */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 14, fontWeight: 700, color: colors.textPrimary,
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>{d.corp_name}</div>
-                <div style={{
-                  fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 1,
-                }}>{d.price.toLocaleString()}원</div>
-              </div>
-
-              {/* 변동률 (토스: 우측 큰 숫자) */}
-              <span style={{
-                fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono,
-                color: '#DC2626', flexShrink: 0,
-              }}>+{d.changePct.toFixed(1)}%</span>
+      {/* 모바일: 바텀시트 */}
+      {mobileOpen && (
+        <>
+          <div onClick={() => setMobileOpen(false)} style={{
+            position: 'fixed', inset: 0, zIndex: 95,
+            background: 'rgba(0,0,0,0.4)',
+          }} />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 96,
+            background: dark ? '#141416' : '#FFFFFF',
+            borderRadius: '20px 20px 0 0',
+            boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            maxHeight: '60vh',
+          }}>
+            <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: dark ? '#333' : '#D4D4D8' }} />
             </div>
-          )
-        })}
-      </div>
-    </div>
+            <PanelHeader onClose={() => setMobileOpen(false)} />
+            <RiserList onItemClick={(rcept) => { onOpenModal(rcept); setMobileOpen(false) }} />
+          </div>
+        </>
+      )}
+    </>
   )
 }
 
