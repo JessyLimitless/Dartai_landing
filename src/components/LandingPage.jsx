@@ -6,6 +6,7 @@ import { useLandingData } from '../hooks/useLandingData'
 import { CURRENT_EVENT } from '../data/weeklyEvents'
 
 const WEEKLY_EVENT = CURRENT_EVENT
+const R = '#DC2626' // 단일 악센트
 
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -14,7 +15,7 @@ export default function LandingPage() {
   const [showPopup, setShowPopup] = useState(false)
   const [showInsight, setShowInsight] = useState(false)
   const [showLoginToast, setShowLoginToast] = useState(false)
-  const [showTerms, setShowTerms] = useState(null) // 'terms' | 'privacy' | null
+  const [showTerms, setShowTerms] = useState(null)
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
   })
@@ -47,7 +48,6 @@ export default function LandingPage() {
     }
   }
 
-  // KST 9시 전이면 전일 공시 표시
   const recentDisclosures = useMemo(() => {
     if (!disclosures) return disclosures
     const now = new Date()
@@ -61,7 +61,6 @@ export default function LandingPage() {
       const kst = new Date(dt.getTime() + 9 * 3600000)
       return kst.toISOString().slice(0, 10) === targetStr
     })
-    // 필터 결과가 비면 전체 최신 8건 반환
     return filtered.length > 0 ? filtered : disclosures.slice(0, 8)
   }, [disclosures])
 
@@ -81,10 +80,9 @@ export default function LandingPage() {
   const totalCount = stats?.today_count ?? 0
   const sCount = stats?.s_count ?? 0
   const aCount = stats?.a_count ?? 0
-  const dCount = stats?.d_count ?? 0
 
   return (
-    <div style={{ fontFamily: FONTS.body, overflowX: 'hidden' }}>
+    <div style={{ fontFamily: FONTS.body, overflowX: 'hidden', background: '#09090B' }}>
 
       {showPopup && (
         <EventPopup event={WEEKLY_EVENT} onClose={dismissPopup}
@@ -94,12 +92,11 @@ export default function LandingPage() {
         <InsightModal event={WEEKLY_EVENT} onClose={() => setShowInsight(false)} />
       )}
 
-      {/* ━━━ 히어로 (토스 국내주식 메인 스타일) ━━━ */}
+      {/* ━━━ 1. 히어로 ━━━ */}
       <section style={{
-        background: '#09090B', color: '#FAFAFA',
         minHeight: '100dvh', display: 'flex', flexDirection: 'column',
         justifyContent: 'center', alignItems: 'center',
-        padding: 'clamp(80px, 12vh, 120px) clamp(20px, 5vw, 64px) 48px',
+        padding: 'clamp(100px, 15vh, 160px) clamp(20px, 5vw, 64px) 64px',
         position: 'relative',
       }}>
         {/* Nav */}
@@ -112,7 +109,7 @@ export default function LandingPage() {
             fontSize: '1.25rem', fontWeight: 700, letterSpacing: -0.5,
             fontFamily: FONTS.serif, color: '#FAFAFA',
           }}>
-            DART <span style={{ color: PREMIUM.accent }}>Insight</span>
+            DART <span style={{ color: R }}>Insight</span>
           </span>
           {user ? (
             <div
@@ -142,256 +139,299 @@ export default function LandingPage() {
           )}
         </nav>
 
-        <div style={{ maxWidth: 640, width: '100%', textAlign: 'center' }}>
-          {/* H1 — 간결하게 */}
+        <div style={{ maxWidth: 600, width: '100%', textAlign: 'center' }}>
           <Reveal>
+            <p style={{ fontSize: 13, color: '#71717A', letterSpacing: '0.1em', fontWeight: 600, margin: '0 0 20px' }}>
+              AI DISCLOSURE INTELLIGENCE
+            </p>
+          </Reveal>
+
+          <Reveal d={80}>
             <h1 style={{
-              fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 800,
-              lineHeight: 1.2, letterSpacing: '-0.03em',
-              margin: '0 0 40px', fontFamily: FONTS.serif,
+              fontSize: 'clamp(32px, 6vw, 56px)', fontWeight: 800,
+              lineHeight: 1.15, letterSpacing: '-0.03em',
+              margin: '0 0 24px', fontFamily: FONTS.serif, color: '#FAFAFA',
             }}>
-              800건의 공시에서<br />
-              투자자를 위한<br />
-              <span style={{ color: PREMIUM.accent }}>핵심 공시</span>를 골라드립니다
+              매일 800건의 공시,<br />
+              <span style={{ color: R }}>5건</span>만 읽으세요
             </h1>
           </Reveal>
 
-
-          {/* CTA */}
-          <Reveal d={180}>
-            <button onClick={go} style={{
-              padding: '14px 36px', borderRadius: 12, border: 'none',
-              background: PREMIUM.accent, color: '#fff',
-              fontSize: 15, fontWeight: 700, cursor: 'pointer',
-              transition: 'all 0.2s',
-              boxShadow: '0 4px 14px rgba(220,38,38,0.4)',
-            }}
-              onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 20px rgba(220,38,38,0.5)' }}
-              onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = '0 4px 14px rgba(220,38,38,0.4)' }}
-            >
-              대시보드 열기
-            </button>
+          <Reveal d={160}>
+            <p style={{
+              fontSize: 'clamp(15px, 2vw, 18px)', color: '#71717A',
+              lineHeight: 1.6, margin: '0 0 40px', maxWidth: 440, marginLeft: 'auto', marginRight: 'auto',
+            }}>
+              DART 공시를 AI가 실시간 분석하고,<br />
+              주가에 영향을 주는 핵심만 골라드립니다.
+            </p>
           </Reveal>
 
-          {/* Buffett AI 카드 */}
-          <Reveal d={220}>
-            <div
-              onClick={() => { navigate('/premium'); setTimeout(() => window.dispatchEvent(new Event('open-buffett-chat')), 500) }}
-              style={{
-                maxWidth: 400, width: '100%', margin: '36px auto 0',
-                padding: '16px 20px', borderRadius: 16, cursor: 'pointer',
-                background: 'linear-gradient(135deg, rgba(220,38,38,0.08), rgba(220,38,38,0.03))',
-                border: '1px solid rgba(220,38,38,0.2)',
-                display: 'flex', alignItems: 'center', gap: 16,
-                transition: 'all 0.25s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = 'rgba(220,38,38,0.4)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(220,38,38,0.15)' }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(220,38,38,0.2)'; e.currentTarget.style.boxShadow = 'none' }}
-            >
-              <div style={{
-                width: 56, height: 56, borderRadius: 28, overflow: 'hidden', flexShrink: 0,
-                border: '2px solid rgba(220,38,38,0.3)',
-                boxShadow: '0 0 20px rgba(220,38,38,0.15)',
-              }}>
-                <img src="/bufit.png" alt="Buffett AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-              <div style={{ flex: 1, textAlign: 'left' }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#FAFAFA', marginBottom: 2 }}>
-                  Buffett AI
+          {/* 실시간 카운터 */}
+          <Reveal d={240}>
+            <div style={{
+              display: 'flex', justifyContent: 'center', gap: 'clamp(24px, 5vw, 48px)',
+              marginBottom: 48,
+            }}>
+              {[
+                { label: '오늘 공시', value: totalCount, suffix: '건' },
+                { label: 'S등급', value: sCount, suffix: '건', accent: true },
+                { label: 'A등급', value: aCount, suffix: '건' },
+              ].map((s, i) => (
+                <div key={i} style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, fontFamily: FONTS.mono,
+                    color: s.accent ? R : '#FAFAFA', letterSpacing: -1, lineHeight: 1,
+                  }}>
+                    <AnimatedNumber value={s.value} /><span style={{ fontSize: '0.5em', fontWeight: 600 }}>{s.suffix}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#52525B', marginTop: 6, fontWeight: 500 }}>{s.label}</div>
                 </div>
-                <div style={{ fontSize: 12, color: '#A1A1AA', lineHeight: 1.4 }}>
-                  AI 애널리스트에게 투자 인사이트를 물어보세요
-                </div>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
+              ))}
             </div>
           </Reveal>
 
+          {/* CTA */}
+          <Reveal d={320}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+              <button onClick={go} style={{
+                padding: '14px 40px', borderRadius: 10, border: 'none',
+                background: R, color: '#fff',
+                fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 24px rgba(220,38,38,0.4)' }}
+                onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = 'none' }}
+              >
+                무료로 시작하기
+              </button>
+            </div>
+          </Reveal>
 
-          {/* Scroll guide */}
-          <Reveal d={300}>
+          <Reveal d={400}>
             <div
               onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-              style={{ marginTop: 48, cursor: 'pointer', opacity: 0.5 }}
+              style={{ marginTop: 56, cursor: 'pointer', opacity: 0.3 }}
             >
-              <svg width="28" height="28" viewBox="0 0 16 16" fill="none" style={{ display: 'block', margin: '0 auto' }}>
-                <path d="M4 6L8 10L12 6" stroke="#FAFAFA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="24" height="24" viewBox="0 0 16 16" fill="none" style={{ display: 'block', margin: '0 auto' }}>
+                <path d="M4 6L8 10L12 6" stroke="#FAFAFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ━━━ 서비스 활용 가이드 ━━━ */}
-      <section style={{ background: '#FFFFFF', borderTop: '1px solid #E4E4E7' }}>
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '56px clamp(24px, 5vw, 48px)' }}>
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+      {/* ━━━ 2. 소셜 프루프 — 실시간 공시 피드 ━━━ */}
+      <section style={{ borderTop: '1px solid #1A1A1E' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
+          <Reveal>
+            <p style={{
+              fontSize: 13, color: '#52525B', letterSpacing: '0.08em', fontWeight: 600,
+              textAlign: 'center', marginBottom: 12,
+            }}>LIVE FEED</p>
             <h2 style={{
-              fontSize: 26, fontWeight: 800, fontFamily: FONTS.serif,
-              color: '#18181B', margin: '0 0 8px',
-            }}>이렇게 활용하세요</h2>
-            <p style={{ fontSize: 16, color: '#71717A' }}>
-              매일 저녁 7시, 3분이면 충분합니다
-            </p>
-          </div>
-
-          {/* 핵심 3개 — 동적 카드 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 16 }}>
-
-            {/* 1. 실시간 공시 — 자동 순환 예시 */}
-            <GuideCard delay={0}>
-              <div style={{
-                padding: '24px', borderRadius: 16,
-                background: 'rgba(220,38,38,0.04)', border: '1px solid rgba(220,38,38,0.08)',
-                transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'default',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(220,38,38,0.08)' }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                  <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>CORE</span>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>실시간 공시 · S/A/D 등급</span>
-                </div>
-                <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
-                  DART · KIND에서 매일 쏟아지는 800건의 공시 중에서 주가에 직접 영향을 주는 <span style={{ color: '#18181B', fontWeight: 600 }}>자사주 취득, 대형 계약, 실적 급변, 투자경고</span> 등을 AI가 자동으로 선별하여 S/A/D 등급으로 분류합니다. 장중은 물론 <span style={{ color: '#DC2626', fontWeight: 600 }}>장 마감 후 18시에 집중되는 핵심 공시</span>도 놓치지 않습니다.
-                </div>
-                <LiveExamples />
-                <div onClick={() => navigate('/today')} style={{ marginTop: 14, fontSize: 14, fontWeight: 600, color: '#DC2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  공시 확인하기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-                </div>
-              </div>
-            </GuideCard>
-
-            {/* 2. 브리핑 + Pick */}
-            <div style={{
-              padding: '20px', borderRadius: 14,
-              background: 'rgba(220,38,38,0.04)', border: '1px solid rgba(220,38,38,0.08)',
+              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#FAFAFA', textAlign: 'center', margin: '0 0 48px',
+              letterSpacing: '-0.02em',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>DAILY 19:00</span>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>저녁 브리핑 · DART Pick</span>
-              </div>
-              <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
-                공시 제목만으로는 알 수 없는 <span style={{ color: '#18181B', fontWeight: 600 }}>숫자 뒤에 숨겨진 의도</span>를 전문가가 해석합니다. "자사주 소각인데 왜 주가가 안 오르지?" 같은 의문에 답합니다. 매일 저녁 7시, 다음 날 장 시작 전에 반드시 읽어야 할 브리핑과 함께 <span style={{ color: '#DC2626', fontWeight: 600 }}>데이터가 가리키는 오늘의 DART Pick</span>을 선정합니다.
-              </div>
-              <div style={{ padding: '12px 14px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #F0F0F2' }}>
-                <div style={{ fontSize: 12, color: '#DC2626', fontWeight: 700, marginBottom: 6 }}>오늘의 브리핑 예시</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#18181B', marginBottom: 4, fontFamily: FONTS.serif }}>
-                  "자사주 소각 3사 — 누가 진짜 주주 편인가?"
-                </div>
-                <div style={{ fontSize: 12, color: '#A1A1AA' }}>
-                  DART Pick: <span style={{ fontWeight: 600, color: '#18181B' }}>아이씨디</span> — 실적 턴어라운드 + 자사주 소각
-                </div>
-              </div>
-              <div onClick={() => navigate('/briefing')} style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: '#DC2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                브리핑 읽기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-              </div>
+              지금 이 공시가 올라왔습니다
+            </h2>
+          </Reveal>
+
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} style={{ height: 64, background: 'rgba(255,255,255,0.03)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+              ))}
             </div>
+          ) : !recentDisclosures || recentDisclosures.length === 0 ? (
+            <div style={{ padding: '48px 0', textAlign: 'center', color: '#52525B', fontSize: 14 }}>
+              오늘 공시를 기다리는 중...
+            </div>
+          ) : (
+            <div>
+              {recentDisclosures.slice(0, 5).map((d, i) => {
+                const gc = GRADE_COLORS[d.grade] || { bg: '#52525B', color: '#fff' }
+                const kstTime = d.created_at ? (() => {
+                  const dt = new Date(d.created_at)
+                  const k = new Date(dt.getTime() + 9 * 3600000)
+                  return `${String(k.getUTCHours()).padStart(2, '0')}:${String(k.getUTCMinutes()).padStart(2, '0')}`
+                })() : ''
 
-            {/* 3. 추적 */}
-            <div style={{
-              padding: '20px', borderRadius: 14,
-              background: 'rgba(37,99,235,0.04)', border: '1px solid rgba(37,99,235,0.08)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#2563EB', color: '#fff', letterSpacing: '0.05em' }}>TRACK</span>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>공시 후 5거래일 추적</span>
-              </div>
-              <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
-                S/A/D 등급 공시가 발표된 <span style={{ color: '#18181B', fontWeight: 600 }}>그 시각의 실제 주가</span>를 기준으로 5거래일간 주가 변동을 추적합니다. "이 공시가 정말 주가를 올렸는가?" — 감이 아닌 <span style={{ color: '#2563EB', fontWeight: 600 }}>데이터로 증명</span>합니다.
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {[
-                  { name: '빅텍', change: '+4.8%', color: '#DC2626' },
-                  { name: '티씨케이', change: '+4.3%', color: '#DC2626' },
-                  { name: '유니트론텍', change: '-4.4%', color: '#2563EB' },
-                ].map((ex, i) => (
-                  <div key={i} style={{ flex: 1, padding: '8px 10px', borderRadius: 8, background: '#FFFFFF', textAlign: 'center' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#18181B', marginBottom: 2 }}>{ex.name}</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: ex.color, fontFamily: FONTS.mono }}>{ex.change}</div>
+                return (
+                  <div key={d.rcept_no}
+                    onClick={() => d.corp_code ? navigate(`/deep-dive/${d.corp_code}`) : go()}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '18px 0', cursor: 'pointer',
+                      borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                      transition: 'opacity 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.6'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+                      background: gc.bg, color: gc.color || '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono,
+                    }}>
+                      {d.grade}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#FAFAFA' }}>{d.corp_name}</div>
+                      <div style={{
+                        fontSize: 13, color: '#52525B', marginTop: 2,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>{d.report_nm}</div>
+                    </div>
+                    <span style={{ fontSize: 12, color: '#3F3F46', fontFamily: FONTS.mono, flexShrink: 0 }}>
+                      {kstTime}
+                    </span>
                   </div>
-                ))}
+                )
+              })}
+              <div style={{ textAlign: 'center', marginTop: 32 }}>
+                <button onClick={go} style={{
+                  padding: '10px 28px', borderRadius: 8,
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'transparent', color: '#71717A',
+                  fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                  onMouseEnter={e => { e.target.style.borderColor = 'rgba(255,255,255,0.25)'; e.target.style.color = '#FAFAFA' }}
+                  onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.color = '#71717A' }}
+                >
+                  전체 공시 보기
+                </button>
               </div>
-              <div onClick={() => navigate('/history')} style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: '#2563EB', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                추적 현황 보기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-              </div>
             </div>
-          </div>
+          )}
+        </div>
+      </section>
 
-          {/* Buffett AI — 채팅 프리뷰 */}
-          <div style={{
-            padding: '20px', borderRadius: 14, marginBottom: 14,
-            background: 'rgba(217,119,6,0.04)', border: '1px solid rgba(217,119,6,0.08)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-              <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#D97706', color: '#fff', letterSpacing: '0.05em' }}>AI</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>Buffett AI · 가치투자 분석</span>
-            </div>
-            <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
-              종목명만 입력하면 워런 버핏의 가치투자 원칙으로 <span style={{ color: '#18181B', fontWeight: 600 }}>내재가치, 경제적 해자, 재무 건전성</span> 등 6가지 관점에서 분석합니다. DART 재무제표 + 실시간 시세 + Google Search를 결합한 AI 리포트를 받아보세요.
-            </div>
-
-            {/* 채팅 시뮬레이션 */}
-            <div style={{
-              borderRadius: 12, overflow: 'hidden',
-              border: '1px solid #F0F0F2', background: '#FAFAFA',
+      {/* ━━━ 3. 작동 방식 — 3단계 ━━━ */}
+      <section style={{ borderTop: '1px solid #1A1A1E' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
+          <Reveal>
+            <p style={{ fontSize: 13, color: '#52525B', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>HOW IT WORKS</p>
+            <h2 style={{
+              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#FAFAFA', textAlign: 'center', margin: '0 0 56px',
+              letterSpacing: '-0.02em',
             }}>
-              {/* 채팅 헤더 */}
+              3단계로 핵심만 잡아냅니다
+            </h2>
+          </Reveal>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+            {[
+              {
+                step: '01',
+                title: '실시간 수집',
+                desc: 'DART에서 하루 800건 이상의 공시를 1분 간격으로 수집합니다.',
+              },
+              {
+                step: '02',
+                title: 'AI 등급 분류',
+                desc: '자사주 소각, 대형 계약, 실적 급변 등 주가에 영향을 주는 공시만 S/A/D 등급으로 선별합니다.',
+              },
+              {
+                step: '03',
+                title: '주가 추적',
+                desc: '등급 공시 발표 시점부터 5거래일간 실제 주가 변동을 추적하여 데이터로 검증합니다.',
+              },
+            ].map((item, i) => (
+              <Reveal key={i} d={i * 100}>
+                <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+                  <span style={{
+                    fontSize: 32, fontWeight: 800, fontFamily: FONTS.mono,
+                    color: i === 1 ? R : '#27272A', lineHeight: 1, flexShrink: 0,
+                    width: 48,
+                  }}>{item.step}</span>
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#FAFAFA', marginBottom: 8 }}>{item.title}</div>
+                    <div style={{ fontSize: 15, color: '#71717A', lineHeight: 1.7 }}>{item.desc}</div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ━━━ 4. Buffett AI ━━━ */}
+      <section style={{ borderTop: '1px solid #1A1A1E' }}>
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
+          <Reveal>
+            <p style={{ fontSize: 13, color: '#52525B', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>AI ANALYST</p>
+            <h2 style={{
+              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#FAFAFA', textAlign: 'center', margin: '0 0 16px',
+              letterSpacing: '-0.02em',
+            }}>
+              종목을 물어보세요
+            </h2>
+            <p style={{ fontSize: 15, color: '#52525B', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
+              DART 재무제표 + 실시간 시세 + AI 추론으로<br />가치투자 관점의 분석 리포트를 제공합니다.
+            </p>
+          </Reveal>
+
+          {/* 채팅 시뮬레이션 */}
+          <Reveal d={100}>
+            <div style={{
+              borderRadius: 16, overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,0.08)',
+              background: '#0C0C0E',
+            }}>
               <div style={{
-                padding: '10px 14px', background: '#FFFFFF',
-                borderBottom: '1px solid #F0F0F2',
-                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '12px 16px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                display: 'flex', alignItems: 'center', gap: 10,
               }}>
-                <img src="/bufit.png" alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>Buffett AI</span>
-                <span style={{ fontSize: 10, color: '#16A34A', fontWeight: 600, marginLeft: 'auto' }}>Online</span>
+                <img src="/bufit.png" alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#FAFAFA' }}>Buffett AI</span>
               </div>
 
-              <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {/* 사용자 질문 */}
+              <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <div style={{
-                    padding: '8px 14px', borderRadius: '14px 14px 4px 14px',
-                    background: '#D97706', color: '#fff',
-                    fontSize: 13, fontWeight: 500, maxWidth: '75%',
+                    padding: '10px 16px', borderRadius: '16px 16px 4px 16px',
+                    background: R, color: '#fff',
+                    fontSize: 14, fontWeight: 500,
                   }}>
                     SK하이닉스 지금 사도 될까?
                   </div>
                 </div>
 
-                {/* AI 응답 */}
-                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <img src="/bufit.png" alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, marginTop: 2 }} />
                   <div style={{ flex: 1 }}>
                     <div style={{
-                      padding: '10px 14px', borderRadius: '4px 14px 14px 14px',
-                      background: '#FFFFFF', border: '1px solid #F0F0F2',
-                      fontSize: 13, color: '#3F3F46', lineHeight: 1.7,
+                      padding: '12px 16px', borderRadius: '4px 16px 16px 16px',
+                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
+                      fontSize: 14, color: '#A1A1AA', lineHeight: 1.7,
                     }}>
-                      <strong style={{ color: '#18181B' }}>현재 안전마진 +18%로 매력적인 구간</strong>입니다. HBM3E 독점 공급으로 경제적 해자가 견고하고, 부채비율 32%로 재무 건전성도 양호해요. 다만 반도체 사이클 하락 시 실적 변동성이 크다는 점은 유의하세요.
+                      <span style={{ color: '#FAFAFA', fontWeight: 600 }}>현재 안전마진 +18%로 매력적인 구간</span>입니다. HBM3E 독점 공급으로 해자가 견고하고, 부채비율 32%로 재무도 양호해요.
                     </div>
 
-                    {/* 스코어카드 */}
                     <div style={{
-                      marginTop: 8, padding: '10px 12px', borderRadius: 10,
-                      background: '#FFFFFF', border: '1px solid #F0F0F2',
+                      marginTop: 10, padding: '12px 14px', borderRadius: 12,
+                      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
                     }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#D97706', marginBottom: 8, letterSpacing: '0.03em' }}>SCORECARD</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {[
-                          { label: '안전마진', value: '+18%', pct: 68, color: '#D97706' },
-                          { label: '경제적 해자', value: '넓음', pct: 85, color: '#16A34A' },
-                          { label: '부채비율', value: '32%', pct: 82, color: '#16A34A' },
-                          { label: 'ROE', value: '21.4%', pct: 78, color: '#0EA5E9' },
+                          { label: '안전마진', value: '+18%', pct: 68 },
+                          { label: '경제적 해자', value: '넓음', pct: 85 },
+                          { label: '부채비율', value: '32%', pct: 82 },
+                          { label: 'ROE', value: '21.4%', pct: 78 },
                         ].map((m, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontSize: 11, color: '#71717A', width: 56, flexShrink: 0 }}>{m.label}</span>
-                            <div style={{ flex: 1, height: 4, borderRadius: 2, background: '#F4F4F5', overflow: 'hidden' }}>
-                              <div style={{ width: `${m.pct}%`, height: '100%', borderRadius: 2, background: m.color, transition: 'width 1s ease' }} />
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 12, color: '#52525B', width: 60, flexShrink: 0 }}>{m.label}</span>
+                            <div style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                              <div style={{ width: `${m.pct}%`, height: '100%', borderRadius: 2, background: R }} />
                             </div>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: m.color, fontFamily: FONTS.mono, width: 40, textAlign: 'right' }}>{m.value}</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: '#FAFAFA', fontFamily: FONTS.mono, width: 40, textAlign: 'right' }}>{m.value}</span>
                           </div>
                         ))}
                       </div>
@@ -400,252 +440,73 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* 입력 바 */}
               <div style={{
-                padding: '10px 14px', background: '#FFFFFF',
-                borderTop: '1px solid #F0F0F2',
-                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '12px 16px',
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+                display: 'flex', alignItems: 'center', gap: 10,
               }}>
                 <div style={{
-                  flex: 1, padding: '8px 12px', borderRadius: 8,
-                  background: '#F4F4F5', fontSize: 12, color: '#A1A1AA',
+                  flex: 1, padding: '10px 14px', borderRadius: 10,
+                  background: 'rgba(255,255,255,0.04)', fontSize: 13, color: '#3F3F46',
                 }}>
-                  종목명이나 궁금한 점을 물어보세요
+                  종목명을 입력하세요
                 </div>
                 <div style={{
-                  width: 28, height: 28, borderRadius: 14,
-                  background: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 32, height: 32, borderRadius: 8,
+                  background: R, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
                 </div>
               </div>
             </div>
+          </Reveal>
 
-            {/* 예시 질문 칩 */}
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
-              {['삼성전자 사야 할까?', '현대차 해자 있어?', 'POSCO 레드플래그?'].map((q, i) => (
-                <span key={i} style={{
-                  fontSize: 11, color: '#D97706', fontWeight: 500,
-                  padding: '4px 10px', borderRadius: 20,
-                  background: 'rgba(217,119,6,0.06)', border: '1px solid rgba(217,119,6,0.12)',
-                }}>{q}</span>
-              ))}
+          <Reveal d={200}>
+            <div style={{ textAlign: 'center', marginTop: 32 }}>
+              <button onClick={() => { navigate('/premium'); setTimeout(() => window.dispatchEvent(new Event('open-buffett-chat')), 500) }} style={{
+                padding: '12px 32px', borderRadius: 10, border: 'none',
+                background: R, color: '#fff',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 24px rgba(220,38,38,0.4)' }}
+                onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = 'none' }}
+              >
+                무료 1회 체험하기
+              </button>
             </div>
-
-            <div onClick={() => navigate('/premium')} style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: '#D97706', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-              무료 1회 체험하기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-            </div>
-          </div>
-
-          {/* 서재 — 5권 소개 */}
-          <div style={{
-            padding: '20px', borderRadius: 14,
-            background: 'rgba(14,165,233,0.04)', border: '1px solid rgba(14,165,233,0.08)',
-            marginBottom: 14,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-              <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#0EA5E9', color: '#fff', letterSpacing: '0.05em' }}>LIBRARY</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>투자 서재 · 무료 전자책</span>
-            </div>
-            <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
-              공시 읽는 법부터 퀀트 투자까지, <span style={{ color: '#18181B', fontWeight: 600 }}>실전에 바로 쓸 수 있는 전자책 5권</span>을 무료로 제공합니다. 회원가입만 하면 전부 열람 가능합니다.
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-              {[
-                { tag: 'NEW', tagColor: '#DC2626', title: '전자공시 시그널 가이드', desc: 'S/A/D 등급의 의미와 실전 매매 타이밍' },
-                { tag: '실전', tagColor: '#0EA5E9', title: '전자공시 시그널', desc: '공시 유형별 주가 반응 패턴 분석' },
-                { tag: '철학', tagColor: '#7C3AED', title: '코스톨라니의 달걀', desc: '금리·심리·유동성으로 시장 사이클 읽기' },
-                { tag: '퀀트', tagColor: '#16A34A', title: '데이터 퀀트', desc: '팩터 투자와 데이터 기반 종목 선정법' },
-              ].map((book, i) => (
-                <div key={i} style={{
-                  padding: '12px', borderRadius: 10,
-                  background: '#FFFFFF', border: '1px solid #F0F0F2',
-                  transition: 'transform 0.15s, box-shadow 0.15s', cursor: 'pointer',
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)' }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
-                  onClick={() => navigate('/library')}
-                >
-                  <span style={{
-                    fontSize: 8, fontWeight: 800, padding: '2px 5px', borderRadius: 3,
-                    background: book.tagColor, color: '#fff', letterSpacing: '0.04em',
-                  }}>{book.tag}</span>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#18181B', marginTop: 6, marginBottom: 3 }}>{book.title}</div>
-                  <div style={{ fontSize: 11, color: '#A1A1AA', lineHeight: 1.4 }}>{book.desc}</div>
-                </div>
-              ))}
-            </div>
-            {/* 5번째 책 — 풀 와이드 */}
-            <div style={{
-              marginTop: 8, padding: '10px 12px', borderRadius: 10,
-              background: '#FFFFFF', border: '1px solid #F0F0F2',
-              display: 'flex', alignItems: 'center', gap: 10,
-              transition: 'transform 0.15s, box-shadow 0.15s', cursor: 'pointer',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)' }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
-              onClick={() => navigate('/library')}
-            >
-              <span style={{ fontSize: 8, fontWeight: 800, padding: '2px 5px', borderRadius: 3, background: '#D97706', color: '#fff', letterSpacing: '0.04em', flexShrink: 0 }}>AI</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>AI 핵심원리</span>
-              <span style={{ fontSize: 11, color: '#A1A1AA' }}>— 회귀분석부터 신경망까지, 투자 AI의 수학</span>
-            </div>
-
-            <div onClick={() => navigate('/library')} style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: '#0EA5E9', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-              서재 열기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-            </div>
-          </div>
-
-          {/* 이벤트 */}
-          <div style={{
-            padding: '16px', borderRadius: 12,
-            background: 'rgba(22,163,74,0.04)', border: '1px solid rgba(22,163,74,0.08)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>이벤트</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {[
-                { tag: '글로벌', title: '미·일 정상회담' },
-                { tag: '산업', title: 'NVIDIA GTC 2026' },
-                { tag: '매크로', title: '슈퍼 목요일' },
-              ].map((ev, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: '#16A34A', color: '#fff' }}>{ev.tag}</span>
-                  <span style={{ color: '#18181B', fontWeight: i === 0 ? 600 : 400 }}>{ev.title}</span>
-                </div>
-              ))}
-            </div>
-            <div onClick={() => navigate('/dart-event')} style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: '#16A34A', cursor: 'pointer' }}>
-              이벤트 보기 →
-            </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* ━━━ 최신 공시 (토스 랭킹 리스트 스타일) ━━━ */}
-      <section style={{ background: '#FFFFFF', borderTop: '1px solid #E4E4E7' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px clamp(20px, 5vw, 40px)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: FONTS.serif, margin: 0, color: '#18181B' }}>
-              최신 공시
-            </h2>
-            <button onClick={go} style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 13, fontWeight: 600, color: PREMIUM.accent, padding: 0,
+      {/* ━━━ 5. 최종 CTA ━━━ */}
+      <section style={{ borderTop: '1px solid #1A1A1E' }}>
+        <div style={{
+          maxWidth: 480, margin: '0 auto', textAlign: 'center',
+          padding: 'clamp(80px, 10vh, 120px) clamp(20px, 5vw, 40px)',
+        }}>
+          <Reveal>
+            <h2 style={{
+              fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#FAFAFA', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
-              전체 보기 →
-            </button>
-          </div>
-
-          {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} style={{ height: 72, borderRadius: 12, background: '#F4F4F5', animation: 'pulse 1.4s ease-in-out infinite' }} />
-              ))}
-            </div>
-          ) : !recentDisclosures || recentDisclosures.length === 0 ? (
-            <div style={{ padding: '48px 0', textAlign: 'center', color: '#A1A1AA', fontSize: 14 }}>
-              오늘 공시를 기다리는 중...
-            </div>
-          ) : (
-            recentDisclosures.slice(0, 8).map((d, i) => {
-              const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
-              const kstTime = d.created_at ? (() => {
-                const dt = new Date(d.created_at)
-                const k = new Date(dt.getTime() + 9 * 3600000)
-                return `${String(k.getUTCHours()).padStart(2, '0')}:${String(k.getUTCMinutes()).padStart(2, '0')}`
-              })() : ''
-
-              return (
-                <div key={d.rcept_no}
-                  onClick={() => d.corp_code ? navigate(`/deep-dive/${d.corp_code}`) : navigate('/today')}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 14,
-                    padding: '16px 0', cursor: 'pointer',
-                    borderBottom: i < Math.min(recentDisclosures.length, 8) - 1 ? '1px solid #F4F4F5' : 'none',
-                    minHeight: 72, transition: 'opacity 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                >
-                  {/* 원형 등급 배지 */}
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 22, flexShrink: 0,
-                    background: gc.bg, color: gc.color || '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 15, fontWeight: 800, fontFamily: FONTS.mono,
-                  }}>
-                    {d.grade}
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: '#18181B', fontFamily: FONTS.serif }}>
-                      {d.corp_name}
-                    </div>
-                    <div style={{
-                      fontSize: 13, color: '#A1A1AA', marginTop: 3,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {d.report_nm}
-                    </div>
-                  </div>
-
-                  <span style={{ fontSize: 12, color: '#A1A1AA', fontFamily: FONTS.mono, flexShrink: 0 }}>
-                    {kstTime}
-                  </span>
-                </div>
-              )
-            })
-          )}
-        </div>
-      </section>
-
-      {/* ━━━ 전자공시 시그널 가이드 ━━━ */}
-      <section style={{
-        background: '#FAF8F5', borderTop: '1px solid #E8E4DD',
-        padding: 'clamp(40px, 6vh, 64px) clamp(20px, 5vw, 40px)',
-      }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
-          <span style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
-            padding: '3px 8px', borderRadius: 4,
-            background: 'linear-gradient(135deg, #9E7A2F, #C9A84C)', color: '#fff',
-          }}>GUIDE</span>
-          <h2 style={{
-            fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 700,
-            fontFamily: FONTS.serif, color: '#1A1A1A',
-            lineHeight: 1.3, margin: '14px 0 8px',
-          }}>
-            전자공시 시그널 <span style={{ color: '#9E7A2F' }}>가이드</span>
-          </h2>
-          <p style={{ fontSize: 14, color: '#71717A', lineHeight: 1.7, margin: '0 0 24px' }}>
-            800건의 공시에서 진짜 시그널을 찾아내는 체계적 방법론
-          </p>
-          <a href="https://jessylimitless.github.io/dartbook/" target="_blank" rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '12px 28px', borderRadius: 12, border: 'none',
-              background: 'linear-gradient(135deg, #9E7A2F, #B8922E)', color: '#fff',
-              fontSize: 14, fontWeight: 600, textDecoration: 'none',
-              boxShadow: '0 2px 8px rgba(158,122,47,0.3)',
+              공시를 읽는 새로운 방법
+            </h2>
+            <p style={{ fontSize: 15, color: '#52525B', margin: '0 0 36px', lineHeight: 1.6 }}>
+              매일 저녁, 3분이면 충분합니다.
+            </p>
+            <button onClick={go} style={{
+              padding: '16px 48px', borderRadius: 10, border: 'none',
+              background: R, color: '#fff',
+              fontSize: 16, fontWeight: 700, cursor: 'pointer',
               transition: 'all 0.2s',
             }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'none'}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-            </svg>
-            무료로 읽기
-          </a>
+              onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 24px rgba(220,38,38,0.4)' }}
+              onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = 'none' }}
+            >
+              무료로 시작하기
+            </button>
+          </Reveal>
         </div>
       </section>
 
@@ -653,70 +514,46 @@ export default function LandingPage() {
       {showLoginToast && (
         <div style={{
           position: 'fixed', top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 10000,
-          background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)',
-          borderRadius: 16, padding: '24px 32px',
-          textAlign: 'center',
-          animation: 'fadeIn 0.2s ease',
+          transform: 'translate(-50%, -50%)', zIndex: 10000,
+          background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(12px)',
+          borderRadius: 16, padding: '24px 32px', textAlign: 'center',
         }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#FAFAFA', marginBottom: 6 }}>
-            Beta Version
-          </div>
-          <div style={{ fontSize: 13, color: '#A1A1AA', lineHeight: 1.5 }}>
-            현재 테스트 버전으로 운영 중입니다
-          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#FAFAFA', marginBottom: 6 }}>Beta Version</div>
+          <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.5 }}>현재 테스트 버전으로 운영 중입니다</div>
         </div>
       )}
 
       {/* ━━━ 푸터 ━━━ */}
-      <footer style={{
-        background: '#111113', color: '#71717A',
-        borderTop: '1px solid #27272A',
-      }}>
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px clamp(24px, 5vw, 48px) 40px' }}>
-          {/* 상단: 로고 + CTA */}
+      <footer style={{ borderTop: '1px solid #1A1A1E' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px clamp(24px, 5vw, 48px) 40px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-            <span style={{ fontSize: 20, fontFamily: FONTS.serif, fontWeight: 700, color: '#FAFAFA' }}>
-              DART <span style={{ color: PREMIUM.accent }}>Insight</span>
+            <span style={{ fontSize: 18, fontFamily: FONTS.serif, fontWeight: 700, color: '#FAFAFA' }}>
+              DART <span style={{ color: R }}>Insight</span>
             </span>
-            <button onClick={go} style={{
-              padding: '10px 24px', borderRadius: 8, border: 'none',
-              background: PREMIUM.accent, color: '#fff',
-              fontSize: 14, fontWeight: 600, cursor: 'pointer',
-            }}>대시보드 열기</button>
           </div>
 
-          {/* 회사 정보 */}
-          <div style={{ fontSize: 14, lineHeight: 2, color: '#71717A', marginBottom: 28 }}>
-            <div style={{ fontWeight: 700, color: '#A1A1AA', marginBottom: 6, fontSize: 15 }}>주식회사 뮤즈에이아이</div>
+          <div style={{ fontSize: 13, lineHeight: 2, color: '#3F3F46', marginBottom: 24 }}>
+            <div style={{ fontWeight: 600, color: '#52525B', marginBottom: 4 }}>주식회사 뮤즈에이아이</div>
             <div>사업자등록번호 : 764-88-03375</div>
             <div>서울특별시 은평구 통일로62길 7, 3층</div>
           </div>
 
-          {/* 약관 링크 */}
-          <div style={{ display: 'flex', gap: 24, marginBottom: 28 }}>
+          <div style={{ display: 'flex', gap: 20, marginBottom: 24 }}>
             <span onClick={() => setShowTerms('terms')} style={{
-              fontSize: 14, color: '#A1A1AA', cursor: 'pointer',
-              borderBottom: '1px solid #52525B', paddingBottom: 2,
-            }}>
-              서비스 이용약관
-            </span>
+              fontSize: 13, color: '#52525B', cursor: 'pointer',
+              borderBottom: '1px solid #27272A', paddingBottom: 1,
+            }}>이용약관</span>
             <span onClick={() => setShowTerms('privacy')} style={{
-              fontSize: 14, color: '#A1A1AA', cursor: 'pointer',
-              borderBottom: '1px solid #52525B', paddingBottom: 2,
-            }}>
-              개인정보 처리방침
-            </span>
+              fontSize: 13, color: '#52525B', cursor: 'pointer',
+              borderBottom: '1px solid #27272A', paddingBottom: 1,
+            }}>개인정보 처리방침</span>
           </div>
 
-          {/* 저작권 */}
           <div style={{
-            fontSize: 13, color: '#52525B', lineHeight: 1.6,
-            borderTop: '1px solid #1E1E22', paddingTop: 20,
+            fontSize: 12, color: '#27272A', lineHeight: 1.6,
+            borderTop: '1px solid #1A1A1E', paddingTop: 20,
           }}>
-            © 2026 MuseAI Inc. All rights reserved.<br />
-            DART Insight는 주식회사 뮤즈에이아이의 서비스입니다.
+            © 2026 MuseAI Inc. All rights reserved.
           </div>
         </div>
       </footer>
@@ -725,37 +562,38 @@ export default function LandingPage() {
       {showTerms && (
         <div onClick={() => setShowTerms(null)} style={{
           position: 'fixed', inset: 0, zIndex: 10000,
-          background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: 20,
+          background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20, backdropFilter: 'blur(8px)',
         }}>
           <div onClick={e => e.stopPropagation()} style={{
-            background: '#FFFFFF', borderRadius: 16, width: '100%', maxWidth: 560,
+            background: '#0C0C0E', border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 16, width: '100%', maxWidth: 560,
             maxHeight: '80vh', overflow: 'auto', padding: '28px 24px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#FAFAFA' }}>
                 {showTerms === 'terms' ? '서비스 이용약관' : '개인정보 처리방침'}
               </h3>
-              <button onClick={() => setShowTerms(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#71717A' }}>✕</button>
+              <button onClick={() => setShowTerms(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#52525B' }}>✕</button>
             </div>
             {showTerms === 'terms' ? (
-              <div style={{ fontSize: 13, color: '#52525B', lineHeight: 1.8 }}>
-                <p><strong>제1조 (목적)</strong><br/>이 약관은 주식회사 뮤즈에이아이(이하 "회사")가 제공하는 DART Insight 서비스(이하 "서비스")의 이용 조건 및 절차에 관한 사항을 규정함을 목적으로 합니다.</p>
-                <p><strong>제2조 (서비스 내용)</strong><br/>회사는 DART·KIND 공시 정보의 수집, 분류, 분석 및 관련 콘텐츠를 제공합니다. 서비스의 구체적인 내용은 회사의 정책에 따라 변경될 수 있습니다.</p>
-                <p><strong>제3조 (이용자의 의무)</strong><br/>이용자는 서비스를 통해 제공되는 정보를 투자 판단의 참고 자료로만 활용해야 하며, 이를 근거로 한 투자 손실에 대해 회사는 책임을 지지 않습니다.</p>
-                <p><strong>제4조 (면책)</strong><br/>본 서비스에서 제공하는 모든 정보는 참고용이며, 특정 종목에 대한 매수·매도 추천이 아닙니다. 모든 투자 판단과 그에 따른 결과는 전적으로 이용자 본인의 책임입니다.</p>
-                <p><strong>제5조 (저작권)</strong><br/>서비스 내 콘텐츠(브리핑, 분석, 전자책 등)의 저작권은 회사에 귀속되며, 무단 복제·배포를 금지합니다.</p>
-                <p><strong>제6조 (서비스 변경 및 중단)</strong><br/>회사는 운영상 필요한 경우 서비스의 전부 또는 일부를 변경하거나 중단할 수 있으며, 이에 대해 사전 공지합니다.</p>
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.8 }}>
+                <p><strong style={{ color: '#A1A1AA' }}>제1조 (목적)</strong><br/>이 약관은 주식회사 뮤즈에이아이(이하 "회사")가 제공하는 DART Insight 서비스(이하 "서비스")의 이용 조건 및 절차에 관한 사항을 규정함을 목적으로 합니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>제2조 (서비스 내용)</strong><br/>회사는 DART·KIND 공시 정보의 수집, 분류, 분석 및 관련 콘텐츠를 제공합니다. 서비스의 구체적인 내용은 회사의 정책에 따라 변경될 수 있습니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>제3조 (이용자의 의무)</strong><br/>이용자는 서비스를 통해 제공되는 정보를 투자 판단의 참고 자료로만 활용해야 하며, 이를 근거로 한 투자 손실에 대해 회사는 책임을 지지 않습니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>제4조 (면책)</strong><br/>본 서비스에서 제공하는 모든 정보는 참고용이며, 특정 종목에 대한 매수·매도 추천이 아닙니다. 모든 투자 판단과 그에 따른 결과는 전적으로 이용자 본인의 책임입니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>제5조 (저작권)</strong><br/>서비스 내 콘텐츠(브리핑, 분석, 전자책 등)의 저작권은 회사에 귀속되며, 무단 복제·배포를 금지합니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>제6조 (서비스 변경 및 중단)</strong><br/>회사는 운영상 필요한 경우 서비스의 전부 또는 일부를 변경하거나 중단할 수 있으며, 이에 대해 사전 공지합니다.</p>
               </div>
             ) : (
-              <div style={{ fontSize: 13, color: '#52525B', lineHeight: 1.8 }}>
-                <p><strong>1. 수집하는 개인정보</strong><br/>회사는 Google 로그인을 통해 이메일 주소, 이름, 프로필 사진을 수집합니다. 별도의 회원가입 절차 없이 Google 계정 정보만 활용합니다.</p>
-                <p><strong>2. 개인정보의 이용 목적</strong><br/>수집된 정보는 서비스 이용자 식별, 관심종목 관리, 서비스 개선을 위한 통계 분석에 활용됩니다.</p>
-                <p><strong>3. 개인정보의 보유 및 이용 기간</strong><br/>이용자의 개인정보는 서비스 탈퇴 시까지 보유하며, 탈퇴 요청 시 지체 없이 파기합니다.</p>
-                <p><strong>4. 개인정보의 제3자 제공</strong><br/>회사는 이용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다. 다만, 법령에 의한 요청이 있는 경우 예외로 합니다.</p>
-                <p><strong>5. 개인정보의 안전성 확보 조치</strong><br/>회사는 개인정보의 안전한 처리를 위해 SSL 암호화 통신, 접근 권한 제한 등 기술적·관리적 보호 조치를 시행합니다.</p>
-                <p><strong>6. 정보주체의 권리</strong><br/>이용자는 언제든지 자신의 개인정보에 대한 열람, 수정, 삭제를 요청할 수 있으며, 회사는 이에 지체 없이 응합니다.</p>
-                <p><strong>7. 개인정보 보호 책임자</strong><br/>주식회사 뮤즈에이아이 (문의: dartinsight@museai.co.kr)</p>
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.8 }}>
+                <p><strong style={{ color: '#A1A1AA' }}>1. 수집하는 개인정보</strong><br/>회사는 Google 로그인을 통해 이메일 주소, 이름, 프로필 사진을 수집합니다. 별도의 회원가입 절차 없이 Google 계정 정보만 활용합니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>2. 개인정보의 이용 목적</strong><br/>수집된 정보는 서비스 이용자 식별, 관심종목 관리, 서비스 개선을 위한 통계 분석에 활용됩니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>3. 개인정보의 보유 및 이용 기간</strong><br/>이용자의 개인정보는 서비스 탈퇴 시까지 보유하며, 탈퇴 요청 시 지체 없이 파기합니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>4. 개인정보의 제3자 제공</strong><br/>회사는 이용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다. 다만, 법령에 의한 요청이 있는 경우 예외로 합니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>5. 개인정보의 안전성 확보 조치</strong><br/>회사는 개인정보의 안전한 처리를 위해 SSL 암호화 통신, 접근 권한 제한 등 기술적·관리적 보호 조치를 시행합니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>6. 정보주체의 권리</strong><br/>이용자는 언제든지 자신의 개인정보에 대한 열람, 수정, 삭제를 요청할 수 있으며, 회사는 이에 지체 없이 응합니다.</p>
+                <p><strong style={{ color: '#A1A1AA' }}>7. 개인정보 보호 책임자</strong><br/>주식회사 뮤즈에이아이 (문의: dartinsight@museai.co.kr)</p>
               </div>
             )}
           </div>
@@ -777,15 +615,14 @@ export default function LandingPage() {
    Sub-components
    ════════════════════════════════════════════ */
 
-function AnimatedNumber({ value, color }) {
+function AnimatedNumber({ value }) {
   const [display, setDisplay] = useState(0)
-  const ref = useRef(null)
 
   useEffect(() => {
     if (value <= 0) return
     const duration = 1000
     const start = performance.now()
-    const from = display
+    const from = 0
     const tick = (now) => {
       const p = Math.min((now - start) / duration, 1)
       const eased = 1 - Math.pow(1 - p, 3)
@@ -795,14 +632,7 @@ function AnimatedNumber({ value, color }) {
     requestAnimationFrame(tick)
   }, [value])
 
-  return (
-    <div style={{
-      fontSize: 24, fontWeight: 800, fontFamily: FONTS.mono,
-      color, letterSpacing: -1, lineHeight: 1,
-    }}>
-      {display.toLocaleString()}
-    </div>
-  )
+  return <>{display.toLocaleString()}</>
 }
 
 
@@ -820,8 +650,8 @@ function Reveal({ children, d = 0 }) {
   }, [])
   return (
     <div ref={ref} style={{
-      opacity: v ? 1 : 0, transform: v ? 'none' : 'translateY(10px)',
-      transition: `opacity 0.35s ease ${d}ms, transform 0.35s ease ${d}ms`,
+      opacity: v ? 1 : 0, transform: v ? 'none' : 'translateY(16px)',
+      transition: `opacity 0.5s ease ${d}ms, transform 0.5s ease ${d}ms`,
     }}>{children}</div>
   )
 }
@@ -845,7 +675,7 @@ function EventPopup({ event, onClose, onInsight }) {
       }}>
         <div style={{
           height: 3,
-          background: 'linear-gradient(90deg, #DC2626, #F59E0B, #DC2626)',
+          background: `linear-gradient(90deg, ${R}, #F59E0B, ${R})`,
           backgroundSize: '200% 100%', animation: 'shimmer 3s linear infinite',
         }} />
         <div style={{ padding: '24px 24px 20px' }}>
@@ -875,14 +705,10 @@ function EventPopup({ event, onClose, onInsight }) {
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={onInsight} style={{
               flex: 1, padding: '10px 0', borderRadius: 8, border: 'none',
-              background: PREMIUM.accent, color: '#fff',
+              background: R, color: '#fff',
               fontSize: 13, fontWeight: 600, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-              </svg>
               인사이트 보기
             </button>
             <button onClick={onClose} style={{
@@ -962,7 +788,7 @@ function InsightModal({ event, onClose }) {
         if (match) {
           elements.push(
             <div key={i} style={{ display: 'flex', gap: 6, padding: '4px 0', fontSize: 13 }}>
-              <span style={{ color: '#DC2626', flexShrink: 0 }}>•</span>
+              <span style={{ color: R, flexShrink: 0 }}>•</span>
               <span><strong style={{ color: '#FAFAFA' }}>{match[1]}</strong><span style={{ color: '#A1A1AA' }}> {match[2]}</span></span>
             </div>
           )
@@ -1004,13 +830,8 @@ function InsightModal({ event, onClose }) {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 14, fontWeight: 700, fontFamily: FONTS.serif, color: '#FAFAFA' }}>
-              DART <span style={{ color: PREMIUM.accent }}>Insight</span>
+              DART <span style={{ color: R }}>Insight</span>
             </span>
-            <span style={{
-              fontSize: 9, fontWeight: 700, letterSpacing: '0.1em',
-              padding: '2px 7px', borderRadius: 4,
-              background: 'rgba(220,38,38,0.15)', color: '#F87171',
-            }}>ANALYST BRIEF</span>
           </div>
           <button onClick={onClose} style={{
             background: 'rgba(255,255,255,0.06)', border: 'none',
@@ -1023,73 +844,6 @@ function InsightModal({ event, onClose }) {
           {renderMarkdown(event.insight)}
         </div>
       </div>
-    </div>
-  )
-}
-
-
-// ── 가이드 카드 래퍼 (스크롤 애니메이션) ──
-function GuideCard({ children, delay = 0 }) {
-  const ref = useRef(null)
-  const [v, setV] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const ob = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setV(true); ob.disconnect() }
-    }, { threshold: 0.15 })
-    ob.observe(el)
-    return () => ob.disconnect()
-  }, [])
-  return (
-    <div ref={ref} style={{
-      opacity: v ? 1 : 0,
-      transform: v ? 'translateY(0)' : 'translateY(24px)',
-      transition: `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`,
-    }}>{children}</div>
-  )
-}
-
-
-// ── 실시간 공시 자동 순환 예시 ──
-function LiveExamples() {
-  const examples = [
-    { grade: 'S', color: '#DC2626', name: '삼양사', desc: '주식소각결정' },
-    { grade: 'S', color: '#DC2626', name: '아이씨디', desc: '자기주식취득결정' },
-    { grade: 'A', color: '#0D9488', name: '삼성전자', desc: '영업(잠정)실적 YoY +30%' },
-    { grade: 'S', color: '#DC2626', name: '휴마시스', desc: '주식소각결정 (211억)' },
-    { grade: 'D', color: '#1D4ED8', name: '씨에스베어링', desc: '환기종목 지정' },
-    { grade: 'S', color: '#DC2626', name: '빅텍', desc: '단일판매·공급계약체결' },
-  ]
-  const [idx, setIdx] = useState(0)
-
-  useEffect(() => {
-    const iv = setInterval(() => setIdx(p => (p + 1) % (examples.length - 2)), 2500)
-    return () => clearInterval(iv)
-  }, [])
-
-  const visible = examples.slice(idx, idx + 3)
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minHeight: 108 }}>
-      {visible.map((ex, i) => (
-        <div key={`${ex.name}-${idx}-${i}`} style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '8px 12px', borderRadius: 10, background: '#FFFFFF',
-          animation: 'fadeIn 0.4s ease',
-        }}>
-          <span style={{
-            fontSize: 11, fontWeight: 800, color: '#fff', background: ex.color,
-            padding: '2px 7px', borderRadius: 5, fontFamily: "'Inter', sans-serif",
-          }}>{ex.grade}</span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#18181B' }}>{ex.name}</span>
-          <span style={{ fontSize: 13, color: '#A1A1AA', flex: 1 }}>{ex.desc}</span>
-          <div style={{
-            width: 6, height: 6, borderRadius: 3, background: ex.color,
-            animation: 'pulse 1.5s infinite',
-          }} />
-        </div>
-      ))}
     </div>
   )
 }
