@@ -82,6 +82,34 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- PWA 스플래시 스크린 (React 로드 전 표시, 로드 후 자동 제거) -->
+    <div id="splash" style="
+      position:fixed;inset:0;z-index:99999;
+      background:#09090B;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      transition:opacity 0.3s;
+    ">
+      <img src="/dart.png" alt="DART Insight" style="width:72px;height:72px;border-radius:16px;margin-bottom:20px;" />
+      <div style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:700;color:#FAFAFA;letter-spacing:-0.5px;">
+        DART <span style="color:#DC2626;">Insight</span>
+      </div>
+      <div style="font-size:13px;color:#71717A;margin-top:8px;">AI 공시 큐레이션</div>
+      <div style="margin-top:24px;width:24px;height:24px;border:2px solid #333;border-top-color:#DC2626;border-radius:50%;animation:sp .8s linear infinite;"></div>
+      <style>@keyframes sp{to{transform:rotate(360deg)}}</style>
+    </div>
+    <script>
+      // React가 렌더링되면 스플래시 제거
+      const _ro = new MutationObserver(() => {
+        if (document.getElementById('root')?.children.length > 0) {
+          const s = document.getElementById('splash');
+          if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 300); }
+          _ro.disconnect();
+        }
+      });
+      _ro.observe(document.getElementById('root'), { childList: true });
+    </script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

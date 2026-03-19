@@ -211,33 +211,39 @@ export default function TodayPage({ onViewCard }) {
                     fontWeight: 800, fontFamily: FONTS.mono,
                   }}>{d.grade}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="today-corp" style={{
-                      fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif,
-                    }}>{d.corp_name}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className="today-corp" style={{
+                        fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif,
+                      }}>{d.corp_name}</span>
+                      {(() => {
+                        if (!d.created_at) return null
+                        const dt = new Date(d.created_at)
+                        const kst = new Date(dt.getTime() + 9 * 60 * 60 * 1000)
+                        const t = `${String(kst.getUTCHours()).padStart(2,'0')}:${String(kst.getUTCMinutes()).padStart(2,'0')}`
+                        return <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0 }}>{t}</span>
+                      })()}
+                    </div>
                     <div className="today-sub" style={{
                       color: colors.textMuted, marginTop: 3,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {d.report_nm}
-                      {hasPrice && (
-                        <>
-                          <span style={{ margin: '0 5px', opacity: 0.4 }}>·</span>
-                          <span style={{ fontFamily: FONTS.mono }}>{price.toLocaleString()}원</span>
-                          {' '}
-                          <span style={{ color: priceColor, fontWeight: 600 }}>
-                            {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
-                          </span>
-                        </>
-                      )}
                     </div>
                   </div>
                   <div style={{ flexShrink: 0, textAlign: 'right' }}>
                     {hasPrice ? (
-                      <span className="today-right-num" style={{
-                        fontWeight: 700, fontFamily: FONTS.mono, color: priceColor,
-                      }}>
-                        {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
-                      </span>
+                      <>
+                        <div className="today-right-num" style={{
+                          fontWeight: 700, fontFamily: FONTS.mono, color: priceColor,
+                        }}>
+                          {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
+                        </div>
+                        <div style={{
+                          fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 2,
+                        }}>
+                          {price.toLocaleString()}원
+                        </div>
+                      </>
                     ) : null}
                   </div>
                 </div>

@@ -80,6 +80,7 @@ const BOOKS = [
 
 function BookCard({ book, index, dark, isActive, onHover }) {
   const [visible, setVisible] = useState(false)
+  const [opening, setOpening] = useState(false)
   const hovered = isActive
 
   useEffect(() => {
@@ -87,20 +88,25 @@ function BookCard({ book, index, dark, isActive, onHover }) {
     return () => clearTimeout(timer)
   }, [index])
 
+  const handleOpen = () => {
+    setOpening(true)
+    window.open(book.url, '_blank', 'noopener')
+    setTimeout(() => setOpening(false), 2000)
+  }
+
   const spineWidth = 44
   const coverBg = dark
     ? `linear-gradient(145deg, ${book.color} 0%, ${adjustBrightness(book.color, 20)} 100%)`
     : `linear-gradient(145deg, ${book.color} 0%, ${adjustBrightness(book.color, 30)} 100%)`
 
-  // isActive=false면 다른 책이 호버 중 → 살짝 어둡게
   const dimmed = isActive === false
 
   return (
     <div
       role="link"
       tabIndex={0}
-      onClick={() => window.open(book.url, '_blank', 'noopener')}
-      onKeyDown={(e) => { if (e.key === 'Enter') window.open(book.url, '_blank', 'noopener') }}
+      onClick={handleOpen}
+      onKeyDown={(e) => { if (e.key === 'Enter') handleOpen() }}
       onMouseEnter={() => onHover?.(book.id)}
       onMouseLeave={() => onHover?.(null)}
       style={{
@@ -125,8 +131,23 @@ function BookCard({ book, index, dark, isActive, onHover }) {
         outline: 'none',
         zIndex: hovered ? 10 : 1,
         filter: dimmed ? 'brightness(0.7)' : 'none',
+        position: 'relative',
       }}
     >
+      {/* 로딩 오버레이 */}
+      {opening && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 5,
+          background: 'rgba(0,0,0,0.5)', borderRadius: 6,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            width: 24, height: 24, border: '2px solid rgba(255,255,255,0.2)',
+            borderTopColor: '#fff', borderRadius: '50%',
+            animation: 'sp .8s linear infinite',
+          }} />
+        </div>
+      )}
       {/* Spine */}
       <div style={{
         width: spineWidth,
