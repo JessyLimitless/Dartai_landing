@@ -1,5 +1,5 @@
 // DART Insight — Service Worker (PWA + Push)
-const CACHE_NAME = 'dart-insight-v1'
+const CACHE_NAME = 'dart-insight-v2'
 const OFFLINE_URL = '/today'
 
 // 설치: 핵심 리소스 캐싱
