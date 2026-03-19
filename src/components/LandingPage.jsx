@@ -428,100 +428,83 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* 서재 + 이벤트 — 2열 */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
-            {/* 서재 — 미니 책장 */}
-            <div style={{
-              padding: '16px', borderRadius: 12,
-              background: 'rgba(14,165,233,0.04)', border: '1px solid rgba(14,165,233,0.08)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                </svg>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>서재</span>
-                <span style={{ fontSize: 10, color: '#0EA5E9', fontWeight: 600, marginLeft: 'auto' }}>5권</span>
-              </div>
-
-              {/* 미니 책등 시각화 */}
-              <div style={{
-                display: 'flex', gap: 3, height: 72, alignItems: 'flex-end',
-                padding: '0 4px 6px', marginBottom: 8,
-                borderBottom: '2px solid rgba(14,165,233,0.15)',
-              }}>
-                {[
-                  { title: '시그널\n가이드', color: '#DC2626', w: 22 },
-                  { title: '시그널\n실전', color: '#0EA5E9', w: 20 },
-                  { title: '코스\n톨라니', color: '#7C3AED', w: 18 },
-                  { title: '데이터\n퀀트', color: '#16A34A', w: 20 },
-                  { title: 'AI\n핵심', color: '#D97706', w: 16 },
-                ].map((b, i) => (
-                  <div key={i} style={{
-                    width: b.w, height: 52 + i * 4, borderRadius: '2px 2px 0 0',
-                    background: `linear-gradient(180deg, ${b.color}, ${b.color}dd)`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', transition: 'transform 0.2s, height 0.2s',
-                    position: 'relative',
-                  }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)' }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
-                  >
-                    <span style={{
-                      writingMode: 'vertical-rl', textOrientation: 'mixed',
-                      fontSize: 7, fontWeight: 700, color: '#fff',
-                      letterSpacing: '0.05em', lineHeight: 1.1,
-                      whiteSpace: 'pre-line', textAlign: 'center',
-                    }}>{b.title}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {[
-                  { label: 'NEW', title: '전자공시 시그널 가이드', color: '#DC2626' },
-                  { label: 'HOT', title: '코스톨라니 달걀 모형', color: '#7C3AED' },
-                ].map((b, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11 }}>
-                    <span style={{ fontSize: 8, fontWeight: 800, padding: '1px 4px', borderRadius: 3, background: b.color, color: '#fff' }}>{b.label}</span>
-                    <span style={{ color: '#3F3F46', fontWeight: 500 }}>{b.title}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div onClick={() => navigate('/library')} style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: '#0EA5E9', cursor: 'pointer' }}>
-                서재 열기 →
-              </div>
+          {/* 서재 — 5권 소개 */}
+          <div style={{
+            padding: '20px', borderRadius: 14,
+            background: 'rgba(14,165,233,0.04)', border: '1px solid rgba(14,165,233,0.08)',
+            marginBottom: 14,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+              <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#0EA5E9', color: '#fff', letterSpacing: '0.05em' }}>LIBRARY</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>투자 서재 · 무료 전자책</span>
+            </div>
+            <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
+              공시 읽는 법부터 퀀트 투자까지, <span style={{ color: '#18181B', fontWeight: 600 }}>실전에 바로 쓸 수 있는 전자책 5권</span>을 무료로 제공합니다. 회원가입만 하면 전부 열람 가능합니다.
             </div>
 
-            {/* 이벤트 */}
-            <div style={{
-              padding: '16px', borderRadius: 12,
-              background: 'rgba(22,163,74,0.04)', border: '1px solid rgba(22,163,74,0.08)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>이벤트</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {[
-                  { tag: '글로벌', title: '미·일 정상회담' },
-                  { tag: '산업', title: 'NVIDIA GTC 2026' },
-                  { tag: '매크로', title: '슈퍼 목요일' },
-                ].map((ev, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: '#16A34A', color: '#fff' }}>{ev.tag}</span>
-                    <span style={{ color: '#18181B', fontWeight: i === 0 ? 600 : 400 }}>{ev.title}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                { tag: 'NEW', tagColor: '#DC2626', title: '전자공시 시그널 가이드', desc: '공시 읽는 법을 모른다면 여기서부터. S/A/D 등급의 의미와 실전 매매 타이밍.' },
+                { tag: '실전', tagColor: '#0EA5E9', title: '전자공시 시그널', desc: '자사주 소각, 대형 공급계약, CB 발행 — 공시 유형별 주가 반응 패턴 분석.' },
+                { tag: '철학', tagColor: '#7C3AED', title: '코스톨라니의 달걀', desc: '금리·심리·유동성으로 시장 사이클을 읽는 코스톨라니 달걀 모형 해설.' },
+                { tag: '퀀트', tagColor: '#16A34A', title: '데이터 퀀트', desc: 'PER·PBR·ROE 스크리닝부터 팩터 투자까지, 데이터 기반 종목 선정법.' },
+                { tag: 'AI', tagColor: '#D97706', title: 'AI 핵심원리', desc: '투자에 쓰이는 AI/ML의 수학적 원리. 회귀분석부터 신경망까지 쉽게.' },
+              ].map((book, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 10,
+                  padding: '12px 14px', borderRadius: 10,
+                  background: '#FFFFFF', border: '1px solid #F0F0F2',
+                  transition: 'transform 0.15s, box-shadow 0.15s', cursor: 'pointer',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(4px)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)' }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+                  onClick={() => navigate('/library')}
+                >
+                  <span style={{
+                    fontSize: 8, fontWeight: 800, padding: '2px 5px', borderRadius: 3,
+                    background: book.tagColor, color: '#fff', flexShrink: 0, marginTop: 2,
+                    letterSpacing: '0.04em',
+                  }}>{book.tag}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#18181B', marginBottom: 2 }}>{book.title}</div>
+                    <div style={{ fontSize: 12, color: '#71717A', lineHeight: 1.5 }}>{book.desc}</div>
                   </div>
-                ))}
-              </div>
-              <div onClick={() => navigate('/dart-event')} style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: '#16A34A', cursor: 'pointer' }}>
-                이벤트 보기 →
-              </div>
+                </div>
+              ))}
+            </div>
+
+            <div onClick={() => navigate('/library')} style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: '#0EA5E9', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              서재 열기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </div>
+          </div>
+
+          {/* 이벤트 */}
+          <div style={{
+            padding: '16px', borderRadius: 12,
+            background: 'rgba(22,163,74,0.04)', border: '1px solid rgba(22,163,74,0.08)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>이벤트</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {[
+                { tag: '글로벌', title: '미·일 정상회담' },
+                { tag: '산업', title: 'NVIDIA GTC 2026' },
+                { tag: '매크로', title: '슈퍼 목요일' },
+              ].map((ev, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: '#16A34A', color: '#fff' }}>{ev.tag}</span>
+                  <span style={{ color: '#18181B', fontWeight: i === 0 ? 600 : 400 }}>{ev.title}</span>
+                </div>
+              ))}
+            </div>
+            <div onClick={() => navigate('/dart-event')} style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: '#16A34A', cursor: 'pointer' }}>
+              이벤트 보기 →
             </div>
           </div>
         </div>
