@@ -178,72 +178,106 @@ export default function LandingPage() {
       {/* ━━━ 서비스 활용 가이드 ━━━ */}
       <section style={{ background: '#FFFFFF', borderTop: '1px solid #E4E4E7' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px clamp(20px, 5vw, 40px)' }}>
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <span style={{
-              fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
-              padding: '3px 8px', borderRadius: 4,
-              background: '#18181B', color: '#fff',
-            }}>GUIDE</span>
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
             <h2 style={{
               fontSize: 22, fontWeight: 800, fontFamily: FONTS.serif,
-              color: '#18181B', margin: '12px 0 6px',
+              color: '#18181B', margin: '0 0 6px',
             }}>이렇게 활용하세요</h2>
             <p style={{ fontSize: 14, color: '#71717A' }}>
               매일 저녁 7시, 3분이면 충분합니다
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* 핵심 3개 — 대형 카드 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 14 }}>
             {[
               {
-                num: '01', title: '실시간 공시 확인',
-                desc: 'S/A/D 등급으로 자동 분류된 핵심 공시를 확인하세요',
-                accent: '#DC2626',
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
+                tag: 'CORE',
+                title: '실시간 공시 · S/A/D 등급',
+                desc: '하루 800건 공시를 AI가 자동 분류. 핵심만 확인하세요',
+                accent: '#DC2626', bg: 'rgba(220,38,38,0.04)',
               },
               {
-                num: '02', title: '오늘의 브리핑',
-                desc: '매일 저녁 7시, 전문가가 해석한 공시의 숨겨진 의미를 읽으세요',
-                accent: '#DC2626',
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>,
+                tag: 'DAILY',
+                title: '저녁 7시 브리핑 · DART Pick',
+                desc: '전문가가 해석한 공시의 이면 + 데이터가 가리키는 오늘의 종목',
+                accent: '#DC2626', bg: 'rgba(220,38,38,0.04)',
               },
               {
-                num: '03', title: 'DART Pick',
-                desc: '데이터가 가리키는 오늘의 핵심 종목을 확인하세요',
-                accent: '#DC2626',
-              },
-              {
-                num: '04', title: '공시 후 추적',
-                desc: '공시 발표 후 5거래일간 주가 변동을 추적합니다',
-                accent: '#2563EB',
-              },
-              {
-                num: '05', title: 'Buffett AI',
-                desc: '종목명을 입력하면 내재가치 기반 분석 리포트를 받아보세요',
-                accent: PREMIUM.accent,
-              },
-              {
-                num: '06', title: '전자공시 서재',
-                desc: '공시 분석부터 AI 원리까지, 5권의 전자책으로 투자 역량을 키우세요',
-                accent: '#0EA5E9',
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>,
+                tag: 'TRACK',
+                title: '공시 후 5거래일 추적',
+                desc: '공시 시점 가격 기준, 실제로 얼마나 올랐는지 데이터로 증명',
+                accent: '#2563EB', bg: 'rgba(37,99,235,0.04)',
               },
             ].map((item, i) => (
               <div key={i} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 14,
-                padding: '16px 18px', borderRadius: 12,
-                background: '#FAFAFA',
-                border: '1px solid #F0F0F2',
+                display: 'flex', alignItems: 'center', gap: 16,
+                padding: '20px', borderRadius: 14,
+                background: item.bg,
+                border: `1px solid ${item.accent}15`,
               }}>
-                <span style={{
-                  fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono,
-                  color: item.accent, minWidth: 24, marginTop: 1,
-                }}>{item.num}</span>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B', marginBottom: 3 }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                  background: '#FFFFFF',
+                  border: `1px solid ${item.accent}20`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>{item.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <span style={{
+                      fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
+                      background: item.accent, color: '#fff', letterSpacing: '0.05em',
+                    }}>{item.tag}</span>
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#18181B', marginBottom: 3 }}>
                     {item.title}
                   </div>
                   <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.5 }}>
                     {item.desc}
                   </div>
                 </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 보조 3개 — 컴팩트 가로 그리드 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            {[
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>,
+                title: 'Buffett AI',
+                desc: '내재가치 분석',
+                accent: '#D97706',
+              },
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>,
+                title: '서재',
+                desc: '전자책 5권',
+                accent: '#0EA5E9',
+              },
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
+                title: '이벤트',
+                desc: '글로벌 일정',
+                accent: '#16A34A',
+              },
+            ].map((item, i) => (
+              <div key={i} style={{
+                padding: '16px 12px', borderRadius: 12, textAlign: 'center',
+                background: '#FAFAFA', border: '1px solid #F0F0F2',
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10, margin: '0 auto 10px',
+                  background: `${item.accent}10`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>{item.icon}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#18181B', marginBottom: 2 }}>
+                  {item.title}
+                </div>
+                <div style={{ fontSize: 11, color: '#A1A1AA' }}>{item.desc}</div>
               </div>
             ))}
           </div>
