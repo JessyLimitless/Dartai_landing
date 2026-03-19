@@ -82,7 +82,7 @@ export default function LandingPage() {
   const aCount = stats?.a_count ?? 0
 
   return (
-    <div style={{ fontFamily: FONTS.body, overflowX: 'hidden', background: '#09090B' }}>
+    <div style={{ fontFamily: FONTS.body, overflowX: 'hidden', background: '#FFFFFF' }}>
 
       {showPopup && (
         <EventPopup event={WEEKLY_EVENT} onClose={dismissPopup}
@@ -107,7 +107,7 @@ export default function LandingPage() {
         }}>
           <span style={{
             fontSize: '1.25rem', fontWeight: 700, letterSpacing: -0.5,
-            fontFamily: FONTS.serif, color: '#FAFAFA',
+            fontFamily: FONTS.serif, color: '#18181B',
           }}>
             DART <span style={{ color: R }}>Insight</span>
           </span>
@@ -120,28 +120,28 @@ export default function LandingPage() {
               title="클릭하면 로그아웃"
             >
               {user.picture && <img src={user.picture} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} />}
-              <span style={{ fontSize: 13, color: '#FAFAFA', fontWeight: 500 }}>{user.name?.split(' ')[0]}</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round">
+              <span style={{ fontSize: 13, color: '#18181B', fontWeight: 500 }}>{user.name?.split(' ')[0]}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
               </svg>
             </div>
           ) : (
             <button onClick={handleGoogleLogin} style={{
               padding: '7px 18px', borderRadius: 6,
-              border: '1px solid rgba(255,255,255,0.12)',
-              background: 'transparent', color: '#A1A1AA',
+              border: '1px solid #E4E4E7',
+              background: 'transparent', color: '#71717A',
               fontSize: 13, fontWeight: 500, cursor: 'pointer',
               transition: 'all 0.2s',
             }}
-              onMouseEnter={e => { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.color = '#FAFAFA' }}
-              onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; e.target.style.color = '#A1A1AA' }}
+              onMouseEnter={e => { e.target.style.borderColor = '#A1A1AA'; e.target.style.color = '#18181B' }}
+              onMouseLeave={e => { e.target.style.borderColor = '#E4E4E7'; e.target.style.color = '#71717A' }}
             >로그인</button>
           )}
         </nav>
 
         <div style={{ maxWidth: 600, width: '100%', textAlign: 'center' }}>
           <Reveal>
-            <p style={{ fontSize: 13, color: '#71717A', letterSpacing: '0.1em', fontWeight: 600, margin: '0 0 20px' }}>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.1em', fontWeight: 600, margin: '0 0 20px' }}>
               AI DISCLOSURE INTELLIGENCE
             </p>
           </Reveal>
@@ -150,7 +150,7 @@ export default function LandingPage() {
             <h1 style={{
               fontSize: 'clamp(32px, 6vw, 56px)', fontWeight: 800,
               lineHeight: 1.15, letterSpacing: '-0.03em',
-              margin: '0 0 24px', fontFamily: FONTS.serif, color: '#FAFAFA',
+              margin: '0 0 24px', fontFamily: FONTS.serif, color: '#18181B',
             }}>
               매일 800건의 공시,<br />
               <span style={{ color: R }}>5건</span>만 읽으세요
@@ -181,11 +181,11 @@ export default function LandingPage() {
                 <div key={i} style={{ textAlign: 'center' }}>
                   <div style={{
                     fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, fontFamily: FONTS.mono,
-                    color: s.accent ? R : '#FAFAFA', letterSpacing: -1, lineHeight: 1,
+                    color: s.accent ? R : '#18181B', letterSpacing: -1, lineHeight: 1,
                   }}>
                     <AnimatedNumber value={s.value} /><span style={{ fontSize: '0.5em', fontWeight: 600 }}>{s.suffix}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: '#52525B', marginTop: 6, fontWeight: 500 }}>{s.label}</div>
+                  <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 6, fontWeight: 500 }}>{s.label}</div>
                 </div>
               ))}
             </div>
@@ -211,10 +211,10 @@ export default function LandingPage() {
           <Reveal d={400}>
             <div
               onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-              style={{ marginTop: 56, cursor: 'pointer', opacity: 0.3 }}
+              style={{ marginTop: 56, cursor: 'pointer', opacity: 0.25 }}
             >
               <svg width="24" height="24" viewBox="0 0 16 16" fill="none" style={{ display: 'block', margin: '0 auto' }}>
-                <path d="M4 6L8 10L12 6" stroke="#FAFAFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M4 6L8 10L12 6" stroke="#18181B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
           </Reveal>
@@ -222,16 +222,16 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 2. 소셜 프루프 — 실시간 공시 피드 ━━━ */}
-      <section style={{ borderTop: '1px solid #1A1A1E' }}>
+      <section style={{ borderTop: '1px solid #F4F4F5' }}>
         <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
             <p style={{
-              fontSize: 13, color: '#52525B', letterSpacing: '0.08em', fontWeight: 600,
+              fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600,
               textAlign: 'center', marginBottom: 12,
             }}>LIVE FEED</p>
             <h2 style={{
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
-              color: '#FAFAFA', textAlign: 'center', margin: '0 0 48px',
+              color: '#18181B', textAlign: 'center', margin: '0 0 48px',
               letterSpacing: '-0.02em',
             }}>
               지금 이 공시가 올라왔습니다
@@ -241,17 +241,17 @@ export default function LandingPage() {
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} style={{ height: 64, background: 'rgba(255,255,255,0.03)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+                <div key={i} style={{ height: 64, background: '#F4F4F5', borderRadius: 8, animation: 'pulse 1.4s ease-in-out infinite' }} />
               ))}
             </div>
           ) : !recentDisclosures || recentDisclosures.length === 0 ? (
-            <div style={{ padding: '48px 0', textAlign: 'center', color: '#52525B', fontSize: 14 }}>
+            <div style={{ padding: '48px 0', textAlign: 'center', color: '#A1A1AA', fontSize: 14 }}>
               오늘 공시를 기다리는 중...
             </div>
           ) : (
             <div>
               {recentDisclosures.slice(0, 5).map((d, i) => {
-                const gc = GRADE_COLORS[d.grade] || { bg: '#52525B', color: '#fff' }
+                const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
                 const kstTime = d.created_at ? (() => {
                   const dt = new Date(d.created_at)
                   const k = new Date(dt.getTime() + 9 * 3600000)
@@ -264,7 +264,7 @@ export default function LandingPage() {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 14,
                       padding: '18px 0', cursor: 'pointer',
-                      borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                      borderBottom: i < 4 ? '1px solid #F4F4F5' : 'none',
                       transition: 'opacity 0.15s',
                     }}
                     onMouseEnter={e => e.currentTarget.style.opacity = '0.6'}
@@ -279,13 +279,13 @@ export default function LandingPage() {
                       {d.grade}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: '#FAFAFA' }}>{d.corp_name}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{d.corp_name}</div>
                       <div style={{
-                        fontSize: 13, color: '#52525B', marginTop: 2,
+                        fontSize: 13, color: '#A1A1AA', marginTop: 2,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>{d.report_nm}</div>
                     </div>
-                    <span style={{ fontSize: 12, color: '#3F3F46', fontFamily: FONTS.mono, flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, color: '#A1A1AA', fontFamily: FONTS.mono, flexShrink: 0 }}>
                       {kstTime}
                     </span>
                   </div>
@@ -294,13 +294,13 @@ export default function LandingPage() {
               <div style={{ textAlign: 'center', marginTop: 32 }}>
                 <button onClick={go} style={{
                   padding: '10px 28px', borderRadius: 8,
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  border: '1px solid #E4E4E7',
                   background: 'transparent', color: '#71717A',
                   fontSize: 13, fontWeight: 500, cursor: 'pointer',
                   transition: 'all 0.2s',
                 }}
-                  onMouseEnter={e => { e.target.style.borderColor = 'rgba(255,255,255,0.25)'; e.target.style.color = '#FAFAFA' }}
-                  onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.color = '#71717A' }}
+                  onMouseEnter={e => { e.target.style.borderColor = '#A1A1AA'; e.target.style.color = '#18181B' }}
+                  onMouseLeave={e => { e.target.style.borderColor = '#E4E4E7'; e.target.style.color = '#71717A' }}
                 >
                   전체 공시 보기
                 </button>
@@ -311,13 +311,13 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 3. 작동 방식 — 3단계 ━━━ */}
-      <section style={{ borderTop: '1px solid #1A1A1E' }}>
+      <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
-            <p style={{ fontSize: 13, color: '#52525B', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>HOW IT WORKS</p>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>HOW IT WORKS</p>
             <h2 style={{
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
-              color: '#FAFAFA', textAlign: 'center', margin: '0 0 56px',
+              color: '#18181B', textAlign: 'center', margin: '0 0 56px',
               letterSpacing: '-0.02em',
             }}>
               3단계로 핵심만 잡아냅니다
@@ -346,11 +346,11 @@ export default function LandingPage() {
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <span style={{
                     fontSize: 32, fontWeight: 800, fontFamily: FONTS.mono,
-                    color: i === 1 ? R : '#27272A', lineHeight: 1, flexShrink: 0,
+                    color: i === 1 ? R : '#E4E4E7', lineHeight: 1, flexShrink: 0,
                     width: 48,
                   }}>{item.step}</span>
                   <div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#FAFAFA', marginBottom: 8 }}>{item.title}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#18181B', marginBottom: 8 }}>{item.title}</div>
                     <div style={{ fontSize: 15, color: '#71717A', lineHeight: 1.7 }}>{item.desc}</div>
                   </div>
                 </div>
@@ -361,18 +361,18 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 4. Buffett AI ━━━ */}
-      <section style={{ borderTop: '1px solid #1A1A1E' }}>
+      <section style={{ borderTop: '1px solid #F4F4F5' }}>
         <div style={{ maxWidth: 480, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
-            <p style={{ fontSize: 13, color: '#52525B', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>AI ANALYST</p>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>AI ANALYST</p>
             <h2 style={{
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
-              color: '#FAFAFA', textAlign: 'center', margin: '0 0 16px',
+              color: '#18181B', textAlign: 'center', margin: '0 0 16px',
               letterSpacing: '-0.02em',
             }}>
               종목을 물어보세요
             </h2>
-            <p style={{ fontSize: 15, color: '#52525B', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
               DART 재무제표 + 실시간 시세 + AI 추론으로<br />가치투자 관점의 분석 리포트를 제공합니다.
             </p>
           </Reveal>
@@ -480,7 +480,7 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 5. 최종 CTA ━━━ */}
-      <section style={{ borderTop: '1px solid #1A1A1E' }}>
+      <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{
           maxWidth: 480, margin: '0 auto', textAlign: 'center',
           padding: 'clamp(80px, 10vh, 120px) clamp(20px, 5vw, 40px)',
@@ -488,11 +488,11 @@ export default function LandingPage() {
           <Reveal>
             <h2 style={{
               fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, fontFamily: FONTS.serif,
-              color: '#FAFAFA', margin: '0 0 16px', letterSpacing: '-0.02em',
+              color: '#18181B', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
               공시를 읽는 새로운 방법
             </h2>
-            <p style={{ fontSize: 15, color: '#52525B', margin: '0 0 36px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 15, color: '#71717A', margin: '0 0 36px', lineHeight: 1.6 }}>
               매일 저녁, 3분이면 충분합니다.
             </p>
             <button onClick={go} style={{
@@ -524,34 +524,34 @@ export default function LandingPage() {
       )}
 
       {/* ━━━ 푸터 ━━━ */}
-      <footer style={{ borderTop: '1px solid #1A1A1E' }}>
+      <footer style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px clamp(24px, 5vw, 48px) 40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-            <span style={{ fontSize: 18, fontFamily: FONTS.serif, fontWeight: 700, color: '#FAFAFA' }}>
+          <div style={{ marginBottom: 24 }}>
+            <span style={{ fontSize: 18, fontFamily: FONTS.serif, fontWeight: 700, color: '#18181B' }}>
               DART <span style={{ color: R }}>Insight</span>
             </span>
           </div>
 
-          <div style={{ fontSize: 13, lineHeight: 2, color: '#3F3F46', marginBottom: 24 }}>
-            <div style={{ fontWeight: 600, color: '#52525B', marginBottom: 4 }}>주식회사 뮤즈에이아이</div>
+          <div style={{ fontSize: 13, lineHeight: 2, color: '#A1A1AA', marginBottom: 24 }}>
+            <div style={{ fontWeight: 600, color: '#71717A', marginBottom: 4 }}>주식회사 뮤즈에이아이</div>
             <div>사업자등록번호 : 764-88-03375</div>
             <div>서울특별시 은평구 통일로62길 7, 3층</div>
           </div>
 
           <div style={{ display: 'flex', gap: 20, marginBottom: 24 }}>
             <span onClick={() => setShowTerms('terms')} style={{
-              fontSize: 13, color: '#52525B', cursor: 'pointer',
-              borderBottom: '1px solid #27272A', paddingBottom: 1,
+              fontSize: 13, color: '#A1A1AA', cursor: 'pointer',
+              borderBottom: '1px solid #E4E4E7', paddingBottom: 1,
             }}>이용약관</span>
             <span onClick={() => setShowTerms('privacy')} style={{
-              fontSize: 13, color: '#52525B', cursor: 'pointer',
-              borderBottom: '1px solid #27272A', paddingBottom: 1,
+              fontSize: 13, color: '#A1A1AA', cursor: 'pointer',
+              borderBottom: '1px solid #E4E4E7', paddingBottom: 1,
             }}>개인정보 처리방침</span>
           </div>
 
           <div style={{
-            fontSize: 12, color: '#27272A', lineHeight: 1.6,
-            borderTop: '1px solid #1A1A1E', paddingTop: 20,
+            fontSize: 12, color: '#D4D4D8', lineHeight: 1.6,
+            borderTop: '1px solid #E4E4E7', paddingTop: 20,
           }}>
             © 2026 MuseAI Inc. All rights reserved.
           </div>
