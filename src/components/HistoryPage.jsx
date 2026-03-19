@@ -57,14 +57,16 @@ export default function HistoryPage({ onViewCard }) {
   const [modalRceptNo, setModalRceptNo] = useState(null)
   const recent = useRecentTracks(days)
 
-  const withChange = [...recent.tracks].filter(t => t.change_close != null)
-  const upRanked = withChange.filter(t => t.change_close > 0).sort((a, b) => b.change_close - a.change_close)
-  const downRanked = withChange.filter(t => t.change_close < 0).sort((a, b) => a.change_close - b.change_close)
+  // change_5d 우선, 없으면 change_close 폴백
+  const getChange = (t) => t.change_5d ?? t.change_close
+  const withChange = [...recent.tracks].filter(t => getChange(t) != null)
+  const upRanked = withChange.filter(t => getChange(t) > 0).sort((a, b) => getChange(b) - getChange(a))
+  const downRanked = withChange.filter(t => getChange(t) < 0).sort((a, b) => getChange(a) - getChange(b))
 
   // S등급 적중률 (공시 후 상승 비율)
   const sGrade = withChange.filter(t => t.grade === 'S')
   const sHitRate = sGrade.length > 0
-    ? Math.round(sGrade.filter(t => t.change_close > 0).length / sGrade.length * 100)
+    ? Math.round(sGrade.filter(t => getChange(t) > 0).length / sGrade.length * 100)
     : null
   const totalHitRate = withChange.length > 0
     ? Math.round(upRanked.length / withChange.length * 100)
@@ -85,7 +87,7 @@ export default function HistoryPage({ onViewCard }) {
       {/* ── 히어로: 적중률 ── */}
       <div className="hist-pad" style={{ paddingTop: 24 }}>
         <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 8 }}>
-          공시 후 주가 상승 적중률
+          공시 후 5거래일 상승 적중률
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
           <div className="hist-hero-num" style={{
@@ -196,7 +198,8 @@ export default function HistoryPage({ onViewCard }) {
           <>
             {visibleItems.map((t, i) => {
               const gc = GRADE_COLORS[t.grade] || { bg: '#A1A1AA', color: '#fff' }
-              const change = t.change_close ?? 0
+              const change = t.change_5d ?? t.change_close ?? 0
+              const is5d = t.change_5d != null
               const dt = t.created_at ? new Date(t.created_at) : null
               const dateLabel = dt ? `${dt.getMonth() + 1}.${dt.getDate()}` : ''
 
