@@ -67,18 +67,23 @@ export default function PremiumPage() {
         </div>
       </div>
 
-      {/* CTA — 유료 안내 */}
+      {/* CTA — 1회 무료 체험 + 유료 안내 */}
       <div style={{ padding: '0 20px 24px' }}>
+        <button className="touch-press" onClick={openChat} style={{
+          width: '100%', padding: '14px', borderRadius: 12, border: 'none',
+          background: PREMIUM.accent, color: '#fff',
+          fontSize: 16, fontWeight: 700, cursor: 'pointer', minHeight: 48,
+          marginBottom: 10,
+        }}>
+          무료로 1회 체험하기
+        </button>
         <div style={{
-          width: '100%', padding: '16px', borderRadius: 12,
+          width: '100%', padding: '12px', borderRadius: 10,
           background: dark ? '#1A1A1E' : '#F4F4F5',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary, marginBottom: 4 }}>
-            프리미엄 유료 서비스
-          </div>
           <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.5 }}>
-            Buffett AI 채팅 분석은 유료 서비스로 제공됩니다
+            체험 이후 이용은 <span style={{ fontWeight: 700, color: colors.textPrimary }}>프리미엄 유료 서비스</span>로 제공됩니다
           </div>
         </div>
       </div>
