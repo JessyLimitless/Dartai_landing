@@ -22,6 +22,7 @@ const LibraryPage = lazy(() => import('./components/LibraryPage'))
 import BuffettChatPanel from './components/BuffettChat'
 import DisclosureModal from './components/DisclosureModal'
 import EmailCapture from './components/EmailCapture'
+import PwaInstallBanner from './components/PwaInstallBanner'
 
 function FilingsCorpRedirect() {
   const { corpCode } = useParams()
@@ -86,6 +87,7 @@ export default function App() {
               onSelectNotification={handleSelectNotification}
             />
             <PushSubscribeBanner />
+            <PwaInstallBanner />
           </>
         )}
         <ErrorBoundary>

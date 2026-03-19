@@ -1,22 +1,28 @@
 {
-  "name": "DART Insight",
-  "short_name": "DART",
-  "description": "AI 공시 인사이트 서비스",
+  "name": "DART Insight — AI 공시 큐레이션",
+  "short_name": "DART Insight",
+  "description": "800건의 공시에서 핵심 공시만 골라드립니다",
   "start_url": "/today",
   "display": "standalone",
   "background_color": "#09090B",
   "theme_color": "#DC2626",
   "orientation": "portrait",
+  "categories": ["finance", "business"],
+  "lang": "ko",
+  "scope": "/",
   "icons": [
     {
       "src": "/dart.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/dart.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }
