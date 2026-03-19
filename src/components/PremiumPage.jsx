@@ -22,7 +22,7 @@ export default function PremiumPage() {
 
       {/* 히어로 */}
       <div style={{ padding: '32px 20px 24px', textAlign: 'center' }}>
-        <div onClick={openChat} style={{ cursor: 'pointer', display: 'inline-block' }}>
+        <div style={{ display: 'inline-block' }}>
           <img src="/bufit.png" alt="Buffett AI" style={{
             width: 80, height: 80, borderRadius: '50%', objectFit: 'cover',
             marginBottom: 16,
@@ -67,15 +67,20 @@ export default function PremiumPage() {
         </div>
       </div>
 
-      {/* CTA */}
+      {/* CTA — 유료 안내 */}
       <div style={{ padding: '0 20px 24px' }}>
-        <button className="touch-press" onClick={openChat} style={{
-          width: '100%', padding: '14px', borderRadius: 12, border: 'none',
-          background: PREMIUM.accent, color: '#fff',
-          fontSize: 16, fontWeight: 700, cursor: 'pointer', minHeight: 48,
+        <div style={{
+          width: '100%', padding: '16px', borderRadius: 12,
+          background: dark ? '#1A1A1E' : '#F4F4F5',
+          textAlign: 'center',
         }}>
-          지금 분석 시작하기
-        </button>
+          <div style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary, marginBottom: 4 }}>
+            프리미엄 유료 서비스
+          </div>
+          <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.5 }}>
+            Buffett AI 채팅 분석은 유료 서비스로 제공됩니다
+          </div>
+        </div>
       </div>
 
       {/* 구분 */}
@@ -93,10 +98,8 @@ export default function PremiumPage() {
           { q: '현대차 어때?', desc: 'DART 재무제표 + 실시간 시세 기반 내재가치 분석' },
           { q: 'LG에너지솔루션 위험한 거 없어?', desc: '레드플래그 + 최신 뉴스 기반 리스크 체크' },
         ].map((item, i) => (
-          <div key={i} className="touch-press" onClick={() => {
-            openChat()
-          }} style={{
-            padding: '14px 0', cursor: 'pointer',
+          <div key={i} style={{
+            padding: '14px 0',
             borderBottom: i < 3 ? `1px solid ${sep}` : 'none',
           }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary, marginBottom: 3 }}>

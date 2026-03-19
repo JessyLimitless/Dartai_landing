@@ -244,7 +244,6 @@ function CompanyHeader({ header, market, corpCode }) {
             AI 분석
           </button>
           <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
-          <ShareButton corpName={header.corp_name} corpCode={corpCode} dark={dark} colors={colors} />
         </div>
       )}
 
@@ -317,7 +316,6 @@ function TossStyleHeader({ header, market, corpCode, colors, dark }) {
             AI 분석
           </button>
           <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
-          <ShareButton corpName={header.corp_name} corpCode={corpCode} dark={dark} colors={colors} />
         </div>
       )}
     </div>
