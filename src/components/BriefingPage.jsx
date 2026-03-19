@@ -265,7 +265,7 @@ function MarkdownBody({ content, colors, dark }) {
 }
 
 
-// ── 미니 캘린더 ──
+// ── 미니 캘린더 (세련화) ──
 function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
   const now = new Date()
   const kstNow = new Date(now.getTime() + 9 * 3600000)
@@ -275,10 +275,9 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
 
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const dayNames = ['일', '월', '화', '수', '목', '금', '토']
-  const monthLabel = `${year}년 ${month + 1}월`
+  const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-  // 브리핑이 있는 날짜 맵
   const briefingMap = {}
   for (const b of briefings) {
     const d = parseInt(b.date_label?.slice(-2) || '0')
@@ -286,38 +285,53 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
   }
 
   const selectedDay = selectedId ? parseInt(selectedId.slice(-2) || '0') : 0
+  const briefingCount = Object.keys(briefingMap).length
 
   const cells = []
   for (let i = 0; i < firstDay; i++) cells.push(null)
   for (let d = 1; d <= daysInMonth; d++) cells.push(d)
 
-  const sep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-
   return (
     <div style={{
-      margin: '16px 24px 0', padding: '14px 16px',
-      borderRadius: 12, background: dark ? '#141416' : '#FAFAFA',
-      border: `1px solid ${sep}`,
+      margin: '16px 24px 0', padding: '16px 18px',
+      borderRadius: 14,
+      background: dark ? '#111113' : '#FFFFFF',
+      border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+      boxShadow: dark ? 'none' : '0 1px 4px rgba(0,0,0,0.03)',
     }}>
       {/* 월 헤더 */}
       <div style={{
-        fontSize: 14, fontWeight: 700, color: colors.textPrimary,
-        marginBottom: 10, textAlign: 'center',
-      }}>{monthLabel}</div>
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 14,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <span style={{
+            fontSize: 16, fontWeight: 800, color: colors.textPrimary,
+            fontFamily: FONTS.serif,
+          }}>{monthNames[month]}</span>
+          <span style={{
+            fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono,
+          }}>{year}</span>
+        </div>
+        <span style={{
+          fontSize: 11, color: '#DC2626', fontWeight: 600,
+          background: 'rgba(220,38,38,0.08)', padding: '2px 8px', borderRadius: 10,
+        }}>{briefingCount}건</span>
+      </div>
 
-      {/* 요일 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
+      {/* 요일 헤더 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
         {dayNames.map((d, i) => (
-          <div key={d} style={{
-            textAlign: 'center', fontSize: 10, fontWeight: 600,
-            color: i === 0 ? '#DC2626' : i === 6 ? '#2563EB' : colors.textMuted,
-            padding: '3px 0',
+          <div key={`h${i}`} style={{
+            textAlign: 'center', fontSize: 10, fontWeight: 700,
+            color: i === 0 ? 'rgba(220,38,38,0.5)' : i === 6 ? 'rgba(37,99,235,0.5)' : colors.textMuted,
+            padding: '2px 0', letterSpacing: '0.05em',
           }}>{d}</div>
         ))}
       </div>
 
-      {/* 날짜 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
+      {/* 날짜 그리드 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
         {cells.map((day, i) => {
           if (day === null) return <div key={`e${i}`} />
 
@@ -325,31 +339,46 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
           const isSelected = day === selectedDay
           const isToday = day === today
           const dayOfWeek = (firstDay + day - 1) % 7
+          const isPast = day < today
 
           return (
-            <div key={day}
+            <div key={day} className={hasBriefing ? 'touch-press' : ''}
               onClick={() => hasBriefing && onSelect(briefingMap[day])}
               style={{
-                textAlign: 'center', padding: '5px 2px',
-                borderRadius: 8, cursor: hasBriefing ? 'pointer' : 'default',
-                background: isSelected ? 'rgba(220,38,38,0.10)' : 'transparent',
-                transition: 'background 0.15s',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                padding: '6px 2px', cursor: hasBriefing ? 'pointer' : 'default',
+                borderRadius: 10,
+                background: isSelected
+                  ? '#DC2626'
+                  : isToday
+                    ? (dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)')
+                    : 'transparent',
+                transition: 'all 0.15s',
+                minHeight: 36,
               }}>
-              <div style={{
+              <span style={{
                 fontSize: 13, fontFamily: FONTS.mono,
-                fontWeight: isSelected || isToday ? 700 : 400,
-                color: isSelected ? '#DC2626'
+                fontWeight: isSelected || isToday || hasBriefing ? 700 : 400,
+                color: isSelected ? '#FFFFFF'
                   : isToday ? '#DC2626'
                   : dayOfWeek === 0 ? '#DC2626'
                   : dayOfWeek === 6 ? '#2563EB'
                   : hasBriefing ? colors.textPrimary
                   : colors.textMuted,
-                opacity: hasBriefing || isToday ? 1 : 0.4,
-              }}>{day}</div>
-              {hasBriefing && (
+                opacity: (!hasBriefing && !isToday && isPast) ? 0.3 : 1,
+                lineHeight: 1,
+              }}>{day}</span>
+              {hasBriefing && !isSelected && (
                 <div style={{
                   width: 4, height: 4, borderRadius: 2,
-                  background: '#DC2626', margin: '2px auto 0',
+                  background: '#DC2626', marginTop: 3,
+                }} />
+              )}
+              {hasBriefing && isSelected && (
+                <div style={{
+                  width: 4, height: 4, borderRadius: 2,
+                  background: 'rgba(255,255,255,0.7)', marginTop: 3,
                 }} />
               )}
             </div>
