@@ -111,39 +111,6 @@ export default function LandingPage() {
             </p>
           </Reveal>
 
-          {/* 카운터 요약 (토스 코스피/코스닥 바 스타일) */}
-          <Reveal d={120}>
-            <div style={{
-              display: 'flex', gap: 1, borderRadius: 16, overflow: 'hidden',
-              background: 'rgba(255,255,255,0.06)', marginBottom: 32,
-            }}>
-              {[
-                { label: '오늘 공시', value: totalCount, color: '#FAFAFA' },
-                { label: 'S등급', value: sCount, color: GRADE_COLORS.S.bg },
-                { label: 'A등급', value: aCount, color: GRADE_COLORS.A.bg },
-                { label: 'D등급', value: dCount, color: GRADE_COLORS.D.bg },
-              ].map((item, i) => (
-                <div key={item.label}
-                  onClick={() => {
-                    if (i === 0) navigate('/today')
-                    else navigate(`/today?grade=${['', 'S', 'A', 'D'][i]}`)
-                  }}
-                  style={{
-                    flex: 1, padding: '20px 8px', textAlign: 'center',
-                    background: 'rgba(255,255,255,0.03)', cursor: 'pointer',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-                >
-                  <div style={{ fontSize: 11, color: '#71717A', marginBottom: 6 }}>
-                    {item.label}
-                  </div>
-                  <AnimatedNumber value={item.value} color={item.color} />
-                </div>
-              ))}
-            </div>
-          </Reveal>
 
           {/* CTA */}
           <Reveal d={180}>
