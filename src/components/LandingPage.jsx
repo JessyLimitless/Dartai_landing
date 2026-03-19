@@ -80,7 +80,7 @@ export default function LandingPage() {
           }}>
             DART <span style={{ color: PREMIUM.accent }}>Insight</span>
           </span>
-          <button onClick={go} style={{
+          <button onClick={() => alert('로그인 기능은 준비 중입니다.')} style={{
             padding: '7px 18px', borderRadius: 6,
             border: '1px solid rgba(255,255,255,0.12)',
             background: 'transparent', color: '#A1A1AA',
@@ -89,7 +89,7 @@ export default function LandingPage() {
           }}
             onMouseEnter={e => { e.target.style.borderColor = 'rgba(255,255,255,0.3)'; e.target.style.color = '#FAFAFA' }}
             onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; e.target.style.color = '#A1A1AA' }}
-          >대시보드</button>
+          >로그인</button>
         </nav>
 
         <div style={{ maxWidth: 640, width: '100%', textAlign: 'center' }}>
