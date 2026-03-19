@@ -188,59 +188,84 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* 핵심 3개 — 대형 카드 */}
+          {/* 핵심 3개 — 실제 예시 포함 대형 카드 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 14 }}>
-            {[
-              {
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
-                tag: 'CORE',
-                title: '실시간 공시 · S/A/D 등급',
-                desc: '하루 800건 공시를 AI가 자동 분류. 핵심만 확인하세요',
-                accent: '#DC2626', bg: 'rgba(220,38,38,0.04)',
-              },
-              {
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>,
-                tag: 'DAILY',
-                title: '저녁 7시 브리핑 · DART Pick',
-                desc: '전문가가 해석한 공시의 이면 + 데이터가 가리키는 오늘의 종목',
-                accent: '#DC2626', bg: 'rgba(220,38,38,0.04)',
-              },
-              {
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>,
-                tag: 'TRACK',
-                title: '공시 후 5거래일 추적',
-                desc: '공시 시점 가격 기준, 실제로 얼마나 올랐는지 데이터로 증명',
-                accent: '#2563EB', bg: 'rgba(37,99,235,0.04)',
-              },
-            ].map((item, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 16,
-                padding: '20px', borderRadius: 14,
-                background: item.bg,
-                border: `1px solid ${item.accent}15`,
-              }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: 14, flexShrink: 0,
-                  background: '#FFFFFF',
-                  border: `1px solid ${item.accent}20`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>{item.icon}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <span style={{
-                      fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
-                      background: item.accent, color: '#fff', letterSpacing: '0.05em',
-                    }}>{item.tag}</span>
+
+            {/* 1. 실시간 공시 */}
+            <div style={{
+              padding: '20px', borderRadius: 14,
+              background: 'rgba(220,38,38,0.04)', border: '1px solid rgba(220,38,38,0.08)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>CORE</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>실시간 공시 · S/A/D 등급</span>
+              </div>
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.6, marginBottom: 14 }}>
+                DART · KIND에서 매일 쏟아지는 800건의 공시를 AI가 자동 분류합니다
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {[
+                  { grade: 'S', color: '#DC2626', name: '삼양사', desc: '주식소각결정' },
+                  { grade: 'S', color: '#DC2626', name: '아이씨디', desc: '자기주식취득결정' },
+                  { grade: 'A', color: '#0D9488', name: '삼성전자', desc: '영업(잠정)실적 YoY +30%' },
+                ].map((ex, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: '#FFFFFF' }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: ex.color, padding: '1px 6px', borderRadius: 4, fontFamily: FONTS.mono }}>{ex.grade}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#18181B' }}>{ex.name}</span>
+                    <span style={{ fontSize: 12, color: '#A1A1AA' }}>{ex.desc}</span>
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#18181B', marginBottom: 3 }}>
-                    {item.title}
-                  </div>
-                  <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.5 }}>
-                    {item.desc}
-                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. 브리핑 + Pick */}
+            <div style={{
+              padding: '20px', borderRadius: 14,
+              background: 'rgba(220,38,38,0.04)', border: '1px solid rgba(220,38,38,0.08)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>DAILY 19:00</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>저녁 브리핑 · DART Pick</span>
+              </div>
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.6, marginBottom: 14 }}>
+                장 마감 후 쏟아지는 공시, 전문가가 그 이면을 해석합니다
+              </div>
+              <div style={{ padding: '12px 14px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #F0F0F2' }}>
+                <div style={{ fontSize: 12, color: '#DC2626', fontWeight: 700, marginBottom: 6 }}>오늘의 브리핑 예시</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#18181B', marginBottom: 4, fontFamily: FONTS.serif }}>
+                  "자사주 소각 3사 — 누가 진짜 주주 편인가?"
+                </div>
+                <div style={{ fontSize: 12, color: '#A1A1AA' }}>
+                  DART Pick: <span style={{ fontWeight: 600, color: '#18181B' }}>아이씨디</span> — 실적 턴어라운드 + 자사주 소각
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* 3. 추적 */}
+            <div style={{
+              padding: '20px', borderRadius: 14,
+              background: 'rgba(37,99,235,0.04)', border: '1px solid rgba(37,99,235,0.08)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#2563EB', color: '#fff', letterSpacing: '0.05em' }}>TRACK</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>공시 후 5거래일 추적</span>
+              </div>
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.6, marginBottom: 14 }}>
+                공시 시점 가격 기준으로, 실제로 얼마나 올랐는지 추적합니다
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[
+                  { name: '빅텍', change: '+4.8%', color: '#DC2626' },
+                  { name: '티씨케이', change: '+4.3%', color: '#DC2626' },
+                  { name: '유니트론텍', change: '-4.4%', color: '#2563EB' },
+                ].map((ex, i) => (
+                  <div key={i} style={{ flex: 1, padding: '8px 10px', borderRadius: 8, background: '#FFFFFF', textAlign: 'center' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#18181B', marginBottom: 2 }}>{ex.name}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: ex.color, fontFamily: FONTS.mono }}>{ex.change}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* 보조 3개 — 컴팩트 가로 그리드 */}
