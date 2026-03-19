@@ -8,7 +8,6 @@ const TABS = [
   { key: '/today', label: 'Today', icon: 'today', mobileLabel: '홈', mobileIcon: 'home' },
   { key: '/briefing', label: 'Briefing', icon: 'dartevent', mobileLabel: '브리핑', mobileIcon: 'dartevent' },
   { key: '/history', label: 'History', icon: 'chart', mobileLabel: '추적', mobileIcon: 'chart' },
-  { key: '/patterns', label: 'Pattern', icon: 'ailive', desktopOnly: true },
   { key: '/deep-dive', label: 'Company Card', icon: 'deepdive', mobileLabel: '종목', mobileIcon: 'deepdive' },
   { key: '/dart-event', label: 'Event', icon: 'dartevent', desktopOnly: true },
   { key: '/premium', label: 'Premium', icon: 'premium', premium: true, mobileLabel: 'AI', mobileIcon: 'premium' },
