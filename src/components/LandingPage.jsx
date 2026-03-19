@@ -101,7 +101,7 @@ export default function LandingPage() {
               margin: '0 0 12px', fontFamily: FONTS.serif,
             }}>
               800건의 공시에서<br />
-              <span style={{ color: PREMIUM.accent }}>핵심 5건</span>만 골라드립니다
+              <span style={{ color: PREMIUM.accent }}>핵심 공시</span>만 골라드립니다
             </h1>
           </Reveal>
 
