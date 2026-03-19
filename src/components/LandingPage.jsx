@@ -200,8 +200,8 @@ export default function LandingPage() {
                 <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>CORE</span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>실시간 공시 · S/A/D 등급</span>
               </div>
-              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.6, marginBottom: 14 }}>
-                DART · KIND에서 매일 쏟아지는 800건의 공시를 AI가 자동 분류합니다
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.7, marginBottom: 14 }}>
+                DART · KIND에서 매일 쏟아지는 800건의 공시 중에서 주가에 직접 영향을 주는 <span style={{ color: '#18181B', fontWeight: 600 }}>자사주 취득, 대형 계약, 실적 급변, 투자경고</span> 등을 AI가 자동으로 선별하여 S/A/D 등급으로 분류합니다. 장중은 물론 <span style={{ color: '#DC2626', fontWeight: 600 }}>장 마감 후 18시에 집중되는 핵심 공시</span>도 놓치지 않습니다.
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {[
@@ -227,8 +227,8 @@ export default function LandingPage() {
                 <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>DAILY 19:00</span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>저녁 브리핑 · DART Pick</span>
               </div>
-              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.6, marginBottom: 14 }}>
-                장 마감 후 쏟아지는 공시, 전문가가 그 이면을 해석합니다
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.7, marginBottom: 14 }}>
+                공시 제목만으로는 알 수 없는 <span style={{ color: '#18181B', fontWeight: 600 }}>숫자 뒤에 숨겨진 의도</span>를 전문가가 해석합니다. "자사주 소각인데 왜 주가가 안 오르지?" 같은 의문에 답합니다. 매일 저녁 7시, 다음 날 장 시작 전에 반드시 읽어야 할 브리핑과 함께 <span style={{ color: '#DC2626', fontWeight: 600 }}>데이터가 가리키는 오늘의 DART Pick</span>을 선정합니다.
               </div>
               <div style={{ padding: '12px 14px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #F0F0F2' }}>
                 <div style={{ fontSize: 12, color: '#DC2626', fontWeight: 700, marginBottom: 6 }}>오늘의 브리핑 예시</div>
@@ -250,8 +250,8 @@ export default function LandingPage() {
                 <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#2563EB', color: '#fff', letterSpacing: '0.05em' }}>TRACK</span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>공시 후 5거래일 추적</span>
               </div>
-              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.6, marginBottom: 14 }}>
-                공시 시점 가격 기준으로, 실제로 얼마나 올랐는지 추적합니다
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.7, marginBottom: 14 }}>
+                S/A/D 등급 공시가 발표된 <span style={{ color: '#18181B', fontWeight: 600 }}>그 시각의 실제 주가</span>를 기준으로 5거래일간 주가 변동을 추적합니다. "이 공시가 정말 주가를 올렸는가?" — 감이 아닌 <span style={{ color: '#2563EB', fontWeight: 600 }}>데이터로 증명</span>합니다.
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {[
@@ -277,8 +277,8 @@ export default function LandingPage() {
               <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: '#D97706', color: '#fff', letterSpacing: '0.05em' }}>AI</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#18181B' }}>Buffett AI · 가치투자 분석</span>
             </div>
-            <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.6, marginBottom: 14 }}>
-              종목명만 입력하면 내재가치 기반 6가지 관점으로 분석합니다
+            <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.7, marginBottom: 14 }}>
+              종목명만 입력하면 워런 버핏의 가치투자 원칙으로 <span style={{ color: '#18181B', fontWeight: 600 }}>내재가치, 경제적 해자, 재무 건전성, 자본 배분, 경영진, 레드플래그</span> 6가지 관점에서 분석합니다. DART 재무제표 + 실시간 시세 + AI 추론을 결합한 리포트를 받아보세요.
             </div>
             <div style={{ padding: '12px 14px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #F0F0F2' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
