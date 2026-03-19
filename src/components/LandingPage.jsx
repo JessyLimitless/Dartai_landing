@@ -311,7 +311,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Buffett AI */}
+          {/* Buffett AI — 채팅 프리뷰 */}
           <div style={{
             padding: '20px', borderRadius: 14, marginBottom: 14,
             background: 'rgba(217,119,6,0.04)', border: '1px solid rgba(217,119,6,0.08)',
@@ -321,53 +321,174 @@ export default function LandingPage() {
               <span style={{ fontSize: 16, fontWeight: 700, color: '#18181B' }}>Buffett AI · 가치투자 분석</span>
             </div>
             <div style={{ fontSize: 14, color: '#71717A', lineHeight: 1.8, marginBottom: 16 }}>
-              종목명만 입력하면 워런 버핏의 가치투자 원칙으로 <span style={{ color: '#18181B', fontWeight: 600 }}>내재가치, 경제적 해자, 재무 건전성, 자본 배분, 경영진, 레드플래그</span> 6가지 관점에서 분석합니다. DART 재무제표 + 실시간 시세 + AI 추론을 결합한 리포트를 받아보세요.
+              종목명만 입력하면 워런 버핏의 가치투자 원칙으로 <span style={{ color: '#18181B', fontWeight: 600 }}>내재가치, 경제적 해자, 재무 건전성</span> 등 6가지 관점에서 분석합니다. DART 재무제표 + 실시간 시세 + Google Search를 결합한 AI 리포트를 받아보세요.
             </div>
-            <div style={{ padding: '12px 14px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #F0F0F2' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <img src="/bufit.png" alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
-                <span style={{ fontSize: 13, color: '#71717A' }}>"삼성전자 지금 사야 할까?"</span>
+
+            {/* 채팅 시뮬레이션 */}
+            <div style={{
+              borderRadius: 12, overflow: 'hidden',
+              border: '1px solid #F0F0F2', background: '#FAFAFA',
+            }}>
+              {/* 채팅 헤더 */}
+              <div style={{
+                padding: '10px 14px', background: '#FFFFFF',
+                borderBottom: '1px solid #F0F0F2',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}>
+                <img src="/bufit.png" alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>Buffett AI</span>
+                <span style={{ fontSize: 10, color: '#16A34A', fontWeight: 600, marginLeft: 'auto' }}>Online</span>
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {[
-                  { label: '안전마진', value: '+12%', color: '#D97706' },
-                  { label: 'ROE', value: '8.6%', color: '#71717A' },
-                  { label: '부채비율', value: '28%', color: '#16A34A' },
-                ].map((m, i) => (
-                  <div key={i} style={{ padding: '4px 10px', borderRadius: 6, background: '#FAFAFA', fontSize: 12 }}>
-                    <span style={{ color: '#A1A1AA' }}>{m.label} </span>
-                    <span style={{ fontWeight: 700, color: m.color, fontFamily: FONTS.mono }}>{m.value}</span>
+
+              <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* 사용자 질문 */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{
+                    padding: '8px 14px', borderRadius: '14px 14px 4px 14px',
+                    background: '#D97706', color: '#fff',
+                    fontSize: 13, fontWeight: 500, maxWidth: '75%',
+                  }}>
+                    SK하이닉스 지금 사도 될까?
                   </div>
-                ))}
+                </div>
+
+                {/* AI 응답 */}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                  <img src="/bufit.png" alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, marginTop: 2 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      padding: '10px 14px', borderRadius: '4px 14px 14px 14px',
+                      background: '#FFFFFF', border: '1px solid #F0F0F2',
+                      fontSize: 13, color: '#3F3F46', lineHeight: 1.7,
+                    }}>
+                      <strong style={{ color: '#18181B' }}>현재 안전마진 +18%로 매력적인 구간</strong>입니다. HBM3E 독점 공급으로 경제적 해자가 견고하고, 부채비율 32%로 재무 건전성도 양호해요. 다만 반도체 사이클 하락 시 실적 변동성이 크다는 점은 유의하세요.
+                    </div>
+
+                    {/* 스코어카드 */}
+                    <div style={{
+                      marginTop: 8, padding: '10px 12px', borderRadius: 10,
+                      background: '#FFFFFF', border: '1px solid #F0F0F2',
+                    }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#D97706', marginBottom: 8, letterSpacing: '0.03em' }}>SCORECARD</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {[
+                          { label: '안전마진', value: '+18%', pct: 68, color: '#D97706' },
+                          { label: '경제적 해자', value: '넓음', pct: 85, color: '#16A34A' },
+                          { label: '부채비율', value: '32%', pct: 82, color: '#16A34A' },
+                          { label: 'ROE', value: '21.4%', pct: 78, color: '#0EA5E9' },
+                        ].map((m, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 11, color: '#71717A', width: 56, flexShrink: 0 }}>{m.label}</span>
+                            <div style={{ flex: 1, height: 4, borderRadius: 2, background: '#F4F4F5', overflow: 'hidden' }}>
+                              <div style={{ width: `${m.pct}%`, height: '100%', borderRadius: 2, background: m.color, transition: 'width 1s ease' }} />
+                            </div>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: m.color, fontFamily: FONTS.mono, width: 40, textAlign: 'right' }}>{m.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 입력 바 */}
+              <div style={{
+                padding: '10px 14px', background: '#FFFFFF',
+                borderTop: '1px solid #F0F0F2',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}>
+                <div style={{
+                  flex: 1, padding: '8px 12px', borderRadius: 8,
+                  background: '#F4F4F5', fontSize: 12, color: '#A1A1AA',
+                }}>
+                  종목명이나 궁금한 점을 물어보세요
+                </div>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 14,
+                  background: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                </div>
               </div>
             </div>
-            <div onClick={() => navigate('/premium')} style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: '#D97706', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-              AI 분석 체험하기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+
+            {/* 예시 질문 칩 */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
+              {['삼성전자 사야 할까?', '현대차 해자 있어?', 'POSCO 레드플래그?'].map((q, i) => (
+                <span key={i} style={{
+                  fontSize: 11, color: '#D97706', fontWeight: 500,
+                  padding: '4px 10px', borderRadius: 20,
+                  background: 'rgba(217,119,6,0.06)', border: '1px solid rgba(217,119,6,0.12)',
+                }}>{q}</span>
+              ))}
+            </div>
+
+            <div onClick={() => navigate('/premium')} style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: '#D97706', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              무료 1회 체험하기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
             </div>
           </div>
 
           {/* 서재 + 이벤트 — 2열 */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
-            {/* 서재 */}
+            {/* 서재 — 미니 책장 */}
             <div style={{
               padding: '16px', borderRadius: 12,
               background: 'rgba(14,165,233,0.04)', border: '1px solid rgba(14,165,233,0.08)',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg>
                 <span style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>서재</span>
+                <span style={{ fontSize: 10, color: '#0EA5E9', fontWeight: 600, marginLeft: 'auto' }}>5권</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {['전자공시 시그널 가이드', '전자공시 시그널', '코스톨라니'].map((t, i) => (
-                  <div key={i} style={{ fontSize: 12, color: i === 0 ? '#0EA5E9' : '#71717A', fontWeight: i === 0 ? 600 : 400 }}>
-                    {t}
+
+              {/* 미니 책등 시각화 */}
+              <div style={{
+                display: 'flex', gap: 3, height: 72, alignItems: 'flex-end',
+                padding: '0 4px 6px', marginBottom: 8,
+                borderBottom: '2px solid rgba(14,165,233,0.15)',
+              }}>
+                {[
+                  { title: '시그널\n가이드', color: '#DC2626', w: 22 },
+                  { title: '시그널\n실전', color: '#0EA5E9', w: 20 },
+                  { title: '코스\n톨라니', color: '#7C3AED', w: 18 },
+                  { title: '데이터\n퀀트', color: '#16A34A', w: 20 },
+                  { title: 'AI\n핵심', color: '#D97706', w: 16 },
+                ].map((b, i) => (
+                  <div key={i} style={{
+                    width: b.w, height: 52 + i * 4, borderRadius: '2px 2px 0 0',
+                    background: `linear-gradient(180deg, ${b.color}, ${b.color}dd)`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', transition: 'transform 0.2s, height 0.2s',
+                    position: 'relative',
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)' }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
+                  >
+                    <span style={{
+                      writingMode: 'vertical-rl', textOrientation: 'mixed',
+                      fontSize: 7, fontWeight: 700, color: '#fff',
+                      letterSpacing: '0.05em', lineHeight: 1.1,
+                      whiteSpace: 'pre-line', textAlign: 'center',
+                    }}>{b.title}</span>
                   </div>
                 ))}
-                <div style={{ fontSize: 11, color: '#A1A1AA', marginTop: 2 }}>외 2권</div>
               </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {[
+                  { label: 'NEW', title: '전자공시 시그널 가이드', color: '#DC2626' },
+                  { label: 'HOT', title: '코스톨라니 달걀 모형', color: '#7C3AED' },
+                ].map((b, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11 }}>
+                    <span style={{ fontSize: 8, fontWeight: 800, padding: '1px 4px', borderRadius: 3, background: b.color, color: '#fff' }}>{b.label}</span>
+                    <span style={{ color: '#3F3F46', fontWeight: 500 }}>{b.title}</span>
+                  </div>
+                ))}
+              </div>
+
               <div onClick={() => navigate('/library')} style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: '#0EA5E9', cursor: 'pointer' }}>
                 서재 열기 →
               </div>
