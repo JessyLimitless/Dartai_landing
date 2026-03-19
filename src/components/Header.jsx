@@ -287,8 +287,8 @@ export default function Header({
         ))}
       </div>}
 
-      {/* Bottom tab bar (mobile only) */}
-      <nav className="bottom-tab-bar">
+      {/* Bottom tab bar (mobile only) — 랜딩에서는 숨김 */}
+      {!hiddenTopBar && <nav className="bottom-tab-bar">
         {MOBILE_TABS.map((tab) => {
           const active = isActive(tab.key)
           const isPremium = tab.premium
@@ -307,7 +307,7 @@ export default function Header({
             </button>
           )
         })}
-      </nav>
+      </nav>}
     </>
   )
 }

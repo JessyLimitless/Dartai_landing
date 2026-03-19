@@ -98,17 +98,12 @@ export default function LandingPage() {
             <h1 style={{
               fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 800,
               lineHeight: 1.2, letterSpacing: '-0.03em',
-              margin: '0 0 12px', fontFamily: FONTS.serif,
+              margin: '0 0 40px', fontFamily: FONTS.serif,
             }}>
               800건의 공시에서<br />
-              <span style={{ color: PREMIUM.accent }}>핵심 공시</span>만 골라드립니다
+              투자자를 위한<br />
+              <span style={{ color: PREMIUM.accent }}>핵심 공시</span>를 골라드립니다
             </h1>
-          </Reveal>
-
-          <Reveal d={60}>
-            <p style={{ fontSize: 15, color: '#71717A', margin: '0 0 40px', lineHeight: 1.6 }}>
-              DART · KIND 실시간 수집 → AI 등급 분류 → 핵심 공시 큐레이션
-            </p>
           </Reveal>
 
 
