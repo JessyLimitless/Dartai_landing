@@ -249,6 +249,23 @@ export default function Header({
         {/* Right: Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
           <button
+            onClick={() => handleNav('/library')}
+            aria-label="서재"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '6px', lineHeight: 1,
+              color: isActive('/library') ? '#0EA5E9' : colors.textMuted,
+              transition: 'color 0.15s', borderRadius: 6,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#0EA5E9'; e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = isActive('/library') ? '#0EA5E9' : colors.textMuted; e.currentTarget.style.backgroundColor = 'transparent' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+          </button>
+          <button
             onClick={toggle}
             aria-label={dark ? 'Light mode' : 'Dark mode'}
             style={{
@@ -287,29 +304,6 @@ export default function Header({
         ))}
       </div>}
 
-      {/* 서재 바로가기 (모바일, 탭바 바로 위) */}
-      {!hiddenTopBar && (
-        <div className="mobile-library-bar" style={{
-          position: 'fixed', left: 0, right: 0, zIndex: 99,
-          bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',
-          justifyContent: 'center', padding: '6px 16px',
-        }}>
-          <button className="touch-press" onClick={() => handleNav('/library')} style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '8px 16px', borderRadius: 20,
-            background: dark ? '#1A1A1E' : '#F0F0F2',
-            border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-            cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            color: '#0EA5E9',
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-            </svg>
-            서재
-          </button>
-        </div>
-      )}
 
       {/* Bottom tab bar (mobile only) — 랜딩에서는 숨김 */}
       {!hiddenTopBar && <nav className="bottom-tab-bar">
