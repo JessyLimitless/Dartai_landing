@@ -247,9 +247,9 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
         </div>
       </div>
 
-      {/* 플로팅 버튼 */}
+      {/* 플로팅 버튼 — 모바일에서는 하단 탭바 AI 아이콘과 중복되므로 숨김 */}
       {!open && (
-        <button className="touch-press" onClick={() => setOpen(true)} style={{
+        <button className="touch-press buffett-fab" onClick={() => setOpen(true)} style={{
           position: 'fixed', bottom: 80, right: 16, zIndex: 9998,
           width: 52, height: 52, borderRadius: '50%',
           background: colors.bgCard, border: `1px solid ${sep}`,
@@ -268,6 +268,9 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
             max-width: 100% !important;
             border-left: none !important;
             box-shadow: none !important;
+          }
+          .buffett-fab {
+            display: none !important;
           }
         }
       `}</style>
