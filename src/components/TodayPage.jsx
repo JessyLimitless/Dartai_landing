@@ -494,13 +494,18 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
             borderRadius: '20px 20px 0 0',
             boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
             paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-            maxHeight: '60vh',
+            maxHeight: '80vh',
+            display: 'flex', flexDirection: 'column',
           }}>
-            <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: dark ? '#333' : '#D4D4D8' }} />
             </div>
-            <PanelHeader onClose={() => setMobileOpen(false)} />
-            <RiserList onItemClick={(rcept) => { onOpenModal(rcept); setMobileOpen(false) }} />
+            <div style={{ flexShrink: 0 }}>
+              <PanelHeader onClose={() => setMobileOpen(false)} />
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <RiserList onItemClick={(rcept) => { onOpenModal(rcept); setMobileOpen(false) }} />
+            </div>
           </div>
         </>
       )}
