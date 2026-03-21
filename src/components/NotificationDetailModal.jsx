@@ -76,9 +76,9 @@ export default function NotificationDetailModal({ notification, onClose }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 'min(600px, calc(100vw - 32px))',
+          width: 'min(480px, calc(100vw - 32px))',
           maxWidth: '90vw',
-          maxHeight: '85vh',
+          maxHeight: '75vh',
           backgroundColor: colors.bgCard,
           borderRadius: '16px',
           boxShadow: PREMIUM.shadowLg,

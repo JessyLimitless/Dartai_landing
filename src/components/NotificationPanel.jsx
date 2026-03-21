@@ -13,9 +13,9 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
       style={{
         position: 'fixed',
         top: 56,
-        right: 'max(12px, calc((100vw - 400px) / 2))',
-        width: 'min(400px, calc(100vw - 24px))',
-        maxHeight: '70vh',
+        right: 12,
+        width: 'min(360px, calc(100vw - 24px))',
+        maxHeight: '60vh',
         backgroundColor: colors.bgCard,
         borderRadius: '16px',
         boxShadow: PREMIUM.shadowLg,
