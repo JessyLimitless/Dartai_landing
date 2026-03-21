@@ -114,6 +114,79 @@ export default function BriefingPage() {
         )}
       </div>
 
+      {/* Premium 서비스 홍보 */}
+      {!loading && (
+        <div style={{ padding: '0 24px 32px' }}>
+          <div style={{
+            borderTop: `1px solid ${lineSep}`,
+            paddingTop: 28,
+          }}>
+            <div style={{ fontSize: 13, color: colors.textMuted, letterSpacing: '0.06em', fontWeight: 600, marginBottom: 8 }}>
+              PREMIUM SERVICE
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif, marginBottom: 6 }}>
+              이 수준의 분석을 매일 받고 싶다면?
+            </div>
+            <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.6, marginBottom: 20 }}>
+              공시 이면의 자본 전략을 읽는 기관급 리포트
+            </div>
+
+            {/* Premium 카드 */}
+            <div style={{
+              padding: '18px', borderRadius: 14, marginBottom: 12,
+              border: `1px solid ${dark ? 'rgba(220,38,38,0.15)' : 'rgba(220,38,38,0.1)'}`,
+              background: dark ? 'rgba(220,38,38,0.03)' : 'rgba(220,38,38,0.02)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#DC2626' }}>Premium</span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary, fontFamily: "'Inter', sans-serif" }}>100,000</span>
+                <span style={{ fontSize: 12, color: colors.textMuted }}>원/월</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {['이사회결의 심층 분석 리포트', '5개년 재무 딥분석 (AI)', '세력 평단가 · 오버행 알림', '브리핑 전문 + DART Pick'].map((f, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: colors.textSecondary }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="3" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Enterprise 카드 */}
+            <div style={{
+              padding: '18px', borderRadius: 14,
+              border: `1px solid ${dark ? 'rgba(212,160,23,0.15)' : 'rgba(212,160,23,0.1)'}`,
+              background: dark ? 'rgba(212,160,23,0.03)' : 'rgba(212,160,23,0.02)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#D4A017' }}>Enterprise</span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary, fontFamily: "'Inter', sans-serif" }}>300,000</span>
+                <span style={{ fontSize: 12, color: colors.textMuted }}>원/월</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {['Premium 전체 기능 포함', 'API 키 · PDF 리포트', '전용 채널 · 우선 지원'].map((f, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: colors.textSecondary }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4A017" strokeWidth="3" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    {f}
+                  </div>
+                ))}
+              </div>
+              <div style={{
+                marginTop: 12, padding: '10px', borderRadius: 8, textAlign: 'center',
+                background: 'linear-gradient(135deg, #D4A017, #B8922E)', color: '#fff',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}>
+                도입 문의하기
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
     </div>
   )
