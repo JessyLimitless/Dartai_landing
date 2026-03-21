@@ -102,7 +102,7 @@ export default function PremiumPage() {
 
       {/* 요금제 카드 3개 */}
       <div style={{ padding: '0 16px 24px' }}>
-        <div style={{
+        <div className="pricing-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 10,
@@ -264,6 +264,15 @@ export default function PremiumPage() {
           <br />최종 투자 결정은 투자자 본인의 판단과 책임 하에 이루어져야 합니다.
         </p>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .pricing-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
