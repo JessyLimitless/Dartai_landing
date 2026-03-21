@@ -125,10 +125,10 @@ export default function BriefingPage() {
               PREMIUM SERVICE
             </div>
             <div style={{ fontSize: 18, fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif, marginBottom: 6 }}>
-              이 수준의 분석을 매일 받고 싶다면?
+              주중엔 공시 브리핑, 주말엔 재무 딥분석
             </div>
             <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.6, marginBottom: 20 }}>
-              공시 이면의 자본 전략을 읽는 기관급 리포트
+              월~금 매일 저녁 핵심 공시 해석 + 토·일 기업 재무 심층 리포트
             </div>
 
             {/* Premium 카드 */}
@@ -152,17 +152,32 @@ export default function BriefingPage() {
                   </div>
                 ))}
               </div>
-              <div
-                onClick={() => {
-                  const sample = briefings.find(b => b.id && b.id.includes('premium-sample'))
-                  if (sample) { setSelected(sample); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-                }}
-                style={{
-                  padding: '10px', borderRadius: 8, textAlign: 'center',
-                  background: '#DC2626', color: '#fff',
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                }}>
-                삼성전자 리포트 예시 보기
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div
+                  onClick={() => {
+                    const sample = briefings.find(b => b.id && b.id.includes('premium-sample-samsung'))
+                    if (sample) { setSelected(sample); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+                  }}
+                  style={{
+                    flex: 1, padding: '10px', borderRadius: 8, textAlign: 'center',
+                    background: '#DC2626', color: '#fff',
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  }}>
+                  삼성전자 예시
+                </div>
+                <div
+                  onClick={() => {
+                    const sample = briefings.find(b => b.id && b.id.includes('premium-sample-poongsan'))
+                    if (sample) { setSelected(sample); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+                  }}
+                  style={{
+                    flex: 1, padding: '10px', borderRadius: 8, textAlign: 'center',
+                    border: '1px solid #DC2626', color: '#DC2626',
+                    background: 'transparent',
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  }}>
+                  풍산홀딩스 예시
+                </div>
               </div>
             </div>
 
