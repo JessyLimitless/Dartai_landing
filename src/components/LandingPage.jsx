@@ -20,46 +20,58 @@ export default function LandingPage() {
     try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
   })
 
+  const googleBtnRef = useRef(null)
+  const [showGoogleBtn, setShowGoogleBtn] = useState(false)
+
   const handleGoogleLogin = () => {
-    const tryLogin = () => {
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.initialize({
-          client_id: '20826231899-mfkodjf7svaafnr63ne773g5s6cf5k1m.apps.googleusercontent.com',
-          callback: async (response) => {
-            try {
-              const res = await fetch(`${API || ''}/api/auth/google`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ credential: response.credential }),
-              })
-              if (res.ok) {
-                const data = await res.json()
-                if (data.user) {
-                  setUser(data.user)
-                  localStorage.setItem('dart_user', JSON.stringify(data.user))
-                }
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: '20826231899-mfkodjf7svaafnr63ne773g5s6cf5k1m.apps.googleusercontent.com',
+        callback: async (response) => {
+          try {
+            const res = await fetch(`${API || ''}/api/auth/google`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ credential: response.credential }),
+            })
+            if (res.ok) {
+              const data = await res.json()
+              if (data.user) {
+                setUser(data.user)
+                localStorage.setItem('dart_user', JSON.stringify(data.user))
+                setShowGoogleBtn(false)
               }
-            } catch {}
-          },
-        })
-        window.google.accounts.id.prompt()
-        return true
-      }
-      return false
-    }
-    // GSI 스크립트 로딩 대기 (최대 3초)
-    if (!tryLogin()) {
-      let attempts = 0
-      const iv = setInterval(() => {
-        attempts++
-        if (tryLogin() || attempts >= 6) {
-          clearInterval(iv)
-          if (attempts >= 6) {
-            setShowLoginToast(true)
-            setTimeout(() => setShowLoginToast(false), 2500)
+            }
+          } catch {}
+        },
+      })
+      // prompt 먼저 시도, 실패하면 버튼 렌더링
+      try {
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            setShowGoogleBtn(true)
+            setTimeout(() => {
+              if (googleBtnRef.current) {
+                window.google.accounts.id.renderButton(googleBtnRef.current, {
+                  theme: 'outline', size: 'large', width: 280, text: 'signin_with',
+                })
+              }
+            }, 100)
           }
-        }
-      }, 500)
+        })
+      } catch {
+        setShowGoogleBtn(true)
+        setTimeout(() => {
+          if (googleBtnRef.current) {
+            window.google.accounts.id.renderButton(googleBtnRef.current, {
+              theme: 'outline', size: 'large', width: 280, text: 'signin_with',
+            })
+          }
+        }, 100)
+      }
+    } else {
+      setShowLoginToast(true)
+      setTimeout(() => setShowLoginToast(false), 2500)
     }
   }
 
@@ -524,6 +536,27 @@ export default function LandingPage() {
           </Reveal>
         </div>
       </section>
+
+      {/* Google 로그인 버튼 (prompt 실패 시 폴백) */}
+      {showGoogleBtn && (
+        <div onClick={() => setShowGoogleBtn(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 10000,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#FFFFFF', borderRadius: 16, padding: '32px 28px',
+            textAlign: 'center', boxShadow: '0 16px 48px rgba(0,0,0,0.2)',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#18181B', marginBottom: 6 }}>로그인</div>
+            <div style={{ fontSize: 13, color: '#71717A', marginBottom: 20 }}>Google 계정으로 시작하세요</div>
+            <div ref={googleBtnRef} style={{ display: 'flex', justifyContent: 'center' }} />
+            <div onClick={() => setShowGoogleBtn(false)} style={{
+              marginTop: 16, fontSize: 13, color: '#A1A1AA', cursor: 'pointer',
+            }}>닫기</div>
+          </div>
+        </div>
+      )}
 
       {/* 로그인 토스트 */}
       {showLoginToast && (
