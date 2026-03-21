@@ -130,6 +130,9 @@ export default function CompanyCard({ corpCode, onBack, onViewCard }) {
       {timeline.history && timeline.history.length > 0 && (
         <CompactDisclosures history={timeline.history} trigger={timeline.trigger} colors={colors} dark={dark} />
       )}
+
+      {/* 7. 재무 딥분석 (Premium) */}
+      <DeepAnalysisSection stockCode={stockCode} colors={colors} dark={dark} />
     </div>
   )
 }
@@ -2132,3 +2135,143 @@ const getLinkBtnStyle = (colors) => ({
   padding: 0,
   transition: 'opacity 0.15s',
 })
+
+
+// ── 7. 재무 딥분석 (Premium) ────────────────────────────────────
+
+function DeepAnalysisSection({ stockCode, colors, dark }) {
+  const [data, setData] = React.useState(null)
+  const [loading, setLoading] = React.useState(true)
+  const [expanded, setExpanded] = React.useState(false)
+
+  const isUserPremium = React.useMemo(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('dart_user'))
+      return u?.email === 'j07087815@gmail.com' // TODO: 실제 Premium 체크로 교체
+    } catch { return false }
+  }, [])
+
+  React.useEffect(() => {
+    if (!stockCode) return
+    fetch(`${API}/api/deep-analysis/${stockCode}`)
+      .then(r => r.json())
+      .then(d => setData(d))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [stockCode])
+
+  if (loading || !data?.exists) return null
+
+  const sep = dark ? '#1E1E22' : '#F0F0F2'
+  const content = data.content || ''
+  const lines = content.split('\n')
+
+  // 제목 + 인용구 추출
+  const title = lines[0]?.replace(/^#\s*/, '').trim() || ''
+  let quote = ''
+  for (const l of lines.slice(1, 6)) {
+    if (l.trim().startsWith('>')) {
+      quote = l.replace(/^>\s*/, '').replace(/\*\*/g, '').trim()
+      break
+    }
+  }
+
+  // 종합 점수 추출
+  let scoreMatch = content.match(/##\s*8\.\s*종합.*?(\d+)\/100.*?\(([A-Z][+-]?)\)/)
+  const score = scoreMatch ? scoreMatch[1] : ''
+  const grade = scoreMatch ? scoreMatch[2] : ''
+
+  // 간단한 마크다운 렌더링
+  const renderMd = (md) => {
+    return md.split('\n').map((line, i) => {
+      if (line.startsWith('## ')) return <h3 key={i} style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, margin: '20px 0 10px', paddingTop: 14, borderTop: `1px solid ${sep}` }}>{line.slice(3)}</h3>
+      if (line.startsWith('> ')) return <div key={i} style={{ borderLeft: `3px solid ${PREMIUM.accent}`, padding: '8px 14px', margin: '10px 0', background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)', fontSize: 13, color: colors.textPrimary, fontStyle: 'italic', lineHeight: 1.7 }}>{line.slice(2).replace(/\*\*/g, '')}</div>
+      if (line.startsWith('| ')) {
+        const cells = line.split('|').filter(c => c.trim()).map(c => c.trim())
+        if (cells.every(c => /^[-:]+$/.test(c))) return null
+        const isHeader = i > 0 && lines[i+1]?.trim().startsWith('|') && lines[i+1]?.includes('---')
+        return <div key={i} style={{ display: 'flex', gap: 0, fontSize: 12, borderBottom: `1px solid ${sep}` }}>
+          {cells.map((c, j) => <div key={j} style={{ flex: 1, padding: '6px 8px', fontWeight: isHeader ? 600 : 400, color: isHeader ? colors.textMuted : colors.textSecondary, background: isHeader ? (dark ? '#0F0F11' : '#FAFAFA') : 'transparent' }}>{c}</div>)}
+        </div>
+      }
+      if (line.startsWith('---')) return <hr key={i} style={{ border: 'none', borderTop: `1px solid ${sep}`, margin: '16px 0' }} />
+      if (line.startsWith('- ')) return <div key={i} style={{ display: 'flex', gap: 6, padding: '3px 0', fontSize: 13, color: colors.textSecondary }}><span style={{ color: PREMIUM.accent }}>•</span><span>{line.slice(2)}</span></div>
+      if (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) return <p key={i} style={{ fontSize: 12, color: colors.textMuted, margin: '8px 0', fontStyle: 'italic' }}>{line.replace(/\*/g, '')}</p>
+      if (line.trim() === '') return <div key={i} style={{ height: 6 }} />
+      const rendered = line.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      return <p key={i} style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.8, margin: '4px 0' }} dangerouslySetInnerHTML={{ __html: rendered }} />
+    })
+  }
+
+  // 가이드 텍스트 이후~종합 이전까지의 본문만 추출
+  const bodyStart = lines.findIndex(l => l.startsWith('## 1.'))
+  const bodyContent = bodyStart > 0 ? lines.slice(bodyStart).join('\n') : content
+
+  return (
+    <>
+      <div style={{ height: 8, backgroundColor: dark ? '#0C0C0E' : '#F4F4F5' }} />
+      <div style={{ padding: '20px 20px 24px' }}>
+        {/* 헤더 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 4, background: PREMIUM.accent, color: '#fff', letterSpacing: '0.05em' }}>PREMIUM</span>
+          <span style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary }}>재무 딥분석</span>
+          {score && (
+            <span style={{ marginLeft: 'auto', fontSize: 14, fontWeight: 800, fontFamily: "'Inter', sans-serif", color: PREMIUM.accent }}>
+              {score}/100 ({grade})
+            </span>
+          )}
+        </div>
+
+        {/* 요약 */}
+        {quote && (
+          <div style={{
+            padding: '12px 14px', borderRadius: 10, marginBottom: 14,
+            background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)',
+            border: `1px solid ${dark ? 'rgba(220,38,38,0.1)' : 'rgba(220,38,38,0.06)'}`,
+          }}>
+            <div style={{ fontSize: 14, color: colors.textPrimary, fontWeight: 500, lineHeight: 1.6, fontStyle: 'italic' }}>
+              "{quote}"
+            </div>
+          </div>
+        )}
+
+        {/* 본문 or Paywall */}
+        {isUserPremium || expanded ? (
+          <div>
+            {renderMd(bodyContent)}
+            {!isUserPremium && (
+              <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 12, color: colors.textMuted }}>
+                * 베타 기간 무료 열람 중
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '32px 0' }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.5" strokeLinecap="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary, marginBottom: 6 }}>
+              Premium 전용 콘텐츠
+            </div>
+            <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
+              DART 5개년 재무제표 기반 8섹션 정량 분석
+            </div>
+            <button onClick={() => setExpanded(true)} style={{
+              padding: '10px 24px', borderRadius: 8, border: 'none',
+              background: PREMIUM.accent, color: '#fff',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 8,
+            }}>
+              베타 무료 열람
+            </button>
+            <div style={{ fontSize: 11, color: colors.textMuted }}>
+              정식 출시 후 Premium 구독 시 열람 가능
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
