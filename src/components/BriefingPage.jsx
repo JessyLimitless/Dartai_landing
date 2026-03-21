@@ -142,8 +142,8 @@ export default function BriefingPage() {
                 <span style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary, fontFamily: "'Inter', sans-serif" }}>100,000</span>
                 <span style={{ fontSize: 12, color: colors.textMuted }}>원/월</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {['이사회결의 심층 분석 리포트', '5개년 재무 딥분석 (AI)', '세력 평단가 · 오버행 알림', '브리핑 전문 + DART Pick'].map((f, i) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 14 }}>
+                {['5개년 재무 딥분석 AI 리포트', '현금흐름 진위 · 자본변동성 분석', '업종 상대 밸류에이션', '브리핑 전문 + DART Pick'].map((f, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: colors.textSecondary }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="3" strokeLinecap="round" style={{ flexShrink: 0 }}>
                       <polyline points="20 6 9 17 4 12" />
@@ -151,6 +151,18 @@ export default function BriefingPage() {
                     {f}
                   </div>
                 ))}
+              </div>
+              <div
+                onClick={() => {
+                  const sample = briefings.find(b => b.id && b.id.includes('premium-sample'))
+                  if (sample) { setSelected(sample); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+                }}
+                style={{
+                  padding: '10px', borderRadius: 8, textAlign: 'center',
+                  background: '#DC2626', color: '#fff',
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                }}>
+                삼성전자 리포트 예시 보기
               </div>
             </div>
 
