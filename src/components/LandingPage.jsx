@@ -21,30 +21,45 @@ export default function LandingPage() {
   })
 
   const handleGoogleLogin = () => {
-    if (window.google?.accounts?.id) {
-      window.google.accounts.id.initialize({
-        client_id: '20826231899-mfkodjf7svaafnr63ne773g5s6cf5k1m.apps.googleusercontent.com',
-        callback: async (response) => {
-          try {
-            const res = await fetch(`${API || ''}/api/auth/google`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ credential: response.credential }),
-            })
-            if (res.ok) {
-              const data = await res.json()
-              if (data.user) {
-                setUser(data.user)
-                localStorage.setItem('dart_user', JSON.stringify(data.user))
+    const tryLogin = () => {
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: '20826231899-mfkodjf7svaafnr63ne773g5s6cf5k1m.apps.googleusercontent.com',
+          callback: async (response) => {
+            try {
+              const res = await fetch(`${API || ''}/api/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: response.credential }),
+              })
+              if (res.ok) {
+                const data = await res.json()
+                if (data.user) {
+                  setUser(data.user)
+                  localStorage.setItem('dart_user', JSON.stringify(data.user))
+                }
               }
-            }
-          } catch {}
-        },
-      })
-      window.google.accounts.id.prompt()
-    } else {
-      setShowLoginToast(true)
-      setTimeout(() => setShowLoginToast(false), 2500)
+            } catch {}
+          },
+        })
+        window.google.accounts.id.prompt()
+        return true
+      }
+      return false
+    }
+    // GSI 스크립트 로딩 대기 (최대 3초)
+    if (!tryLogin()) {
+      let attempts = 0
+      const iv = setInterval(() => {
+        attempts++
+        if (tryLogin() || attempts >= 6) {
+          clearInterval(iv)
+          if (attempts >= 6) {
+            setShowLoginToast(true)
+            setTimeout(() => setShowLoginToast(false), 2500)
+          }
+        }
+      }, 500)
     }
   }
 
@@ -518,8 +533,8 @@ export default function LandingPage() {
           background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(12px)',
           borderRadius: 16, padding: '24px 32px', textAlign: 'center',
         }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#FAFAFA', marginBottom: 6 }}>Beta Version</div>
-          <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.5 }}>현재 테스트 버전으로 운영 중입니다</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#FAFAFA', marginBottom: 6 }}>로그인 준비 중</div>
+          <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.5 }}>잠시 후 다시 시도해주세요</div>
         </div>
       )}
 
