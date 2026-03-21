@@ -2183,24 +2183,69 @@ function DeepAnalysisSection({ stockCode, colors, dark }) {
 
   // 간단한 마크다운 렌더링
   const renderMd = (md) => {
-    return md.split('\n').map((line, i) => {
-      if (line.startsWith('## ')) return <h3 key={i} style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, margin: '20px 0 10px', paddingTop: 14, borderTop: `1px solid ${sep}` }}>{line.slice(3)}</h3>
-      if (line.startsWith('> ')) return <div key={i} style={{ borderLeft: `3px solid ${PREMIUM.accent}`, padding: '8px 14px', margin: '10px 0', background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)', fontSize: 13, color: colors.textPrimary, fontStyle: 'italic', lineHeight: 1.7 }}>{line.slice(2).replace(/\*\*/g, '')}</div>
-      if (line.startsWith('| ')) {
-        const cells = line.split('|').filter(c => c.trim()).map(c => c.trim())
-        if (cells.every(c => /^[-:]+$/.test(c))) return null
-        const isHeader = i > 0 && lines[i+1]?.trim().startsWith('|') && lines[i+1]?.includes('---')
-        return <div key={i} style={{ display: 'flex', gap: 0, fontSize: 12, borderBottom: `1px solid ${sep}` }}>
-          {cells.map((c, j) => <div key={j} style={{ flex: 1, padding: '6px 8px', fontWeight: isHeader ? 600 : 400, color: isHeader ? colors.textMuted : colors.textSecondary, background: isHeader ? (dark ? '#0F0F11' : '#FAFAFA') : 'transparent' }}>{c}</div>)}
-        </div>
+    const allLines = md.split('\n')
+    const elements = []
+    let tableRows = []
+    let tableHeaders = []
+    let inTable = false
+
+    const flushTable = () => {
+      if (tableHeaders.length > 0) {
+        elements.push(
+          <div key={`tbl-${elements.length}`} style={{ overflowX: 'auto', margin: '12px 0', borderRadius: 8, border: `1px solid ${sep}`, WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: Math.max(300, tableHeaders.length * 70), fontSize: 12 }}>
+              <thead>
+                <tr>{tableHeaders.map((h, hi) => (
+                  <th key={hi} style={{ padding: '8px 10px', textAlign: hi === 0 ? 'left' : 'right', borderBottom: `2px solid ${sep}`, background: dark ? '#0F0F11' : '#FAFAFA', color: colors.textMuted, fontWeight: 600, fontSize: 11, whiteSpace: 'nowrap' }}>{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody>
+                {tableRows.map((row, ri) => (
+                  <tr key={ri}>{row.map((cell, ci) => (
+                    <td key={ci} style={{ padding: '7px 10px', textAlign: ci === 0 ? 'left' : 'right', borderBottom: ri < tableRows.length - 1 ? `1px solid ${sep}` : 'none', color: colors.textSecondary, fontSize: 12, whiteSpace: 'nowrap' }}>{cell}</td>
+                  ))}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
       }
-      if (line.startsWith('---')) return <hr key={i} style={{ border: 'none', borderTop: `1px solid ${sep}`, margin: '16px 0' }} />
-      if (line.startsWith('- ')) return <div key={i} style={{ display: 'flex', gap: 6, padding: '3px 0', fontSize: 13, color: colors.textSecondary }}><span style={{ color: PREMIUM.accent }}>•</span><span>{line.slice(2)}</span></div>
-      if (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) return <p key={i} style={{ fontSize: 12, color: colors.textMuted, margin: '8px 0', fontStyle: 'italic' }}>{line.replace(/\*/g, '')}</p>
-      if (line.trim() === '') return <div key={i} style={{ height: 6 }} />
-      const rendered = line.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-      return <p key={i} style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.8, margin: '4px 0' }} dangerouslySetInnerHTML={{ __html: rendered }} />
-    })
+      tableHeaders = []
+      tableRows = []
+      inTable = false
+    }
+
+    for (let i = 0; i < allLines.length; i++) {
+      const line = allLines[i]
+
+      if (line.startsWith('|') && line.endsWith('|')) {
+        const cells = line.split('|').filter(c => c.trim()).map(c => c.trim())
+        if (!inTable) { tableHeaders = cells; inTable = true; continue }
+        if (cells.every(c => /^[-:]+$/.test(c))) continue
+        tableRows.push(cells)
+        continue
+      } else if (inTable) { flushTable() }
+
+      if (line.startsWith('## ')) {
+        elements.push(<h3 key={i} style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, margin: '20px 0 10px', paddingTop: 14, borderTop: `1px solid ${sep}` }}>{line.slice(3)}</h3>)
+      } else if (line.startsWith('> ')) {
+        elements.push(<div key={i} style={{ borderLeft: `3px solid ${PREMIUM.accent}`, padding: '8px 14px', margin: '10px 0', background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)', fontSize: 13, color: colors.textPrimary, fontStyle: 'italic', lineHeight: 1.7 }}>{line.slice(2).replace(/\*\*/g, '')}</div>)
+      } else if (line.startsWith('---')) {
+        elements.push(<hr key={i} style={{ border: 'none', borderTop: `1px solid ${sep}`, margin: '16px 0' }} />)
+      } else if (line.startsWith('- ')) {
+        const text = line.slice(2).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+        elements.push(<div key={i} style={{ display: 'flex', gap: 6, padding: '3px 0', fontSize: 13, color: colors.textSecondary, lineHeight: 1.6 }}><span style={{ color: PREMIUM.accent, flexShrink: 0 }}>•</span><span dangerouslySetInnerHTML={{ __html: text }} /></div>)
+      } else if (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) {
+        elements.push(<p key={i} style={{ fontSize: 12, color: colors.textMuted, margin: '8px 0', fontStyle: 'italic' }}>{line.replace(/\*/g, '')}</p>)
+      } else if (line.trim() === '') {
+        elements.push(<div key={i} style={{ height: 6 }} />)
+      } else {
+        const rendered = line.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+        elements.push(<p key={i} style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.8, margin: '4px 0' }} dangerouslySetInnerHTML={{ __html: rendered }} />)
+      }
+    }
+    if (inTable) flushTable()
+    return elements
   }
 
   // 가이드 텍스트 이후~종합 이전까지의 본문만 추출
