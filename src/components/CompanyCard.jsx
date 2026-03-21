@@ -2255,68 +2255,73 @@ function DeepAnalysisSection({ stockCode, colors, dark }) {
   return (
     <>
       <div style={{ height: 8, backgroundColor: dark ? '#0C0C0E' : '#F4F4F5' }} />
-      <div style={{ padding: '20px 20px 24px' }}>
-        {/* 헤더 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 4, background: PREMIUM.accent, color: '#fff', letterSpacing: '0.05em' }}>PREMIUM</span>
-          <span style={{ fontSize: 17, fontWeight: 700, color: colors.textPrimary }}>재무 딥분석</span>
-          {score && (
-            <span style={{ marginLeft: 'auto', fontSize: 14, fontWeight: 800, fontFamily: "'Inter', sans-serif", color: PREMIUM.accent }}>
-              {score}/100 ({grade})
-            </span>
-          )}
-        </div>
 
-        {/* 요약 */}
-        {quote && (
-          <div style={{
-            padding: '12px 14px', borderRadius: 10, marginBottom: 14,
-            background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)',
-            border: `1px solid ${dark ? 'rgba(220,38,38,0.1)' : 'rgba(220,38,38,0.06)'}`,
-          }}>
-            <div style={{ fontSize: 14, color: colors.textPrimary, fontWeight: 500, lineHeight: 1.6, fontStyle: 'italic' }}>
-              "{quote}"
-            </div>
-          </div>
+      {/* 접힌 상태 — 클릭하면 드롭다운 */}
+      <div
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          padding: '16px 20px',
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 10,
+          transition: 'background 0.15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.5" strokeLinecap="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 4, background: PREMIUM.accent, color: '#fff', letterSpacing: '0.05em' }}>PREMIUM</span>
+        <span style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary, flex: 1 }}>재무 딥분석</span>
+        {score && (
+          <span style={{ fontSize: 13, fontWeight: 800, fontFamily: "'Inter', sans-serif", color: PREMIUM.accent }}>
+            {score} ({grade})
+          </span>
         )}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round"
+          style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
 
-        {/* 본문 or Paywall */}
-        {isUserPremium || expanded ? (
+      {/* 드롭다운 본문 */}
+      {expanded && (
+        <div style={{ padding: '0 20px 24px' }}>
+          {/* 유료 안내 배너 */}
+          <div style={{
+            padding: '10px 14px', borderRadius: 8, marginBottom: 14,
+            background: dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)',
+            border: `1px solid ${dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.08)'}`,
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={PREMIUM.accent} strokeWidth="2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span style={{ fontSize: 12, color: colors.textMuted, flex: 1 }}>
+              Premium 전용 콘텐츠입니다. 현재 베타 기간 무료 열람 중.
+            </span>
+          </div>
+
+          {/* 인용구 */}
+          {quote && (
+            <div style={{
+              padding: '12px 14px', borderRadius: 10, marginBottom: 14,
+              background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)',
+              border: `1px solid ${dark ? 'rgba(220,38,38,0.1)' : 'rgba(220,38,38,0.06)'}`,
+            }}>
+              <div style={{ fontSize: 14, color: colors.textPrimary, fontWeight: 500, lineHeight: 1.6, fontStyle: 'italic' }}>
+                "{quote}"
+              </div>
+            </div>
+          )}
+
+          {/* 본문 */}
           <div>
             {renderMd(bodyContent)}
-            {!isUserPremium && (
-              <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 12, color: colors.textMuted }}>
-                * 베타 기간 무료 열람 중
-              </div>
-            )}
           </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '32px 0' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.5" strokeLinecap="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary, marginBottom: 6 }}>
-              Premium 전용 콘텐츠
-            </div>
-            <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
-              DART 5개년 재무제표 기반 8섹션 정량 분석
-            </div>
-            <button onClick={() => setExpanded(true)} style={{
-              padding: '10px 24px', borderRadius: 8, border: 'none',
-              background: PREMIUM.accent, color: '#fff',
-              fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 8,
-            }}>
-              베타 무료 열람
-            </button>
-            <div style={{ fontSize: 11, color: colors.textMuted }}>
-              정식 출시 후 Premium 구독 시 열람 가능
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
   )
 }
