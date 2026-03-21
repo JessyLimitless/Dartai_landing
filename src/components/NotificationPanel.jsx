@@ -14,8 +14,8 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
         position: 'absolute',
         top: '100%',
         right: 0,
-        width: '400px',
-        maxHeight: '500px',
+        width: 'min(400px, calc(100vw - 24px))',
+        maxHeight: '70vh',
         backgroundColor: colors.bgCard,
         borderRadius: '16px',
         boxShadow: PREMIUM.shadowLg,
@@ -38,7 +38,7 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
         <span style={{
           fontWeight: 700, fontSize: '14px', color: colors.textPrimary,
           fontFamily: FONTS.serif,
-        }}>Notifications</span>
+        }}>알림</span>
         <button
           onClick={onMarkAllRead}
           style={{
@@ -51,7 +51,7 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
             padding: '4px 8px',
           }}
         >
-          Mark all read
+          모두 읽음
         </button>
       </div>
 
@@ -71,7 +71,7 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
           </div>
         ) : notifications.length === 0 ? (
           <div style={{ padding: '24px', textAlign: 'center', color: colors.textMuted }}>
-            No notifications
+            알림이 없습니다
           </div>
         ) : (
           notifications.map((n) => (

@@ -76,9 +76,9 @@ export default function NotificationDetailModal({ notification, onClose }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: '600px',
+          width: 'min(600px, calc(100vw - 32px))',
           maxWidth: '90vw',
-          maxHeight: '80vh',
+          maxHeight: '85vh',
           backgroundColor: colors.bgCard,
           borderRadius: '16px',
           boxShadow: PREMIUM.shadowLg,
@@ -136,7 +136,7 @@ export default function NotificationDetailModal({ notification, onClose }) {
             <SimpleMarkdown text={content} />
           ) : (
             <div style={{ color: colors.textMuted, fontSize: '14px' }}>
-              No detail information available.
+              상세 정보가 없습니다.
             </div>
           )}
         </div>
@@ -154,7 +154,7 @@ export default function NotificationDetailModal({ notification, onClose }) {
             color: colors.textMuted,
           }}
         >
-          <span>{type === 'card' ? 'Company Card' : type === 'daily_report' ? 'Daily Report' : 'Filing Alert'}</span>
+          <span>{type === 'card' ? '기업카드' : type === 'daily_report' ? '일일 리포트' : '공시 알림'}</span>
           <span>{created_at ? new Date(created_at).toLocaleString('ko-KR') : ''}</span>
         </div>
       </div>
