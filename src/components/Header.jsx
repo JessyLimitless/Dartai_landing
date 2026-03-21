@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import NotificationBell from './NotificationBell'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM, PREMIUM_GOLD } from '../constants/theme'
+import { isAdmin } from './AdminPage'
 
 const TABS = [
   { key: '/', label: 'Home', icon: 'home', mobileLabel: '홈', mobileIcon: 'home', exact: true },
@@ -248,6 +249,24 @@ export default function Header({
 
         {/* Right: Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          {isAdmin() && (
+            <button
+              onClick={() => handleNav('/admin')}
+              aria-label="관리자"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '6px', lineHeight: 1,
+                color: isActive('/admin') ? '#DC2626' : colors.textMuted,
+                transition: 'color 0.15s', borderRadius: 6,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#DC2626'; e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = isActive('/admin') ? '#DC2626' : colors.textMuted; e.currentTarget.style.backgroundColor = 'transparent' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={() => handleNav('/library')}
             aria-label="서재"

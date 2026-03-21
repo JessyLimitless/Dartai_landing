@@ -21,6 +21,7 @@ const DartEventPage = lazy(() => import('./components/DartEventPage'))
 const LibraryPage = lazy(() => import('./components/LibraryPage'))
 const BriefingPage = lazy(() => import('./components/BriefingPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
+const AdminPage = lazy(() => import('./components/AdminPage'))
 import BuffettChatPanel from './components/BuffettChat'
 import DisclosureModal from './components/DisclosureModal'
 import EmailCapture from './components/EmailCapture'
@@ -110,6 +111,7 @@ export default function App() {
               <Route path="/dart-event" element={<DartEventPage />} />
               <Route path="/library" element={<LibraryPage />} />
               <Route path="/premium" element={<PremiumPage />} />
+              <Route path="/admin" element={<AdminPage />} />
               {/* Legacy redirects */}
               <Route path="/surge" element={<Navigate to="/today" replace />} />
               <Route path="/quant" element={<Navigate to="/today" replace />} />
