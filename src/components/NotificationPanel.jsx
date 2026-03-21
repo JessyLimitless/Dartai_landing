@@ -11,9 +11,9 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
     <div
       className="notification-panel"
       style={{
-        position: 'absolute',
-        top: '100%',
-        right: 0,
+        position: 'fixed',
+        top: 56,
+        right: 'max(12px, calc((100vw - 400px) / 2))',
         width: 'min(400px, calc(100vw - 24px))',
         maxHeight: '70vh',
         backgroundColor: colors.bgCard,
