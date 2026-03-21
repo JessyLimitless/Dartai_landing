@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import NotificationBell from './NotificationBell'
 import { useTheme } from '../contexts/ThemeContext'
@@ -93,22 +93,6 @@ export default function Header({
   const location = useLocation()
   const { dark, toggle, colors } = useTheme()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const tapCountRef = useRef(0)
-  const tapTimerRef = useRef(null)
-
-  const handleLogoTap = () => {
-    tapCountRef.current += 1
-    if (tapTimerRef.current) clearTimeout(tapTimerRef.current)
-    if (tapCountRef.current >= 6 && isAdmin()) {
-      tapCountRef.current = 0
-      navigate('/admin')
-      return
-    }
-    tapTimerRef.current = setTimeout(() => {
-      if (tapCountRef.current < 6) navigate('/')
-      tapCountRef.current = 0
-    }, 400)
-  }
 
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/'
@@ -154,7 +138,7 @@ export default function Header({
             </svg>
           </button>
 
-          <div onClick={handleLogoTap} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', userSelect: 'none' }}>
+          <div onClick={() => navigate(isAdmin() ? '/admin' : '/')} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' }}>
             {/* Logo mark */}
             <div style={{
               width: 24, height: 24, borderRadius: 6,
