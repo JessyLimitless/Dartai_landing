@@ -58,36 +58,13 @@ export default function InquiryPage() {
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 20px 80px', fontFamily: FONTS.body }}>
 
       {/* 헤더 */}
-      <div style={{ marginBottom: 28 }}>
+      <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 22, fontWeight: 700, color: colors.textPrimary, marginBottom: 6 }}>
-          서비스 문의
+          자동매매 제품 문의
         </div>
         <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.6 }}>
-          주식회사 뮤즈에이아이의 서비스에 대해 문의해주세요.
+          맞춤형 자동매매 프로그램 제작 및 AI 솔루션 개발에 대해 문의해주세요.
         </div>
-      </div>
-
-      {/* 서비스 소개 카드 */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10,
-        marginBottom: 28,
-      }}>
-        {[
-          { title: '자동매매 프로그램', desc: '맞춤 알고리즘 트레이딩 시스템 개발', icon: '⚡' },
-          { title: 'AI 솔루션', desc: '기업용 AI/ML 도입 컨설팅 및 개발', icon: '🤖' },
-          { title: 'DART Insight', desc: 'AI 공시 큐레이션 프리미엄 서비스', icon: '📊' },
-          { title: '데이터 분석', desc: '금융 데이터 수집·분석 자동화', icon: '🔍' },
-        ].map((s, i) => (
-          <div key={i} style={{
-            padding: '14px', borderRadius: 12,
-            background: dark ? '#141416' : '#FAFAFA',
-            border: `1px solid ${sep}`,
-          }}>
-            <div style={{ fontSize: 20, marginBottom: 6 }}>{s.icon}</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, marginBottom: 3 }}>{s.title}</div>
-            <div style={{ fontSize: 12, color: colors.textMuted, lineHeight: 1.4 }}>{s.desc}</div>
-          </div>
-        ))}
       </div>
 
       {/* 문의 폼 */}
