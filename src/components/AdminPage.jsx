@@ -89,74 +89,44 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* 시총 순위 테이블 */}
+          {/* 시총 순위 리스트 */}
           <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff' }}>
-            {/* 헤더 */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '8px 14px',
-              background: dark ? '#1A1A1E' : '#F9FAFB',
-              borderBottom: `1px solid ${sep}`,
-            }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, width: 28, textAlign: 'right' }}>#</span>
-              <span style={{ width: 8 }} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, flex: 1 }}>종목명</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, width: 42, textAlign: 'center' }}>점수</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, width: 36, textAlign: 'center' }}>등급</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, width: 38, textAlign: 'center' }}>시장</span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, width: 52, textAlign: 'right' }}>시총</span>
-            </div>
-            {ranking.map((item, i) => {
-              const sc = item.score
-              const scoreColor = sc >= 85 ? '#16A34A' : sc >= 70 ? '#0D9488' : sc >= 55 ? '#D97706' : sc >= 40 ? '#EA580C' : sc != null ? '#DC2626' : colors.textMuted
-              const gradeBg = sc >= 85 ? 'rgba(22,163,74,0.12)' : sc >= 70 ? 'rgba(13,148,136,0.12)' : sc >= 55 ? 'rgba(217,119,6,0.10)' : sc >= 40 ? 'rgba(234,88,12,0.10)' : sc != null ? 'rgba(220,38,38,0.10)' : 'transparent'
-              return (
-                <div key={item.stock_code}
-                  onClick={() => navigate(`/deep-dive/${item.stock_code}`)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '9px 14px', cursor: 'pointer',
-                    borderBottom: i < ranking.length - 1 ? `1px solid ${sep}` : 'none',
-                    transition: 'background 0.1s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  <span style={{ fontSize: 11, fontWeight: 600, color: colors.textMuted, fontFamily: FONTS.mono, width: 28, textAlign: 'right' }}>
-                    {i + 1}
-                  </span>
-                  {item.deep_analysis ? (
-                    <span style={{ width: 8, height: 8, borderRadius: 4, background: '#16A34A', flexShrink: 0 }} />
-                  ) : (
-                    <span style={{ width: 8, height: 8, borderRadius: 4, background: dark ? '#27272A' : '#E4E4E7', flexShrink: 0 }} />
-                  )}
-                  <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {item.corp_name}
-                  </span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: scoreColor, fontFamily: FONTS.mono, width: 42, textAlign: 'center' }}>
-                    {sc != null ? sc : '—'}
-                  </span>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, width: 36, textAlign: 'center',
-                    padding: '1px 0', borderRadius: 3,
-                    background: gradeBg, color: scoreColor,
-                  }}>
-                    {item.grade || '—'}
-                  </span>
-                  <span style={{
-                    fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, width: 38, textAlign: 'center',
-                    background: item.market_type === '코스피' ? 'rgba(37,99,235,0.1)' : item.market_type === '코스닥' ? 'rgba(217,119,6,0.1)' : 'rgba(128,128,128,0.1)',
-                    color: item.market_type === '코스피' ? '#2563EB' : item.market_type === '코스닥' ? '#D97706' : '#888',
-                    flexShrink: 0,
-                  }}>
-                    {item.market_type}
-                  </span>
-                  <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, width: 52, textAlign: 'right' }}>
-                    {item.market_cap >= 10000 ? `${(item.market_cap / 10000).toFixed(1)}조` : `${Math.round(item.market_cap).toLocaleString()}억`}
-                  </span>
-                </div>
-              )
-            })}
+            {ranking.filter(item => item.market_type === '코스피' || item.market_type === '코스닥').map((item, i) => (
+              <div key={item.stock_code}
+                onClick={() => navigate(`/deep-dive/${item.stock_code}`)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 14px', cursor: 'pointer',
+                  borderBottom: i < ranking.length - 1 ? `1px solid ${sep}` : 'none',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.03)' : '#FAFAFA'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMuted, fontFamily: FONTS.mono, width: 28, textAlign: 'right' }}>
+                  {i + 1}
+                </span>
+                {item.deep_analysis ? (
+                  <span style={{ width: 8, height: 8, borderRadius: 4, background: '#16A34A', flexShrink: 0 }} />
+                ) : (
+                  <span style={{ width: 8, height: 8, borderRadius: 4, background: dark ? '#27272A' : '#E4E4E7', flexShrink: 0 }} />
+                )}
+                <span style={{ fontSize: 14, fontWeight: 600, color: colors.textPrimary, flex: 1 }}>
+                  {item.corp_name}
+                </span>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
+                  background: item.market_type === '코스피' ? 'rgba(37,99,235,0.1)' : 'rgba(217,119,6,0.1)',
+                  color: item.market_type === '코스피' ? '#2563EB' : '#D97706',
+                  flexShrink: 0,
+                }}>
+                  {item.market_type}
+                </span>
+                <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                  {item.market_cap >= 10000 ? `${(item.market_cap / 10000).toFixed(1)}조` : `${Math.round(item.market_cap).toLocaleString()}억`}
+                </span>
+              </div>
+            ))}
           </div>
         </>
       ) : tab === 'disclosures' ? (
