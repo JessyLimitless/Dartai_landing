@@ -22,6 +22,7 @@ const LibraryPage = lazy(() => import('./components/LibraryPage'))
 const BriefingPage = lazy(() => import('./components/BriefingPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
 const AdminPage = lazy(() => import('./components/AdminPage'))
+const InquiryPage = lazy(() => import('./components/InquiryPage'))
 import BuffettChatPanel from './components/BuffettChat'
 import DisclosureModal from './components/DisclosureModal'
 import EmailCapture from './components/EmailCapture'
@@ -112,6 +113,7 @@ export default function App() {
               <Route path="/library" element={<LibraryPage />} />
               <Route path="/premium" element={<PremiumPage />} />
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/inquiry" element={<InquiryPage />} />
               {/* Legacy redirects */}
               <Route path="/surge" element={<Navigate to="/today" replace />} />
               <Route path="/quant" element={<Navigate to="/today" replace />} />

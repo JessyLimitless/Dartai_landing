@@ -595,6 +595,10 @@ export default function LandingPage() {
               fontSize: 13, color: '#A1A1AA', cursor: 'pointer',
               borderBottom: '1px solid #E4E4E7', paddingBottom: 1,
             }}>개인정보 처리방침</span>
+            <span onClick={() => navigate('/inquiry')} style={{
+              fontSize: 13, color: '#A1A1AA', cursor: 'pointer',
+              borderBottom: '1px solid #E4E4E7', paddingBottom: 1,
+            }}>서비스 문의</span>
           </div>
 
           <div style={{

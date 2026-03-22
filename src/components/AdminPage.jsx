@@ -18,10 +18,11 @@ export function isAdmin() {
 export default function AdminPage() {
   const { colors, dark } = useTheme()
   const navigate = useNavigate()
-  const [tab, setTab] = useState('ranking') // 'ranking' | 'disclosures'
+  const [tab, setTab] = useState('ranking') // 'ranking' | 'disclosures' | 'inquiries'
   const [ranking, setRanking] = useState([])
   const [rankingStats, setRankingStats] = useState({ total: 0, done: 0 })
   const [disclosures, setDisclosures] = useState([])
+  const [inquiries, setInquiries] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -30,10 +31,12 @@ export default function AdminPage() {
     Promise.all([
       fetch(`${API}/api/admin/market-cap-ranking?limit=200`).then(r => r.json()),
       fetch(`${API}/api/admin/disclosures?limit=200`).then(r => r.json()),
-    ]).then(([rankData, discData]) => {
+      fetch(`${API}/api/admin/inquiries?limit=100`).then(r => r.json()),
+    ]).then(([rankData, discData, inqData]) => {
       setRanking(rankData.ranking || [])
       setRankingStats({ total: rankData.total || 0, done: rankData.done || 0 })
       setDisclosures(discData.disclosures || [])
+      setInquiries(inqData.inquiries || [])
     }).catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -54,7 +57,8 @@ export default function AdminPage() {
       <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderRadius: 8, overflow: 'hidden', border: `1px solid ${sep}` }}>
         {[
           { key: 'ranking', label: `시총 순위 (${rankingStats.done}/${rankingStats.total})` },
-          { key: 'disclosures', label: `프리미엄 공시 (${disclosures.length})` },
+          { key: 'disclosures', label: `공시 (${disclosures.length})` },
+          { key: 'inquiries', label: `문의 (${inquiries.length})` },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
@@ -117,8 +121,7 @@ export default function AdminPage() {
             ))}
           </div>
         </>
-      ) : (
-        /* 프리미엄 공시 탭 */
+      ) : tab === 'disclosures' ? (
         disclosures.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>
             아직 수집된 프리미엄 공시가 없습니다.
@@ -152,7 +155,47 @@ export default function AdminPage() {
             })}
           </div>
         )
-      )}
+      ) : tab === 'inquiries' ? (
+        inquiries.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>
+            아직 접수된 문의가 없습니다.
+          </div>
+        ) : (
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff' }}>
+            {inquiries.map((inq, i) => {
+              const kstTime = inq.created_at ? (() => {
+                const dt = new Date(inq.created_at + 'Z')
+                const k = new Date(dt.getTime() + 9 * 3600000)
+                return `${k.getUTCMonth() + 1}/${k.getUTCDate()} ${String(k.getUTCHours()).padStart(2, '0')}:${String(k.getUTCMinutes()).padStart(2, '0')}`
+              })() : ''
+              return (
+                <div key={inq.id}
+                  onClick={() => {
+                    if (!inq.is_read) {
+                      fetch(`${API}/api/admin/inquiries/${inq.id}/read`, { method: 'POST' })
+                      setInquiries(prev => prev.map(q => q.id === inq.id ? { ...q, is_read: 1 } : q))
+                    }
+                  }}
+                  style={{
+                    padding: '14px 16px', cursor: 'pointer',
+                    borderBottom: i < inquiries.length - 1 ? `1px solid ${sep}` : 'none',
+                    background: inq.is_read ? 'transparent' : (dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)'),
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    {!inq.is_read && <span style={{ width: 6, height: 6, borderRadius: 3, background: '#DC2626', flexShrink: 0 }} />}
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: dark ? '#1A1A1E' : '#F4F4F5', color: colors.textMuted }}>{inq.category}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: colors.textPrimary }}>{inq.name || '익명'}</span>
+                    <span style={{ fontSize: 12, color: colors.textMuted, marginLeft: 'auto', fontFamily: FONTS.mono }}>{kstTime}</span>
+                  </div>
+                  {inq.contact && <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 4 }}>{inq.contact}</div>}
+                  <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.5 }}>{inq.message}</div>
+                </div>
+              )
+            })}
+          </div>
+        )
+      ) : null}
     </div>
   )
 }
