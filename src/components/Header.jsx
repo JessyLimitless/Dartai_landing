@@ -9,6 +9,7 @@ const TABS = [
   { key: '/', label: 'Home', icon: 'home', mobileLabel: '홈', mobileIcon: 'home', exact: true },
   { key: '/briefing', label: 'Briefing', icon: 'dartevent', mobileLabel: '브리핑', mobileIcon: 'dartevent' },
   { key: '/today', label: 'Today', icon: 'today', mobileLabel: '투데이', mobileIcon: 'today' },
+  { key: '/dart-view', label: 'DART View', icon: 'deepdive', mobileLabel: '다트뷰', mobileIcon: 'deepdive' },
   { key: '/premium', label: 'Premium', icon: 'premium', premium: true, mobileLabel: 'AI', mobileIcon: 'premium' },
   { key: '/dart-event', label: 'Event', icon: 'dartevent', desktopOnly: true },
   { key: '/deep-dive', label: 'Company Card', icon: 'deepdive', desktopOnly: true },
