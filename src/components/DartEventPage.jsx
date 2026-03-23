@@ -227,8 +227,8 @@ export default function DartEventPage() {
 // ══ 미니 캘린더 ══
 function MiniCalendar({ eventDayMap, selectedId, onSelectEvent, dark, colors, c }) {
   const now = new Date()
-  const year = 2026
-  const month = 2 // March (0-indexed)
+  const year = now.getFullYear()
+  const month = now.getMonth() // 0-indexed (0=Jan, 2=Mar, ...)
   const today = now.getDate()
 
   const firstDay = new Date(year, month, 1).getDay() // 0=Sun
@@ -259,7 +259,7 @@ function MiniCalendar({ eventDayMap, selectedId, onSelectEvent, dark, colors, c 
           fontSize: 16, fontWeight: 700, color: colors.textPrimary,
           fontFamily: FONTS.serif,
         }}>
-          2026년 3월
+          {year}년 {month + 1}월
         </span>
         <div style={{ display: 'flex', gap: 8 }}>
           {Object.entries(TAG_COLORS).map(([key, tc]) => {
