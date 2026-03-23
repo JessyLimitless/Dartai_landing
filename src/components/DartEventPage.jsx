@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM } from '../constants/theme'
-import WEEKLY_EVENTS from '../data/weeklyEvents'
+import WEEKLY_EVENTS, { CURRENT_EVENTS, ARCHIVED_EVENTS } from '../data/weeklyEvents'
 
 const TAG_COLORS = {
   'GLOBAL EVENT': { bg: 'rgba(220,38,38,0.10)', color: '#F87171', label: '글로벌' },
@@ -43,10 +43,12 @@ function parseEventDays(dateStr) {
 
 export default function DartEventPage() {
   const { colors, dark } = useTheme()
-  const [selectedId, setSelectedId] = useState(WEEKLY_EVENTS[0]?.id || null)
+  const [selectedId, setSelectedId] = useState(CURRENT_EVENTS[0]?.id || null)
+  const [showArchive, setShowArchive] = useState(false)
+  const visibleEvents = showArchive ? WEEKLY_EVENTS : CURRENT_EVENTS
   const selected = WEEKLY_EVENTS.find(e => e.id === selectedId)
 
-  // 캘린더 데이터: 각 날짜에 어떤 이벤트가 있는지
+  // 캘린더 데이터: 모든 이벤트 (아카이브 포함) 표시
   const eventDayMap = useMemo(() => {
     const map = {} // day → [event]
     WEEKLY_EVENTS.forEach(ev => {
@@ -99,7 +101,7 @@ export default function DartEventPage() {
 
         {/* 좌: 이벤트 리스트 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {WEEKLY_EVENTS.map((event) => {
+          {visibleEvents.map((event) => {
             const active = selectedId === event.id
             const tc = TAG_COLORS[event.tag] || TAG_COLORS['GLOBAL EVENT']
             return (
@@ -129,6 +131,13 @@ export default function DartEventPage() {
                   <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>
                     {event.date}
                   </span>
+                  {event.archived && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4,
+                      background: dark ? '#27272A' : '#E4E4E7',
+                      color: colors.textMuted, marginLeft: 4,
+                    }}>지난주</span>
+                  )}
                 </div>
                 <div style={{
                   fontSize: 15, fontWeight: 700, color: colors.textPrimary,
@@ -150,6 +159,22 @@ export default function DartEventPage() {
               </div>
             )
           })}
+          {/* 아카이브 토글 */}
+          {ARCHIVED_EVENTS.length > 0 && (
+            <div
+              className="touch-press"
+              onClick={() => setShowArchive(!showArchive)}
+              style={{
+                padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
+                border: `1px dashed ${colors.textMuted}30`,
+                textAlign: 'center', fontSize: 12, color: colors.textMuted,
+                fontWeight: 500, marginTop: 4,
+                background: showArchive ? (dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent',
+              }}
+            >
+              {showArchive ? '지난 일정 숨기기 ▲' : `지난 일정 보기 (${ARCHIVED_EVENTS.length}건) ▼`}
+            </div>
+          )}
         </div>
 
         {/* 우: 인사이트 문서 */}
