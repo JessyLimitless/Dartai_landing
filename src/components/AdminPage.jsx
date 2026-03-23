@@ -24,6 +24,7 @@ export default function AdminPage() {
   const [disclosures, setDisclosures] = useState([])
   const [inquiries, setInquiries] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedDisc, setSelectedDisc] = useState(null) // 공시 팝업용
 
   useEffect(() => {
     if (!isAdmin()) { navigate('/'); return }
@@ -149,7 +150,7 @@ export default function AdminPage() {
               })() : ''
               return (
                 <div key={d.rcept_no}
-                  onClick={() => window.open(`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${d.rcept_no}`, '_blank')}
+                  onClick={() => setSelectedDisc(d)}
                   style={{
                     padding: '12px 14px', cursor: 'pointer',
                     borderBottom: i < disclosures.length - 1 ? `1px solid ${sep}` : 'none',
@@ -209,6 +210,72 @@ export default function AdminPage() {
           </div>
         )
       ) : null}
+
+      {/* ── 공시 상세 팝업 모달 ── */}
+      {selectedDisc && (
+        <div onClick={() => setSelectedDisc(null)} style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: dark ? '#1A1A1E' : '#fff', borderRadius: 16,
+            maxWidth: 480, width: '100%', maxHeight: '80vh', overflow: 'auto',
+            border: `1px solid ${sep}`, boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          }}>
+            {/* 헤더 */}
+            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${sep}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff' }}>{selectedDisc.grade}</span>
+                <span style={{ fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: dark ? '#27272A' : '#E4E4E7', color: colors.textMuted }}>이사회 공시</span>
+              </div>
+              <button onClick={() => setSelectedDisc(null)} style={{ background: 'none', border: 'none', fontSize: 18, color: colors.textMuted, cursor: 'pointer' }}>✕</button>
+            </div>
+
+            {/* 기업 정보 */}
+            <div style={{ padding: '16px 20px' }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: colors.textPrimary, marginBottom: 4, fontFamily: FONTS.serif }}>
+                {selectedDisc.corp_name}
+              </div>
+              <div style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono, marginBottom: 12 }}>
+                {selectedDisc.stock_code || ''} · {selectedDisc.rcept_no}
+              </div>
+
+              {/* 공시명 */}
+              <div style={{ fontSize: 14, fontWeight: 600, color: colors.textPrimary, marginBottom: 4 }}>
+                {selectedDisc.report_nm}
+              </div>
+              <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 16 }}>
+                수집 시각: {selectedDisc.created_at || '-'}
+              </div>
+
+              {/* 액션 버튼 */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => window.open(`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${selectedDisc.rcept_no}`, '_blank')}
+                  style={{
+                    flex: 1, padding: '10px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
+                    background: '#DC2626', color: '#fff', fontSize: 13, fontWeight: 600,
+                  }}
+                >
+                  DART 원문 보기
+                </button>
+                {selectedDisc.stock_code && (
+                  <button
+                    onClick={() => { setSelectedDisc(null); navigate(`/deep-dive/${selectedDisc.corp_code || selectedDisc.stock_code}`) }}
+                    style={{
+                      flex: 1, padding: '10px 0', borderRadius: 8, border: `1px solid ${sep}`, cursor: 'pointer',
+                      background: 'transparent', color: colors.textPrimary, fontSize: 13, fontWeight: 600,
+                    }}
+                  >
+                    기업카드 보기
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
