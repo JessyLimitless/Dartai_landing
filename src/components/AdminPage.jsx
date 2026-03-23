@@ -114,6 +114,11 @@ export default function AdminPage() {
                 <span style={{ fontSize: 14, fontWeight: 600, color: colors.textPrimary, flex: 1 }}>
                   {item.corp_name}
                 </span>
+                {item.grade && (() => {
+                  const sc = item.score
+                  const gc = sc >= 85 ? '#16A34A' : sc >= 70 ? '#0D9488' : sc >= 55 ? '#D97706' : sc >= 40 ? '#EA580C' : '#DC2626'
+                  return <span style={{ fontSize: 10, fontWeight: 700, color: gc, fontFamily: FONTS.mono, flexShrink: 0 }}>{item.grade}</span>
+                })()}
                 <span style={{
                   fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
                   background: item.market_type === '코스피' ? 'rgba(37,99,235,0.1)' : 'rgba(217,119,6,0.1)',
