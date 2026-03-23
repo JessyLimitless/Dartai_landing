@@ -67,6 +67,9 @@ export default function DartViewPage() {
         </div>
         <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
           시총 TOP {stats.total} 재무 딥분석
+          <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 8 }}>
+            기준일 {new Date().toISOString().slice(0, 10)}
+          </span>
         </div>
       </div>
 
