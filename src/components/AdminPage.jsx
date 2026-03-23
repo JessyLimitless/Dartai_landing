@@ -149,9 +149,9 @@ export default function AdminPage() {
               })() : ''
               return (
                 <div key={d.rcept_no}
-                  onClick={() => d.corp_code ? navigate(`/deep-dive/${d.corp_code}`) : null}
+                  onClick={() => window.open(`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${d.rcept_no}`, '_blank')}
                   style={{
-                    padding: '12px 14px', cursor: d.corp_code ? 'pointer' : 'default',
+                    padding: '12px 14px', cursor: 'pointer',
                     borderBottom: i < disclosures.length - 1 ? `1px solid ${sep}` : 'none',
                   }}
                 >
