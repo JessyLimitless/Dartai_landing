@@ -547,6 +547,32 @@ export default function LandingPage() {
         </div>
       )}
 
+      {/* ━━━ 자동매매 프로그램 CTA ━━━ */}
+      <section style={{ borderTop: '1px solid #F4F4F5', background: '#0F0F11' }}>
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: 'clamp(48px, 6vh, 64px) clamp(20px, 5vw, 40px)', textAlign: 'center' }}>
+          <Reveal>
+            <p style={{ fontSize: 11, color: '#52525B', letterSpacing: '0.1em', fontWeight: 600, marginBottom: 12 }}>MUSE AI SOLUTION</p>
+            <h3 style={{
+              fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#FAFAFA', margin: '0 0 12px', letterSpacing: '-0.02em',
+            }}>
+              나만의 자동매매 프로그램, 만들어 드립니다
+            </h3>
+            <p style={{ fontSize: 14, color: '#71717A', margin: '0 0 28px', lineHeight: 1.6 }}>
+              키움 API 기반 자동매매 · AI 트레이딩 봇 · 맞춤 알고리즘 개발
+            </p>
+            <button onClick={() => navigate('/inquiry')} style={{
+              padding: '14px 36px', borderRadius: 10, border: 'none',
+              background: '#DC2626', color: '#fff',
+              fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
+            }}
+              onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 24px rgba(220,38,38,0.5)' }}
+              onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = 'none' }}
+            >무료 상담 신청</button>
+          </Reveal>
+        </div>
+      </section>
+
       {/* 푸터 */}
       <footer style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px clamp(24px, 5vw, 48px) 40px' }}>
