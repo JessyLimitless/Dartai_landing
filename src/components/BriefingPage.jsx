@@ -118,103 +118,10 @@ export default function BriefingPage() {
         )}
       </div>
 
-      {/* Premium 서비스 홍보 */}
+      {/* 하단 여백 */}
       {!loading && (
         <div style={{ padding: '0 24px 32px' }}>
-          <div style={{
-            borderTop: `1px solid ${lineSep}`,
-            paddingTop: 28,
-          }}>
-            <div style={{ fontSize: 13, color: colors.textMuted, letterSpacing: '0.06em', fontWeight: 600, marginBottom: 8 }}>
-              PREMIUM SERVICE
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif, marginBottom: 6 }}>
-              주중엔 공시 브리핑, 주말엔 재무 딥분석
-            </div>
-            <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.6, marginBottom: 20 }}>
-              월~금 매일 저녁 핵심 공시 해석 + 토·일 기업 재무 심층 리포트
-            </div>
-
-            {/* Premium 카드 */}
-            <div style={{
-              padding: '18px', borderRadius: 14, marginBottom: 12,
-              border: `1px solid ${dark ? 'rgba(220,38,38,0.15)' : 'rgba(220,38,38,0.1)'}`,
-              background: dark ? 'rgba(220,38,38,0.03)' : 'rgba(220,38,38,0.02)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#DC2626' }}>Premium</span>
-                <span style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary, fontFamily: "'Inter', sans-serif" }}>100,000</span>
-                <span style={{ fontSize: 12, color: colors.textMuted }}>원/월</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 14 }}>
-                {['5개년 재무 딥분석 AI 리포트', '현금흐름 진위 · 자본변동성 분석', '업종 상대 밸류에이션', '브리핑 전문 + DART Pick'].map((f, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: colors.textSecondary }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="3" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    {f}
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <div
-                  onClick={() => {
-                    const sample = briefings.find(b => b.id && b.id.includes('premium-sample-samsung'))
-                    if (sample) { setSelected(sample); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-                  }}
-                  style={{
-                    flex: 1, padding: '10px', borderRadius: 8, textAlign: 'center',
-                    background: '#DC2626', color: '#fff',
-                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                  }}>
-                  삼성전자 예시
-                </div>
-                <div
-                  onClick={() => {
-                    const sample = briefings.find(b => b.id && b.id.includes('premium-sample-poongsan'))
-                    if (sample) { setSelected(sample); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-                  }}
-                  style={{
-                    flex: 1, padding: '10px', borderRadius: 8, textAlign: 'center',
-                    border: '1px solid #DC2626', color: '#DC2626',
-                    background: 'transparent',
-                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                  }}>
-                  풍산홀딩스 예시
-                </div>
-              </div>
-            </div>
-
-            {/* Enterprise 카드 */}
-            <div style={{
-              padding: '18px', borderRadius: 14,
-              border: `1px solid ${dark ? 'rgba(212,160,23,0.15)' : 'rgba(212,160,23,0.1)'}`,
-              background: dark ? 'rgba(212,160,23,0.03)' : 'rgba(212,160,23,0.02)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#D4A017' }}>Enterprise</span>
-                <span style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary, fontFamily: "'Inter', sans-serif" }}>300,000</span>
-                <span style={{ fontSize: 12, color: colors.textMuted }}>원/월</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {['Premium 전체 기능 포함', 'API 키 · PDF 리포트', '전용 채널 · 우선 지원'].map((f, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: colors.textSecondary }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4A017" strokeWidth="3" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    {f}
-                  </div>
-                ))}
-              </div>
-              <div style={{
-                marginTop: 12, padding: '10px', borderRadius: 8, textAlign: 'center',
-                background: 'linear-gradient(135deg, #D4A017, #B8922E)', color: '#fff',
-                fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              }}>
-                도입 문의하기
-              </div>
-            </div>
-          </div>
+          <div style={{ borderTop: `1px solid ${lineSep}`, paddingTop: 20 }}></div>
         </div>
       )}
 
