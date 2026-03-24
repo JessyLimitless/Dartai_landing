@@ -425,74 +425,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 6. 서재 — 전자책 ━━━ */}
-      <section style={{ borderTop: '1px solid #F4F4F5' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
-          <Reveal>
-            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>LIBRARY</p>
-            <h2 style={{
-              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
-              color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
-            }}>
-              공시 투자, 책으로 배우세요
-            </h2>
-            <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
-              입문부터 고급까지, 무료 전자책으로 공시 분석의 기초를 다질 수 있습니다.
-            </p>
-          </Reveal>
-
-          <Reveal d={100}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {[
-                { title: '전자공시 시그널 가이드', sub: '입문 · 공시 기초', color: '#C9A84C', url: 'https://jessylimitless.github.io/dartbook/' },
-                { title: '전자공시 시그널 — Advanced', sub: '실전 · S등급 분석', color: '#DC2626', url: 'https://jessylimitless.github.io/dartbookhigh/' },
-                { title: '코스톨라니 투자 철학', sub: '투자 거장 · 시장 심리', color: '#D97706', url: 'https://jessylimitless.github.io/Kostolanypil/' },
-                { title: '데이터 퀀트 입문', sub: '퀀트 · 데이터 기반 투자', color: '#2563EB', url: 'https://jessylimitless.github.io/dataquent/' },
-              ].map((book, i) => (
-                <a key={i} href={book.url} target="_blank" rel="noopener noreferrer"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 16,
-                    padding: '16px 20px', borderRadius: 14, textDecoration: 'none',
-                    border: '1px solid #F0F0F2', background: '#FFFFFF',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = book.color; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
-                >
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                    background: book.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                    </svg>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B' }}>{book.title}</div>
-                    <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 2 }}>{book.sub}</div>
-                  </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                </a>
-              ))}
-            </div>
-          </Reveal>
-
-          <Reveal d={200}>
-            <div style={{ textAlign: 'center', marginTop: 24 }}>
-              <button onClick={() => navigate('/library')} style={{
-                padding: '10px 28px', borderRadius: 8,
-                border: '1px solid #E4E4E7', background: 'transparent',
-                color: '#71717A', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-              }}>서재 전체 보기</button>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ━━━ 7. 최종 CTA ━━━ */}
+      {/* ━━━ 6. 최종 CTA ━━━ */}
       <section style={{ borderTop: '1px solid #F4F4F5' }}>
         <div style={{
           maxWidth: 480, margin: '0 auto', textAlign: 'center',
@@ -541,6 +474,42 @@ export default function LandingPage() {
           </div>
         </div>
       )}
+
+      {/* ━━━ 무료 전자책 ━━━ */}
+      <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: 'clamp(48px, 6vh, 64px) clamp(20px, 5vw, 40px)' }}>
+          <Reveal>
+            <a href="https://jessylimitless.github.io/dartbook/" target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 16,
+                padding: '20px 24px', borderRadius: 16, textDecoration: 'none',
+                background: '#FFFFFF', border: '1px solid #F0F0F2',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#C9A84C'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.06)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+            >
+              <div style={{
+                width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                background: '#0F2440', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, color: '#C9A84C', fontWeight: 700, letterSpacing: '0.05em', marginBottom: 4 }}>FREE E-BOOK</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#18181B', fontFamily: FONTS.serif }}>전자공시 시그널 가이드</div>
+                <div style={{ fontSize: 13, color: '#71717A', marginTop: 2 }}>공시로 읽는 투자의 기술 — 무료로 읽어보세요</div>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </a>
+          </Reveal>
+        </div>
+      </section>
 
       {/* 푸터 */}
       <footer style={{
