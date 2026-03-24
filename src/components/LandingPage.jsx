@@ -193,7 +193,43 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 2. 일일 브리핑 ━━━ */}
+      {/* ━━━ 2. 공시 후 급등 — 가장 강력한 셀링 포인트 ━━━ */}
+      <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
+          <Reveal>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>LIVE SIGNAL</p>
+            <h2 style={{
+              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
+            }}>
+              공시가 나오면, 주가가 움직입니다
+            </h2>
+            <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
+              실시간으로 포착한 공시 직후 급등 종목입니다.<br />
+              이 알림을 받았다면, 당신도 탈 수 있었습니다.
+            </p>
+          </Reveal>
+
+          <Reveal d={100}>
+            <LiveRiserLanding navigate={navigate} />
+          </Reveal>
+
+          <Reveal d={200}>
+            <div style={{ textAlign: 'center', marginTop: 32 }}>
+              <button onClick={() => navigate('/today')} style={{
+                padding: '12px 32px', borderRadius: 10, border: 'none',
+                background: R, color: '#fff',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+              }}
+                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 24px rgba(220,38,38,0.4)' }}
+                onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = 'none' }}
+              >실시간 공시 보기</button>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ━━━ 3. 일일 브리핑 ━━━ */}
       <section style={{ borderTop: '1px solid #F4F4F5' }}>
         <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
@@ -548,6 +584,128 @@ function Reveal({ children, d = 0 }) {
       transform: visible ? 'none' : 'translateY(24px)',
       transition: `opacity 0.6s ease ${d}ms, transform 0.6s ease ${d}ms`,
     }}>{children}</div>
+  )
+}
+
+function LiveRiserLanding({ navigate }) {
+  const [risers, setRisers] = useState([])
+  const [riserLoading, setRiserLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`${API}/api/disclosures`)
+      .then(r => r.json())
+      .then(data => {
+        const discs = data.disclosures || []
+        // 오늘 공시 중 가격 데이터 있는 것
+        const now = new Date()
+        const kstNow = new Date(now.getTime() + 9 * 3600000)
+        const targetStr = kstNow.toISOString().slice(0, 10)
+
+        fetch(`${API}/api/stats`)
+          .then(r => r.json())
+          .then(stats => {
+            // price_changes에서 상승 종목 추출
+            const priceMap = stats.price_changes || {}
+            const seen = new Set()
+            const results = discs
+              .filter(d => {
+                const pd = priceMap[d.stock_code]
+                if (!pd || !pd.change_pct || pd.change_pct <= 0) return false
+                if (seen.has(d.stock_code)) return false
+                seen.add(d.stock_code)
+                return true
+              })
+              .map(d => ({
+                ...d,
+                changePct: priceMap[d.stock_code].change_pct,
+                price: priceMap[d.stock_code].price,
+              }))
+              .sort((a, b) => b.changePct - a.changePct)
+              .slice(0, 5)
+            setRisers(results)
+          })
+          .catch(() => {})
+      })
+      .catch(() => {})
+      .finally(() => setRiserLoading(false))
+  }, [])
+
+  if (riserLoading) return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {[1,2,3].map(i => (
+        <div key={i} style={{ height: 64, background: '#F0F0F2', borderRadius: 8, animation: 'pulse 1.4s ease-in-out infinite' }} />
+      ))}
+    </div>
+  )
+
+  if (risers.length === 0) return (
+    <div style={{
+      borderRadius: 16, overflow: 'hidden', border: '1px solid #F0F0F2', background: '#FFFFFF',
+    }}>
+      {[
+        { name: '예시 종목 A', report: '단일판매·공급계약체결 (매출 35%)', pct: '+12.3', grade: 'S' },
+        { name: '예시 종목 B', report: '자기주식취득 결정 (50억 소각)', pct: '+8.7', grade: 'A' },
+        { name: '예시 종목 C', report: '영업이익 흑자전환 (YoY +340%)', pct: '+6.2', grade: 'A' },
+      ].map((item, i) => (
+        <div key={i} style={{
+          display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px',
+          borderBottom: i < 2 ? '1px solid #F4F4F5' : 'none',
+        }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+            background: item.grade === 'S' ? '#E8364E' : '#0D9488',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: FONTS.mono,
+          }}>{item.grade}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{item.name}</div>
+            <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.report}</div>
+          </div>
+          <span style={{ fontSize: 18, fontWeight: 800, color: '#DC2626', fontFamily: FONTS.mono, flexShrink: 0 }}>{item.pct}%</span>
+        </div>
+      ))}
+      <div style={{ padding: '12px 20px', background: '#FAFAFA', textAlign: 'center', fontSize: 12, color: '#A1A1AA' }}>
+        장중 실시간 데이터로 업데이트됩니다
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{
+      borderRadius: 16, overflow: 'hidden', border: '1px solid #F0F0F2', background: '#FFFFFF',
+    }}>
+      <div style={{
+        padding: '10px 20px', borderBottom: '1px solid #F4F4F5',
+        display: 'flex', alignItems: 'center', gap: 6,
+      }}>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="#DC2626"><path d="M8 2L13 9H3L8 2Z" /></svg>
+        <span style={{ fontSize: 13, fontWeight: 800, color: '#18181B' }}>공시 후 급등</span>
+        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff' }}>LIVE</span>
+      </div>
+      {risers.map((d, i) => {
+        const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8' }
+        return (
+          <div key={d.rcept_no} onClick={() => navigate('/today')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px',
+              cursor: 'pointer', borderBottom: i < risers.length - 1 ? '1px solid #F4F4F5' : 'none',
+            }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+              background: gc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: FONTS.mono,
+            }}>{d.grade}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{d.corp_name}</div>
+              <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.report_nm}</div>
+            </div>
+            <span style={{ fontSize: 18, fontWeight: 800, color: '#DC2626', fontFamily: FONTS.mono, flexShrink: 0 }}>
+              +{d.changePct.toFixed(1)}%
+            </span>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
