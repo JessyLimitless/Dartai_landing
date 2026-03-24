@@ -15,7 +15,7 @@ export function useNotifications({ onNewNotifications } = {}) {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/notifications?limit=20`)
+      const res = await fetch(`${API_BASE}/notifications?limit=100`)
       if (res.ok) {
         const data = await res.json()
         const items = data.notifications || []
