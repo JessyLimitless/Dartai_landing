@@ -243,7 +243,7 @@ function CompanyHeader({ header, market, corpCode }) {
             background: PREMIUM.accent, color: '#fff',
             fontSize: 13, fontWeight: 700, cursor: 'pointer', minHeight: 42,
           }}>
-            종목 상세
+            재무분석
           </button>
           <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
         </div>
@@ -314,7 +314,7 @@ function TossStyleHeader({ header, market, corpCode, colors, dark }) {
             background: PREMIUM.accent, color: '#fff',
             fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 44,
           }}>
-            종목 상세
+            재무분석
           </button>
           <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
         </div>
