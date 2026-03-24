@@ -185,8 +185,7 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
                 {msg.content.split('\n').map((line, j) => (
                   <p key={j} style={{ margin: 0 }}>{line || '\u00A0'}</p>
                 ))}
-                {msg.scorecard && <VerdictCard scorecard={msg.scorecard} colors={colors} dark={dark} />}
-                {msg.scorecard?.peer && <PeerTable peer={msg.scorecard.peer} colors={colors} dark={dark} />}
+                {/* 데이터 시각화 제거 — 텍스트 답변에 집중 */}
               </div>
             </div>
           ))}
