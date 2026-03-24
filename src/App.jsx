@@ -93,7 +93,6 @@ export default function App() {
         />
         {!isLanding && (
           <>
-            <PushSubscribeBanner />
             <PwaInstallBanner />
           </>
         )}
