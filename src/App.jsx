@@ -22,6 +22,7 @@ const LibraryPage = lazy(() => import('./components/LibraryPage'))
 const BriefingPage = lazy(() => import('./components/BriefingPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
 const DartViewPage = lazy(() => import('./components/DartViewPage'))
+const DartViewDetailLazy = lazy(() => import('./components/DartViewPage').then(m => ({ default: m.DartViewDetail })))
 const AdminPage = lazy(() => import('./components/AdminPage'))
 const InquiryPage = lazy(() => import('./components/InquiryPage'))
 import BuffettChatPanel from './components/BuffettChat'
@@ -111,6 +112,7 @@ export default function App() {
               <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
               <Route path="/deep-data" element={<DeepDataPage onViewCard={navigateToCard} />} />
               <Route path="/dart-view" element={<DartViewPage />} />
+              <Route path="/dart-view/:stockCode" element={<DartViewDetailLazy />} />
               <Route path="/dart-event" element={<DartEventPage />} />
               <Route path="/library" element={<LibraryPage />} />
               <Route path="/premium" element={<PremiumPage />} />

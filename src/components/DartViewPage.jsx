@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM } from '../constants/theme'
 import { API } from '../lib/api'
@@ -146,7 +146,7 @@ export default function DartViewPage() {
             {filtered.map((item, i) => (
               <div key={item.stock_code}
                 className="touch-press"
-                onClick={() => navigate(`/deep-dive/${item.stock_code}`)}
+                onClick={() => navigate(`/dart-view/${item.stock_code}`)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '12px 14px', cursor: 'pointer',
@@ -225,4 +225,269 @@ export default function DartViewPage() {
       `}</style>
     </div>
   )
+}
+
+
+// ══ 딥분석 전용 뷰어 ══
+export function DartViewDetail() {
+  const { stockCode } = useParams()
+  const navigate = useNavigate()
+  const { colors, dark } = useTheme()
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [cardInfo, setCardInfo] = useState(null)
+
+  useEffect(() => {
+    if (!stockCode) return
+    Promise.all([
+      fetch(`${API}/api/deep-analysis/${stockCode}`).then(r => r.json()),
+      fetch(`${API}/api/companies/${stockCode}/card`).then(r => r.json()).catch(() => null),
+    ]).then(([da, card]) => {
+      setData(da)
+      if (card?.card_data) setCardInfo(card.card_data)
+    }).catch(() => {})
+      .finally(() => setLoading(false))
+  }, [stockCode])
+
+  const sep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+
+  if (loading) return (
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: '60px 24px', textAlign: 'center', color: colors.textMuted }}>
+      로딩 중...
+    </div>
+  )
+
+  if (!data?.exists) return (
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
+      <div style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary, marginBottom: 8 }}>
+        딥분석 준비 중
+      </div>
+      <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 20 }}>
+        이 종목의 재무 딥분석은 아직 작성되지 않았습니다.
+      </div>
+      <button onClick={() => navigate('/dart-view')} style={{
+        padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
+        background: PREMIUM.accent, color: '#fff', fontSize: 14, fontWeight: 600,
+      }}>← 목록으로</button>
+    </div>
+  )
+
+  const content = data.content || ''
+  const lines = content.split('\n')
+  const title = lines[0]?.replace(/^#\s*/, '').trim() || ''
+
+  // 기업 헤더 정보
+  const market = cardInfo?.market || {}
+  const header = cardInfo?.header || {}
+  const marketType = { Y: '코스피', K: '코스닥' }[header.corp_cls] || ''
+  const capStr = market.market_cap >= 10000
+    ? `${(market.market_cap / 10000).toFixed(1)}조`
+    : market.market_cap > 0 ? `${Math.round(market.market_cap).toLocaleString()}억` : ''
+
+  return (
+    <div className="page-enter" style={{
+      maxWidth: 700, margin: '0 auto',
+      paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+      fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
+    }}>
+      {/* 상단 바 */}
+      <div style={{
+        padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 12,
+        borderBottom: `1px solid ${sep}`,
+      }}>
+        <button onClick={() => navigate('/dart-view')} style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+          color: colors.textMuted, fontSize: 16,
+        }}>←</button>
+        <div style={{ flex: 1 }}>
+          <div style={{
+            fontSize: 17, fontWeight: 800, color: colors.textPrimary,
+            fontFamily: FONTS.serif,
+          }}>{title.split('—')[0]?.trim() || stockCode}</div>
+          <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
+            {stockCode}{marketType && ` · ${marketType}`}{capStr && ` · 시총 ${capStr}`}
+          </div>
+        </div>
+        <button onClick={() => navigate(`/deep-dive/${stockCode}`)} style={{
+          padding: '6px 14px', borderRadius: 8, border: `1px solid ${sep}`,
+          background: 'transparent', cursor: 'pointer',
+          fontSize: 12, fontWeight: 600, color: colors.textMuted,
+        }}>기업카드 →</button>
+      </div>
+
+      {/* 딥분석 본문 */}
+      <div style={{ padding: '20px 24px' }}>
+        <DeepAnalysisMarkdown content={content} colors={colors} dark={dark} />
+      </div>
+
+      {/* 면책 */}
+      <div style={{
+        padding: '16px 24px', borderTop: `1px solid ${sep}`,
+        fontSize: 11, color: colors.textMuted, lineHeight: 1.6,
+      }}>
+        본 분석은 DART 공시 재무제표 기반 AI 자동 생성 리포트이며, 투자 판단의 최종 책임은 투자자 본인에게 있습니다.
+      </div>
+    </div>
+  )
+}
+
+
+// ══ 딥분석 마크다운 렌더러 ══
+function DeepAnalysisMarkdown({ content, colors, dark }) {
+  if (!content) return null
+
+  const lines = content.split('\n')
+  const elements = []
+  let tableRows = []
+  let tableHeaders = []
+  let inTable = false
+  let key = 0
+
+  const renderInline = (text) => {
+    const parts = []
+    let idx = 0, lastEnd = 0
+    const re = /\*\*(.+?)\*\*/g
+    let match
+    while ((match = re.exec(text)) !== null) {
+      if (match.index > lastEnd) parts.push(<span key={`t${idx++}`}>{text.slice(lastEnd, match.index)}</span>)
+      parts.push(<strong key={`b${idx++}`} style={{ color: colors.textPrimary, fontWeight: 600 }}>{match[1]}</strong>)
+      lastEnd = match.index + match[0].length
+    }
+    if (lastEnd < text.length) parts.push(<span key={`t${idx++}`}>{text.slice(lastEnd)}</span>)
+    return parts.length > 0 ? parts : text
+  }
+
+  const flushTable = () => {
+    if (tableHeaders.length > 0) {
+      elements.push(
+        <div key={`tbl-${key++}`} style={{
+          overflowX: 'auto', margin: '14px 0',
+          borderRadius: 10, border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+        }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr>{tableHeaders.map((h, i) => (
+                <th key={i} style={{
+                  padding: '8px 12px', textAlign: 'left',
+                  borderBottom: `2px solid ${dark ? '#333' : '#D4D4D8'}`,
+                  background: dark ? '#0F0F11' : '#FAFAFA',
+                  color: colors.textMuted, fontWeight: 600, fontSize: 11,
+                  whiteSpace: 'nowrap',
+                }}>{renderInline(h)}</th>
+              ))}</tr>
+            </thead>
+            <tbody>
+              {tableRows.map((row, ri) => (
+                <tr key={ri}>{row.map((cell, ci) => (
+                  <td key={ci} style={{
+                    padding: '7px 12px',
+                    borderBottom: `1px solid ${dark ? '#1E1E22' : '#F0F0F2'}`,
+                    color: colors.textSecondary, fontSize: 12,
+                    fontFamily: ci > 0 ? FONTS.mono : FONTS.body,
+                    whiteSpace: 'nowrap',
+                  }}>{renderInline(cell)}</td>
+                ))}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+    tableHeaders = []
+    tableRows = []
+    inTable = false
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const trimmed = line.trim()
+
+    // 테이블
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      const cells = trimmed.split('|').slice(1, -1).map(c => c.trim())
+      if (cells.every(c => /^[-:]+$/.test(c))) continue
+      if (!inTable) {
+        if (tableHeaders.length > 0) flushTable()
+        tableHeaders = cells
+        inTable = true
+      } else {
+        tableRows.push(cells)
+      }
+      continue
+    }
+
+    if (inTable) flushTable()
+
+    // 제목
+    if (trimmed.startsWith('# ') && i === 0) continue // 첫 줄 제목 스킵 (헤더에 표시)
+    if (trimmed.startsWith('## ')) {
+      elements.push(
+        <h2 key={key++} style={{
+          fontSize: 17, fontWeight: 800, color: colors.textPrimary,
+          fontFamily: FONTS.serif, margin: '28px 0 12px',
+          paddingBottom: 8, borderBottom: `2px solid ${PREMIUM.accent}30`,
+        }}>{renderInline(trimmed.replace(/^##\s*/, ''))}</h2>
+      )
+      continue
+    }
+    if (trimmed.startsWith('### ')) {
+      elements.push(
+        <h3 key={key++} style={{
+          fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+          margin: '20px 0 8px',
+        }}>{renderInline(trimmed.replace(/^###\s*/, ''))}</h3>
+      )
+      continue
+    }
+
+    // 인용문
+    if (trimmed.startsWith('>')) {
+      elements.push(
+        <blockquote key={key++} style={{
+          margin: '16px 0', padding: '12px 16px',
+          borderLeft: `3px solid ${PREMIUM.accent}`,
+          background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)',
+          borderRadius: '0 8px 8px 0',
+          fontSize: 14, fontStyle: 'italic', color: colors.textSecondary,
+          lineHeight: 1.6, fontFamily: FONTS.serif,
+        }}>{renderInline(trimmed.replace(/^>\s*/, ''))}</blockquote>
+      )
+      continue
+    }
+
+    // 구분선
+    if (trimmed === '---' || trimmed === '***') {
+      elements.push(<hr key={key++} style={{ border: 'none', borderTop: `1px solid ${dark ? '#1E1E22' : '#F0F0F2'}`, margin: '20px 0' }} />)
+      continue
+    }
+
+    // 리스트
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      elements.push(
+        <div key={key++} style={{
+          display: 'flex', gap: 8, margin: '4px 0', fontSize: 13.5,
+          color: colors.textSecondary, lineHeight: 1.6,
+        }}>
+          <span style={{ color: PREMIUM.accent, flexShrink: 0 }}>•</span>
+          <span>{renderInline(trimmed.replace(/^[-*]\s*/, ''))}</span>
+        </div>
+      )
+      continue
+    }
+
+    // 빈 줄
+    if (!trimmed) continue
+
+    // 일반 텍스트
+    elements.push(
+      <p key={key++} style={{
+        margin: '6px 0', fontSize: 13.5, lineHeight: 1.7,
+        color: colors.textSecondary,
+      }}>{renderInline(trimmed)}</p>
+    )
+  }
+
+  if (inTable) flushTable()
+
+  return <>{elements}</>
 }
