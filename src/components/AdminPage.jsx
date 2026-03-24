@@ -18,13 +18,15 @@ export function isAdmin() {
 export default function AdminPage() {
   const { colors, dark } = useTheme()
   const navigate = useNavigate()
-  const [tab, setTab] = useState('ranking') // 'ranking' | 'disclosures' | 'inquiries'
+  const [tab, setTab] = useState('users')
   const [ranking, setRanking] = useState([])
   const [rankingStats, setRankingStats] = useState({ total: 0, done: 0 })
   const [disclosures, setDisclosures] = useState([])
   const [inquiries, setInquiries] = useState([])
+  const [users, setUsers] = useState([])
+  const [userTotal, setUserTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [selectedDisc, setSelectedDisc] = useState(null) // 공시 팝업용
+  const [selectedDisc, setSelectedDisc] = useState(null)
 
   useEffect(() => {
     if (!isAdmin()) { navigate('/'); return }
@@ -33,11 +35,14 @@ export default function AdminPage() {
       fetch(`${API}/api/admin/market-cap-ranking?limit=300`).then(r => r.json()),
       fetch(`${API}/api/admin/disclosures?limit=200`).then(r => r.json()),
       fetch(`${API}/api/admin/inquiries?limit=100`).then(r => r.json()),
-    ]).then(([rankData, discData, inqData]) => {
+      fetch(`${API}/api/admin/users`).then(r => r.json()),
+    ]).then(([rankData, discData, inqData, userData]) => {
       setRanking(rankData.ranking || [])
       setRankingStats({ total: rankData.total || 0, done: rankData.done || 0, kospi: rankData.kospi_count || 0, kosdaq: rankData.kosdaq_count || 0 })
       setDisclosures(discData.disclosures || [])
       setInquiries(inqData.inquiries || [])
+      setUsers(userData.users || [])
+      setUserTotal(userData.total || 0)
     }).catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -57,6 +62,7 @@ export default function AdminPage() {
       {/* 탭 */}
       <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderRadius: 8, overflow: 'hidden', border: `1px solid ${sep}` }}>
         {[
+          { key: 'users', label: `유저 (${userTotal})` },
           { key: 'ranking', label: `시총 순위 (${rankingStats.done}/${rankingStats.total})` },
           { key: 'disclosures', label: `공시 (${disclosures.length})` },
           { key: 'inquiries', label: `문의 (${inquiries.length})` },
@@ -72,6 +78,58 @@ export default function AdminPage() {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+      ) : tab === 'users' ? (
+        <>
+          {/* 유저 요약 */}
+          <div style={{
+            display: 'flex', gap: 12, marginBottom: 20,
+          }}>
+            {[
+              { label: '총 가입자', value: userTotal, color: '#DC2626' },
+              { label: '오늘 로그인', value: users.filter(u => u.last_login?.startsWith(new Date().toISOString().slice(0, 10))).length, color: '#16A34A' },
+            ].map((s, i) => (
+              <div key={i} style={{
+                flex: 1, padding: '16px', borderRadius: 12,
+                border: `1px solid ${sep}`, textAlign: 'center',
+                background: dark ? '#141416' : '#fff',
+              }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: s.color, fontFamily: FONTS.mono }}>{s.value}</div>
+                <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* 유저 리스트 */}
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff' }}>
+            {users.length === 0 ? (
+              <div style={{ padding: 48, textAlign: 'center', color: colors.textMuted }}>아직 가입자가 없습니다</div>
+            ) : users.map((u, i) => (
+              <div key={u.id} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '12px 16px',
+                borderBottom: i < users.length - 1 ? `1px solid ${sep}` : 'none',
+              }}>
+                {u.picture ? (
+                  <img src={u.picture} alt="" style={{ width: 32, height: 32, borderRadius: '50%' }} />
+                ) : (
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E4E4E7' }} />
+                )}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: colors.textPrimary }}>{u.name}</div>
+                  <div style={{ fontSize: 12, color: colors.textMuted }}>{u.email}</div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                    접속 {u.login_count}회
+                  </div>
+                  <div style={{ fontSize: 11, color: colors.textMuted }}>
+                    가입 {u.created_at?.slice(0, 10)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       ) : tab === 'ranking' ? (
         <>
           {/* 진행률 바 */}
