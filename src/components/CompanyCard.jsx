@@ -236,7 +236,11 @@ function CompanyHeader({ header, market, corpCode }) {
         <div style={{ display: 'flex', gap: 6, padding: '10px 14px' }}>
           <button className="touch-press" onClick={(e) => {
             e.stopPropagation()
-            window.location.href = `/dart-view/${stockCode || corpCode}`
+            if (stockCode) {
+              window.location.href = `/dart-view/${stockCode}`
+            } else {
+              window.location.href = `/dart-view/${corpCode}`
+            }
           }} style={{
             flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             padding: '10px', borderRadius: 10, border: 'none',
@@ -307,7 +311,11 @@ function TossStyleHeader({ header, market, corpCode, colors, dark }) {
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="touch-press" onClick={(e) => {
             e.stopPropagation()
-            window.location.href = `/dart-view/${stockCode || corpCode}`
+            if (stockCode) {
+              window.location.href = `/dart-view/${stockCode}`
+            } else {
+              window.location.href = `/dart-view/${corpCode}`
+            }
           }} style={{
             flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             padding: '11px', borderRadius: 10, border: 'none',

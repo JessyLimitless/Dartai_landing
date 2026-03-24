@@ -243,14 +243,29 @@ export function DartViewDetail() {
 
   useEffect(() => {
     if (!stockCode) return
+    // stockCode 6자리 또는 corpCode 8자리 모두 지원
+    const cardUrl = stockCode.length <= 6
+      ? `${API}/api/companies/${stockCode}/card`
+      : `${API}/api/companies/${stockCode}/card`
+
     Promise.all([
       fetch(`${API}/api/deep-analysis/${stockCode}`).then(r => r.json()),
-      fetch(`${API}/api/companies/${stockCode}/card`).then(r => r.json()).catch(() => null),
+      fetch(cardUrl).then(r => r.json()).catch(() => null),
     ]).then(([da, card]) => {
-      setData(da)
-      if (card?.card_data) setCardInfo(card.card_data)
-    }).catch(() => {})
-      .finally(() => setLoading(false))
+      // 딥분석이 없고 corpCode(8자리)로 왔다면, card에서 stock_code를 찾아 재시도
+      if (!da?.exists && card?.card_data?.header?.stock_code) {
+        const realCode = card.card_data.header.stock_code
+        fetch(`${API}/api/deep-analysis/${realCode}`).then(r => r.json()).then(da2 => {
+          setData(da2)
+          setCardInfo(card.card_data)
+          setLoading(false)
+        })
+      } else {
+        setData(da)
+        if (card?.card_data) setCardInfo(card.card_data)
+        setLoading(false)
+      }
+    }).catch(() => setLoading(false))
   }, [stockCode])
 
   const sep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
