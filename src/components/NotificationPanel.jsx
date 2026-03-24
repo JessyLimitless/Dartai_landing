@@ -37,30 +37,16 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
       >
         <span style={{
           fontWeight: 700, fontSize: '14px', color: colors.textPrimary,
-          fontFamily: FONTS.serif, display: 'flex', alignItems: 'center', gap: 6,
+          fontFamily: FONTS.serif,
+        }}>알림</span>
+        <button onClick={onToggleAlert} style={{
+          border: 'none', background: alertOn ? '#DC2626' : (colors.bgCard === '#fff' ? '#E4E4E7' : '#333'),
+          color: alertOn ? '#fff' : colors.textMuted,
+          fontSize: 10, fontWeight: 700, cursor: 'pointer',
+          padding: '4px 10px', borderRadius: 10, transition: 'all 0.2s',
         }}>
-          알림
-          {notifications.filter(n => !n.is_read).length > 0 && (
-            <span style={{
-              fontSize: 10, fontWeight: 700, color: '#fff', background: '#DC2626',
-              borderRadius: 10, padding: '1px 6px', fontFamily: 'sans-serif',
-            }}>{notifications.filter(n => !n.is_read).length}</span>
-          )}
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={onMarkAllRead} style={{
-            border: 'none', background: 'none', color: PREMIUM.accent,
-            fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: '4px 8px',
-          }}>모두 읽음</button>
-          <button onClick={onToggleAlert} style={{
-            border: 'none', background: alertOn ? '#DC2626' : (colors.bgCard === '#fff' ? '#E4E4E7' : '#333'),
-            color: alertOn ? '#fff' : colors.textMuted,
-            fontSize: 10, fontWeight: 700, cursor: 'pointer',
-            padding: '4px 10px', borderRadius: 10, transition: 'all 0.2s',
-          }}>
-            {alertOn ? 'ON' : 'OFF'}
-          </button>
-        </div>
+          알림 {alertOn ? 'ON' : 'OFF'}
+        </button>
       </div>
 
       {/* Notification List */}
@@ -82,11 +68,7 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
             알림이 없습니다
           </div>
         ) : (
-          notifications.filter(n => !n.is_read).length === 0 ? (
-            <div style={{ padding: '24px', textAlign: 'center', color: colors.textMuted }}>
-              새로운 알림이 없습니다
-            </div>
-          ) : notifications.filter(n => !n.is_read).map((n) => (
+          notifications.map((n) => (
             <NotificationItem key={n.id} notification={n} onRead={onRead} onSelect={onSelect} />
           ))
         )}
