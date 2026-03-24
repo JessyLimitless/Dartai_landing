@@ -236,15 +236,14 @@ function CompanyHeader({ header, market, corpCode }) {
         <div style={{ display: 'flex', gap: 6, padding: '10px 14px' }}>
           <button className="touch-press" onClick={(e) => {
             e.stopPropagation()
-            window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: corpCode }))
+            window.location.href = `/dart-view/${stockCode || corpCode}`
           }} style={{
             flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             padding: '10px', borderRadius: 10, border: 'none',
             background: PREMIUM.accent, color: '#fff',
             fontSize: 13, fontWeight: 700, cursor: 'pointer', minHeight: 42,
           }}>
-            <img src="/bufit.png" alt="" style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }} />
-            AI 분석
+            종목 상세
           </button>
           <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
         </div>
@@ -308,15 +307,14 @@ function TossStyleHeader({ header, market, corpCode, colors, dark }) {
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="touch-press" onClick={(e) => {
             e.stopPropagation()
-            window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: corpCode }))
+            window.location.href = `/dart-view/${stockCode || corpCode}`
           }} style={{
             flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             padding: '11px', borderRadius: 10, border: 'none',
             background: PREMIUM.accent, color: '#fff',
             fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 44,
           }}>
-            <img src="/bufit.png" alt="" style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }} />
-            AI 분석
+            종목 상세
           </button>
           <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
         </div>
