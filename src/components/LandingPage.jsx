@@ -500,20 +500,20 @@ export default function LandingPage() {
                 background: '#FAFAFA', border: '1px solid #F0F0F2',
                 marginTop: 40, textAlign: 'left', transition: 'all 0.2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#C9A84C'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#DC2626'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(220,38,38,0.08)' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
             >
               <div style={{
                 width: 44, height: 44, borderRadius: 11, flexShrink: 0,
-                background: '#0F2440', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(220,38,38,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                 </svg>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, color: '#C9A84C', fontWeight: 700, letterSpacing: '0.05em', marginBottom: 3 }}>FREE E-BOOK</div>
+                <div style={{ fontSize: 11, color: '#DC2626', fontWeight: 700, letterSpacing: '0.05em', marginBottom: 3 }}>FREE E-BOOK</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B' }}>전자공시 시그널 가이드</div>
                 <div style={{ fontSize: 12, color: '#71717A', marginTop: 2 }}>공시의 첫걸음 — 무료로 읽어보세요</div>
               </div>
