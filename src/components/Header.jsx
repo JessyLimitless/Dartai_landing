@@ -5,13 +5,12 @@ import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM, PREMIUM_GOLD } from '../constants/theme'
 import { isAdmin } from './AdminPage'
 
-// 고객에게 보이는 핵심 탭만
 const TABS = [
-  { key: '/', label: 'Home', mobileLabel: '홈', exact: true },
-  { key: '/briefing', label: 'Briefing', mobileLabel: '브리핑' },
-  { key: '/today', label: 'Today', mobileLabel: '투데이' },
-  { key: '/dart-view', label: 'DART View', mobileLabel: '다트뷰' },
-  { key: '/dart-event', label: 'Event', mobileLabel: '이벤트' },
+  { key: '/', label: '홈', mobileLabel: '홈', exact: true },
+  { key: '/briefing', label: '브리핑', mobileLabel: '브리핑' },
+  { key: '/today', label: '공시', mobileLabel: '공시' },
+  { key: '/dart-view', label: '분석', mobileLabel: '분석' },
+  { key: '/dart-event', label: '일정', mobileLabel: '일정' },
 ]
 
 const TAB_ICONS = {
@@ -100,32 +99,44 @@ export default function Header({
         {/* Center: Desktop nav — 5탭만 */}
         <nav className="desktop-nav" style={{
           position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-          display: 'flex', alignItems: 'center', gap: 4,
+          display: 'flex', alignItems: 'center', gap: 2,
         }}>
-          {TABS.map((tab) => {
+          {TABS.map((tab, idx) => {
             const active = isActive(tab.key)
             return (
               <button key={tab.key}
                 onClick={() => handleNav(tab.key)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 16px', borderRadius: 10,
+                  padding: '8px 20px', borderRadius: 8,
                   border: 'none', cursor: 'pointer',
-                  fontSize: 13, fontWeight: active ? 600 : 400,
+                  fontSize: 14, fontWeight: active ? 700 : 400,
+                  fontFamily: FONTS.serif,
+                  letterSpacing: '0.02em',
                   backgroundColor: active
-                    ? (dark ? 'rgba(220,38,38,0.10)' : 'rgba(220,38,38,0.06)')
+                    ? (dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.06)')
                     : 'transparent',
-                  color: active ? accentColor : colors.textSecondary,
-                  transition: 'all 0.15s',
+                  color: active ? accentColor : colors.textMuted,
+                  transition: 'all 0.2s',
+                  position: 'relative',
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'
+                  if (!active) {
+                    e.currentTarget.style.color = colors.textPrimary
+                    e.currentTarget.style.backgroundColor = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.backgroundColor = 'transparent'
+                  if (!active) {
+                    e.currentTarget.style.color = colors.textMuted
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }
                 }}
               >
                 {tab.label}
+                {active && <div style={{
+                  position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)',
+                  width: 16, height: 2, borderRadius: 1, background: accentColor,
+                }} />}
               </button>
             )
           })}
@@ -178,7 +189,8 @@ export default function Header({
               {IconFn && IconFn(iconColor, 20)}
               <span style={{
                 fontSize: 10, fontWeight: active ? 700 : 500,
-                color: iconColor, letterSpacing: -0.2,
+                color: iconColor, letterSpacing: '0.02em',
+                fontFamily: FONTS.serif,
               }}>
                 {tab.mobileLabel}
               </span>
