@@ -4,7 +4,7 @@ import NotificationItem from './NotificationItem'
 import { useTheme } from '../contexts/ThemeContext'
 import { PREMIUM, FONTS } from '../constants/theme'
 
-export default function NotificationPanel({ notifications, loading, onRead, onMarkAllRead, onSelect }) {
+export default function NotificationPanel({ notifications, loading, onRead, onMarkAllRead, onSelect, alertOn, onToggleAlert }) {
   const { colors } = useTheme()
 
   return (
@@ -47,20 +47,20 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
             }}>{notifications.filter(n => !n.is_read).length}</span>
           )}
         </span>
-        <button
-          onClick={onMarkAllRead}
-          style={{
-            border: 'none',
-            background: 'none',
-            color: PREMIUM.accent,
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            padding: '4px 8px',
-          }}
-        >
-          모두 읽음
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button onClick={onMarkAllRead} style={{
+            border: 'none', background: 'none', color: PREMIUM.accent,
+            fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: '4px 8px',
+          }}>모두 읽음</button>
+          <button onClick={onToggleAlert} style={{
+            border: 'none', background: alertOn ? '#DC2626' : (colors.bgCard === '#fff' ? '#E4E4E7' : '#333'),
+            color: alertOn ? '#fff' : colors.textMuted,
+            fontSize: 10, fontWeight: 700, cursor: 'pointer',
+            padding: '4px 10px', borderRadius: 10, transition: 'all 0.2s',
+          }}>
+            {alertOn ? 'ON' : 'OFF'}
+          </button>
+        </div>
       </div>
 
       {/* Notification List */}

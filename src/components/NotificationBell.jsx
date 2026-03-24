@@ -4,13 +4,21 @@ import NotificationPanel from './NotificationPanel'
 export default function NotificationBell({ notifications, unreadCount, loading, onRead, onMarkAllRead, onSelect }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
+  const [alertOn, setAlertOn] = useState(() => {
+    try { return localStorage.getItem('dart_alert') !== 'off' } catch { return true }
+  })
 
-  // 외부 클릭 시 닫기
+  const toggleAlert = () => {
+    const next = !alertOn
+    setAlertOn(next)
+    localStorage.setItem('dart_alert', next ? 'on' : 'off')
+    // 전역 이벤트로 App.jsx에 전달
+    window.dispatchEvent(new CustomEvent('dart-alert-toggle', { detail: next }))
+  }
+
   useEffect(() => {
     function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpen(false)
-      }
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -23,44 +31,34 @@ export default function NotificationBell({ notifications, unreadCount, loading, 
       <button
         onClick={() => setOpen(!open)}
         style={{
-          position: 'relative',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '8px',
-          fontSize: '20px',
-          lineHeight: 1,
+          position: 'relative', background: 'none', border: 'none',
+          cursor: 'pointer', padding: 6, lineHeight: 1, borderRadius: 8,
         }}
         aria-label="알림"
       >
-        {/* 벨 아이콘 — 미읽 있으면 빨간색 */}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-          stroke={unreadCount > 0 ? '#DC2626' : 'currentColor'} strokeWidth="2" strokeLinecap="round">
+          stroke={alertOn && unreadCount > 0 ? '#DC2626' : 'currentColor'}
+          strokeWidth="2" strokeLinecap="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
-
-        {/* 빨간 배지 */}
-        {unreadCount > 0 && (
-          <span
-            style={{
-              position: 'absolute',
-              top: '2px',
-              right: '2px',
-              minWidth: '18px',
-              height: '18px',
-              borderRadius: '9px',
-              backgroundColor: '#dc2626',
-              color: '#fff',
-              fontSize: '10px',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 4px',
-              animation: unreadCount > 0 ? 'pulse 2s infinite' : 'none',
-            }}
-          >
+        {/* OFF 표시 */}
+        {!alertOn && (
+          <div style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%,-50%) rotate(-45deg)',
+            width: 22, height: 2, background: '#DC2626', borderRadius: 1,
+          }} />
+        )}
+        {alertOn && unreadCount > 0 && (
+          <span style={{
+            position: 'absolute', top: 0, right: 0,
+            minWidth: 16, height: 16, borderRadius: 8,
+            backgroundColor: '#dc2626', color: '#fff',
+            fontSize: 9, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '0 3px',
+          }}>
             {displayCount}
           </span>
         )}
@@ -72,19 +70,11 @@ export default function NotificationBell({ notifications, unreadCount, loading, 
           loading={loading}
           onRead={onRead}
           onMarkAllRead={onMarkAllRead}
-          onSelect={(n) => {
-            setOpen(false)
-            onSelect?.(n)
-          }}
+          alertOn={alertOn}
+          onToggleAlert={toggleAlert}
+          onSelect={(n) => { setOpen(false); onSelect?.(n) }}
         />
       )}
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-        }
-      `}</style>
     </div>
   )
 }

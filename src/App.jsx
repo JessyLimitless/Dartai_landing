@@ -46,9 +46,20 @@ export default function App() {
   const [detailNotification, setDetailNotification] = useState(null)
   const navigate = useNavigate()
 
+  const [alertOn, setAlertOn] = useState(() => {
+    try { return localStorage.getItem('dart_alert') !== 'off' } catch { return true }
+  })
+
+  useEffect(() => {
+    const handler = (e) => setAlertOn(e.detail)
+    window.addEventListener('dart-alert-toggle', handler)
+    return () => window.removeEventListener('dart-alert-toggle', handler)
+  }, [])
+
   const handleNewNotifications = useCallback((newItems) => {
+    if (!alertOn) return
     newItems.forEach((item) => addToast(item))
-  }, [addToast])
+  }, [addToast, alertOn])
 
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications({
     onNewNotifications: handleNewNotifications,
