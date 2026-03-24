@@ -15,6 +15,7 @@ export default function LandingPage() {
 
   const googleBtnRef = useRef(null)
   const [showGoogleBtn, setShowGoogleBtn] = useState(false)
+  const [showTerms, setShowTerms] = useState(null)
 
   const handleGoogleLogin = () => {
     if (window.google?.accounts?.id) {
