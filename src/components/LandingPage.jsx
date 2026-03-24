@@ -236,8 +236,9 @@ export default function LandingPage() {
           <Reveal>
             <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>DAILY BRIEFING</p>
             <h2 style={{
-              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
+              fontSize: 'clamp(18px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
+              whiteSpace: 'nowrap',
             }}>
               매일 저녁, 핵심 공시 5건을 해석합니다
             </h2>
@@ -702,12 +703,14 @@ function LiveRiserLanding({ navigate }) {
     }}>
       {[
         { name: '예시 종목 A', report: '단일판매·공급계약체결 (매출 35%)', pct: '+12.3', grade: 'S' },
-        { name: '예시 종목 B', report: '자기주식취득 결정 (50억 소각)', pct: '+8.7', grade: 'A' },
+        { name: '예시 종목 B', report: '자기주식취득 결정 (50억 소각)', pct: '+8.7', grade: 'S' },
         { name: '예시 종목 C', report: '영업이익 흑자전환 (YoY +340%)', pct: '+6.2', grade: 'A' },
+        { name: '예시 종목 D', report: '내부자 장내매수 (대표이사)', pct: '+4.8', grade: 'S' },
+        { name: '예시 종목 E', report: '소수계좌 집중 매수', pct: '+3.5', grade: 'S' },
       ].map((item, i) => (
         <div key={i} style={{
           display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px',
-          borderBottom: i < 2 ? '1px solid #F4F4F5' : 'none',
+          borderBottom: i < 4 ? '1px solid #F4F4F5' : 'none',
         }}>
           <div style={{
             width: 36, height: 36, borderRadius: 8, flexShrink: 0,
