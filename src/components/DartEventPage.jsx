@@ -69,7 +69,7 @@ export default function DartEventPage() {
 
   return (
     <div className="page-enter" style={{
-      maxWidth: 1100, margin: '0 auto', padding: '0 20px 80px',
+      maxWidth: 640, margin: '0 auto', padding: '0 20px 80px',
       fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
     }}>
 
@@ -95,8 +95,8 @@ export default function DartEventPage() {
 
       {/* ── 2컬럼 레이아웃 ── */}
       <div className="event-grid" style={{
-        display: 'grid', gridTemplateColumns: '320px 1fr',
-        gap: 20, alignItems: 'start', marginTop: 20,
+        display: 'flex', flexDirection: 'column',
+        gap: 16, marginTop: 20,
       }}>
 
         {/* 좌: 이벤트 리스트 */}

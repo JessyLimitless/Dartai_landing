@@ -286,33 +286,46 @@ export function DartViewDetail() {
 
   return (
     <div className="page-enter" style={{
-      maxWidth: 700, margin: '0 auto',
+      maxWidth: 640, margin: '0 auto',
       paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
       fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
     }}>
       {/* 상단 바 */}
       <div style={{
-        padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 12,
+        padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 14,
         borderBottom: `1px solid ${sep}`,
+        background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
       }}>
         <button onClick={() => navigate('/dart-view')} style={{
-          background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-          color: colors.textMuted, fontSize: 16,
-        }}>←</button>
+          background: 'none', border: 'none', cursor: 'pointer', padding: 6,
+          color: colors.textMuted, borderRadius: 8, lineHeight: 1,
+          transition: 'color 0.15s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.color = colors.textPrimary}
+          onMouseLeave={e => e.currentTarget.style.color = colors.textMuted}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
+          </svg>
+        </button>
         <div style={{ flex: 1 }}>
           <div style={{
-            fontSize: 17, fontWeight: 800, color: colors.textPrimary,
-            fontFamily: FONTS.serif,
+            fontSize: 18, fontWeight: 800, color: colors.textPrimary,
+            fontFamily: FONTS.serif, letterSpacing: '-0.3px',
           }}>{title.split('—')[0]?.trim() || stockCode}</div>
-          <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 3, fontFamily: FONTS.mono }}>
             {stockCode}{marketType && ` · ${marketType}`}{capStr && ` · 시총 ${capStr}`}
           </div>
         </div>
         <button onClick={() => navigate(`/deep-dive/${stockCode}`)} style={{
-          padding: '6px 14px', borderRadius: 8, border: `1px solid ${sep}`,
+          padding: '7px 14px', borderRadius: 8, border: `1px solid ${sep}`,
           background: 'transparent', cursor: 'pointer',
           fontSize: 12, fontWeight: 600, color: colors.textMuted,
-        }}>기업카드 →</button>
+          transition: 'all 0.15s',
+        }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = PREMIUM.accent; e.currentTarget.style.color = PREMIUM.accent }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = sep; e.currentTarget.style.color = colors.textMuted }}
+        >기업카드</button>
       </div>
 
       {/* 딥분석 본문 */}
