@@ -37,8 +37,16 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
       >
         <span style={{
           fontWeight: 700, fontSize: '14px', color: colors.textPrimary,
-          fontFamily: FONTS.serif,
-        }}>알림</span>
+          fontFamily: FONTS.serif, display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          알림
+          {notifications.filter(n => !n.is_read).length > 0 && (
+            <span style={{
+              fontSize: 10, fontWeight: 700, color: '#fff', background: '#DC2626',
+              borderRadius: 10, padding: '1px 6px', fontFamily: 'sans-serif',
+            }}>{notifications.filter(n => !n.is_read).length}</span>
+          )}
+        </span>
         <button
           onClick={onMarkAllRead}
           style={{
