@@ -11,7 +11,7 @@ const TABS = [
   { key: '/briefing', label: 'Briefing', mobileLabel: '브리핑' },
   { key: '/today', label: 'Today', mobileLabel: '투데이' },
   { key: '/dart-view', label: 'DART View', mobileLabel: '다트뷰' },
-  { key: '/premium', label: 'AI Analyst', mobileLabel: 'AI', premium: true },
+  { key: '/dart-event', label: 'Event', mobileLabel: '이벤트' },
 ]
 
 const TAB_ICONS = {
@@ -37,9 +37,9 @@ const TAB_ICONS = {
       <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
     </svg>
   ),
-  '/premium': (color, size = 18) => (
+  '/dart-event': (color, size = 18) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="10" y1="14" x2="14" y2="14" />
     </svg>
   ),
 }
@@ -104,7 +104,6 @@ export default function Header({
         }}>
           {TABS.map((tab) => {
             const active = isActive(tab.key)
-            const isPremium = tab.premium
             return (
               <button key={tab.key}
                 onClick={() => handleNav(tab.key)}
@@ -116,9 +115,7 @@ export default function Header({
                   backgroundColor: active
                     ? (dark ? 'rgba(220,38,38,0.10)' : 'rgba(220,38,38,0.06)')
                     : 'transparent',
-                  color: active
-                    ? (isPremium ? PREMIUM_GOLD.primary : accentColor)
-                    : (isPremium ? PREMIUM_GOLD.primary : colors.textSecondary),
+                  color: active ? accentColor : colors.textSecondary,
                   transition: 'all 0.15s',
                 }}
                 onMouseEnter={(e) => {
@@ -129,12 +126,6 @@ export default function Header({
                 }}
               >
                 {tab.label}
-                {isPremium && (
-                  <span style={{
-                    fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 4,
-                    background: PREMIUM_GOLD.gradient, color: '#fff', letterSpacing: '0.3px',
-                  }}>PRO</span>
-                )}
               </button>
             )
           })}
@@ -173,9 +164,7 @@ export default function Header({
       }}>
         {TABS.map((tab) => {
           const active = isActive(tab.key)
-          const isPremium = tab.premium
-          const activeCol = isPremium ? PREMIUM_GOLD.primary : accentColor
-          const iconColor = active ? activeCol : '#94A3B8'
+          const iconColor = active ? accentColor : '#94A3B8'
           const IconFn = TAB_ICONS[tab.key]
           return (
             <button key={tab.key}
