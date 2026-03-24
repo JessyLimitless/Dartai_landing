@@ -1,4 +1,4 @@
-import React, { useState, useCallback, lazy, Suspense } from 'react'
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom'
 import Header from './components/Header'
 import PushSubscribeBanner from './components/PushSubscribeBanner'
