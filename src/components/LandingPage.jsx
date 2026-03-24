@@ -336,7 +336,7 @@ export default function LandingPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
             {[
               { step: '01', title: '실시간 수집', desc: 'DART + KRX KIND에서 하루 800건 이상의 공시를 30초 간격으로 수집합니다.' },
-              { step: '02', title: 'AI 등급 분류 + 실시간 알림', desc: '주가에 영향을 주는 핵심 공시만 S/A/D 등급으로 선별하고, Web Push 알림으로 즉시 전달합니다. 공시를 직접 찾을 필요가 없습니다.' },
+              { step: '02', title: 'AI 등급 분류 + 실시간 알림', desc: '핵심 공시가 나올 때마다 즉시 Web Push 알림으로 전달합니다. 장중 수시로, 놓치면 안 되는 공시만 골라서.' },
               { step: '03', title: '딥분석 + 브리핑', desc: '462종목 8섹션 재무 딥분석과 매일 저녁 핵심 공시 5건의 5-Step 브리핑을 제공합니다.' },
             ].map((item, i) => (
               <Reveal key={i} d={i * 100}>
