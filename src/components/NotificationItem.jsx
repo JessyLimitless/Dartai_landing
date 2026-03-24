@@ -43,7 +43,7 @@ export default function NotificationItem({ notification, onRead, onSelect }) {
         backgroundColor: bgDefault,
         cursor: 'pointer',
         transition: 'background-color 0.15s',
-        opacity: is_read ? 0.5 : 1,
+        opacity: 1,
       }}
       onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = bgHover }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = bgDefault }}

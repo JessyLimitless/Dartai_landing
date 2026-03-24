@@ -82,7 +82,11 @@ export default function NotificationPanel({ notifications, loading, onRead, onMa
             알림이 없습니다
           </div>
         ) : (
-          notifications.map((n) => (
+          notifications.filter(n => !n.is_read).length === 0 ? (
+            <div style={{ padding: '24px', textAlign: 'center', color: colors.textMuted }}>
+              새로운 알림이 없습니다
+            </div>
+          ) : notifications.filter(n => !n.is_read).map((n) => (
             <NotificationItem key={n.id} notification={n} onRead={onRead} onSelect={onSelect} />
           ))
         )}
