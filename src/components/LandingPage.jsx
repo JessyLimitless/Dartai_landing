@@ -544,15 +544,70 @@ export default function LandingPage() {
       )}
 
       {/* 푸터 */}
-      <footer style={{
-        borderTop: '1px solid #F4F4F5', padding: '24px clamp(20px, 5vw, 64px)',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      }}>
-        <span style={{ fontSize: 12, color: '#A1A1AA' }}>© 2026 주식회사 뮤즈에이아이</span>
-        <span onClick={() => navigate('/inquiry')} style={{
-          fontSize: 12, color: '#A1A1AA', cursor: 'pointer',
-        }}>문의하기</span>
+      <footer style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px clamp(24px, 5vw, 48px) 40px' }}>
+          <div style={{ marginBottom: 24 }}>
+            <span style={{ fontSize: 18, fontFamily: FONTS.serif, fontWeight: 700, color: '#18181B' }}>
+              DART <span style={{ color: R }}>Insight</span>
+            </span>
+          </div>
+          <div style={{ fontSize: 13, lineHeight: 2, color: '#A1A1AA', marginBottom: 24 }}>
+            <div style={{ fontWeight: 600, color: '#71717A', marginBottom: 4 }}>주식회사 뮤즈에이아이</div>
+            <div>사업자등록번호 : 764-88-03375</div>
+            <div>서울특별시 은평구 통일로62길 7, 3층</div>
+          </div>
+          <div style={{ display: 'flex', gap: 20, marginBottom: 24 }}>
+            <span onClick={() => setShowTerms('terms')} style={{ fontSize: 13, color: '#A1A1AA', cursor: 'pointer', borderBottom: '1px solid #E4E4E7', paddingBottom: 1 }}>이용약관</span>
+            <span onClick={() => setShowTerms('privacy')} style={{ fontSize: 13, color: '#A1A1AA', cursor: 'pointer', borderBottom: '1px solid #E4E4E7', paddingBottom: 1 }}>개인정보 처리방침</span>
+            <span onClick={() => navigate('/inquiry')} style={{ fontSize: 13, color: '#A1A1AA', cursor: 'pointer', borderBottom: '1px solid #E4E4E7', paddingBottom: 1 }}>서비스 문의</span>
+          </div>
+          <div style={{ fontSize: 12, color: '#D4D4D8', lineHeight: 1.6, borderTop: '1px solid #E4E4E7', paddingTop: 20 }}>
+            © 2026 MuseAI Inc. All rights reserved.
+          </div>
+        </div>
       </footer>
+
+      {/* 약관/개인정보 모달 */}
+      {showTerms && (
+        <div onClick={() => setShowTerms(null)} style={{
+          position: 'fixed', inset: 0, zIndex: 10000,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20, backdropFilter: 'blur(8px)',
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#FFFFFF', border: '1px solid #E4E4E7',
+            borderRadius: 16, width: '100%', maxWidth: 560,
+            maxHeight: '80vh', overflow: 'auto', padding: '28px 24px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#18181B' }}>
+                {showTerms === 'terms' ? '서비스 이용약관' : '개인정보 처리방침'}
+              </h3>
+              <button onClick={() => setShowTerms(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#A1A1AA' }}>✕</button>
+            </div>
+            {showTerms === 'terms' ? (
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.8 }}>
+                <p><strong style={{ color: '#18181B' }}>제1조 (목적)</strong><br/>이 약관은 주식회사 뮤즈에이아이(이하 "회사")가 제공하는 DART Insight 서비스(이하 "서비스")의 이용 조건 및 절차에 관한 사항을 규정함을 목적으로 합니다.</p>
+                <p><strong style={{ color: '#18181B' }}>제2조 (서비스 내용)</strong><br/>회사는 DART·KIND 공시 정보의 수집, 분류, 분석 및 관련 콘텐츠를 제공합니다.</p>
+                <p><strong style={{ color: '#18181B' }}>제3조 (이용자의 의무)</strong><br/>이용자는 서비스를 통해 제공되는 정보를 투자 판단의 참고 자료로만 활용해야 하며, 이를 근거로 한 투자 손실에 대해 회사는 책임을 지지 않습니다.</p>
+                <p><strong style={{ color: '#18181B' }}>제4조 (면책)</strong><br/>본 서비스에서 제공하는 모든 정보는 참고용이며, 특정 종목에 대한 매수·매도 추천이 아닙니다. 모든 투자 판단과 그에 따른 결과는 전적으로 이용자 본인의 책임입니다.</p>
+                <p><strong style={{ color: '#18181B' }}>제5조 (저작권)</strong><br/>서비스 내 콘텐츠(브리핑, 분석, 전자책 등)의 저작권은 회사에 귀속되며, 무단 복제·배포를 금지합니다.</p>
+                <p><strong style={{ color: '#18181B' }}>제6조 (서비스 변경 및 중단)</strong><br/>회사는 운영상 필요한 경우 서비스의 전부 또는 일부를 변경하거나 중단할 수 있으며, 이에 대해 사전 공지합니다.</p>
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.8 }}>
+                <p><strong style={{ color: '#18181B' }}>1. 수집하는 개인정보</strong><br/>회사는 Google 로그인을 통해 이메일 주소, 이름, 프로필 사진을 수집합니다.</p>
+                <p><strong style={{ color: '#18181B' }}>2. 개인정보의 이용 목적</strong><br/>수집된 정보는 서비스 이용자 식별, 관심종목 관리, 서비스 개선을 위한 통계 분석에 활용됩니다.</p>
+                <p><strong style={{ color: '#18181B' }}>3. 개인정보의 보유 및 이용 기간</strong><br/>이용자의 개인정보는 서비스 탈퇴 시까지 보유하며, 탈퇴 요청 시 지체 없이 파기합니다.</p>
+                <p><strong style={{ color: '#18181B' }}>4. 개인정보의 제3자 제공</strong><br/>회사는 이용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다.</p>
+                <p><strong style={{ color: '#18181B' }}>5. 개인정보의 안전성 확보 조치</strong><br/>회사는 SSL 암호화 통신, 접근 권한 제한 등 기술적·관리적 보호 조치를 시행합니다.</p>
+                <p><strong style={{ color: '#18181B' }}>6. 정보주체의 권리</strong><br/>이용자는 언제든지 자신의 개인정보에 대한 열람, 수정, 삭제를 요청할 수 있습니다.</p>
+                <p><strong style={{ color: '#18181B' }}>7. 개인정보 보호 책임자</strong><br/>주식회사 뮤즈에이아이 (문의: dartinsight@museai.co.kr)</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
