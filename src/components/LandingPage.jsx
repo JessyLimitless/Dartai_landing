@@ -252,33 +252,7 @@ export default function LandingPage() {
               borderRadius: 16, overflow: 'hidden',
               border: '1px solid #F0F0F2', background: '#FAFAFA',
             }}>
-              <div style={{ padding: '14px 20px', borderBottom: '1px solid #F0F0F2', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 4, background: R, color: '#fff', letterSpacing: '0.05em' }}>DAILY BRIEF</span>
-                <span style={{ fontSize: 12, color: '#A1A1AA', fontFamily: FONTS.mono }}>2026-03-23</span>
-              </div>
-              {[
-                { num: '1', name: '사람인', type: '공개매수', signal: '긍정', color: '#0D9488' },
-                { num: '2', name: '삼성중공업', type: 'LNG 수주 7,700억', signal: '긍정', color: '#0D9488' },
-                { num: '3', name: '세나테크놀로지', type: '자사주 50억 소각', signal: '강력 긍정', color: '#16A34A' },
-                { num: '4', name: 'EDGC', type: '회생 유상증자 165억', signal: '중립', color: '#A1A1AA' },
-                { num: '5', name: '대한조선', type: '원유운반선 수주', signal: '긍정', color: '#0D9488' },
-              ].map((item, i) => (
-                <div key={i} style={{
-                  padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12,
-                  borderBottom: i < 4 ? '1px solid #F4F4F5' : 'none',
-                }}>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: R, fontFamily: FONTS.mono, width: 20 }}>{item.num}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: '#18181B' }}>{item.name}</span>
-                    <span style={{ fontSize: 12, color: '#A1A1AA', marginLeft: 8 }}>{item.type}</span>
-                  </div>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, color: item.color, flexShrink: 0,
-                    padding: '3px 10px', borderRadius: 12,
-                    background: `${item.color}15`,
-                  }}>{item.signal}</span>
-                </div>
-              ))}
+              <BriefingPreview />
             </div>
           </Reveal>
 
@@ -766,6 +740,76 @@ function LiveRiserLanding({ navigate }) {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+function BriefingPreview() {
+  const [items, setItems] = useState([])
+  const [dateLabel, setDateLabel] = useState('')
+
+  useEffect(() => {
+    fetch(`${API}/api/briefings`)
+      .then(r => r.json())
+      .then(d => {
+        const list = d.briefings || []
+        // 날짜 파일만 (premium-sample 제외), 첫 번째 = 최신
+        const latest = list.find(b => b.id && /^\d{4}-\d{2}-\d{2}$/.test(b.id))
+        if (!latest) return
+        setDateLabel(latest.date_label || latest.id)
+
+        // MD에서 ## N. 종목명 패턴 추출
+        const lines = (latest.content || '').split('\n')
+        const extracted = []
+        const signalMap = { '강력 긍정': '#16A34A', '긍정': '#0D9488', '중립': '#A1A1AA', '부정': '#D97706', '강력 부정': '#DC2626' }
+
+        for (const line of lines) {
+          const m = line.match(/^## (\d)\.\s*(.+?)\s*\((\d+)\)\s*\|\s*(.+)/)
+          if (m) extracted.push({ num: m[1], name: m[2], type: m[4] })
+        }
+
+        // 시그널 추출
+        let idx = 0
+        for (const line of lines) {
+          const sm = line.match(/판정.*?(강력 긍정|긍정|중립|부정|강력 부정)/)
+          if (sm && idx < extracted.length) {
+            extracted[idx].signal = sm[1]
+            extracted[idx].color = signalMap[sm[1]] || '#A1A1AA'
+            idx++
+          }
+        }
+
+        setItems(extracted.slice(0, 5))
+      })
+      .catch(() => {})
+  }, [])
+
+  if (items.length === 0) return null
+
+  return (
+    <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid #F0F0F2', background: '#FAFAFA' }}>
+      <div style={{ padding: '14px 20px', borderBottom: '1px solid #F0F0F2', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 4, background: '#DC2626', color: '#fff', letterSpacing: '0.05em' }}>DAILY BRIEF</span>
+        <span style={{ fontSize: 12, color: '#A1A1AA', fontFamily: FONTS.mono }}>{dateLabel}</span>
+      </div>
+      {items.map((item, i) => (
+        <div key={i} style={{
+          padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12,
+          borderBottom: i < items.length - 1 ? '1px solid #F4F4F5' : 'none',
+        }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: '#DC2626', fontFamily: FONTS.mono, width: 20 }}>{item.num}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#18181B' }}>{item.name}</span>
+            <span style={{ fontSize: 12, color: '#A1A1AA', marginLeft: 8 }}>{item.type}</span>
+          </div>
+          {item.signal && (
+            <span style={{
+              fontSize: 11, fontWeight: 700, color: item.color, flexShrink: 0,
+              padding: '3px 10px', borderRadius: 12, background: `${item.color}15`,
+            }}>{item.signal}</span>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
