@@ -494,6 +494,9 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
 }
 
 function LoginGate({ dark, colors }) {
+  const btnRef = React.useRef(null)
+  const [showBtn, setShowBtn] = React.useState(false)
+
   const handleLogin = () => {
     if (window.google?.accounts?.id) {
       window.google.accounts.id.initialize({
@@ -515,7 +518,29 @@ function LoginGate({ dark, colors }) {
           } catch {}
         },
       })
-      window.google.accounts.id.prompt()
+      try {
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            setShowBtn(true)
+            setTimeout(() => {
+              if (btnRef.current) {
+                window.google.accounts.id.renderButton(btnRef.current, {
+                  theme: 'outline', size: 'large', width: 280, text: 'signin_with',
+                })
+              }
+            }, 100)
+          }
+        })
+      } catch {
+        setShowBtn(true)
+        setTimeout(() => {
+          if (btnRef.current) {
+            window.google.accounts.id.renderButton(btnRef.current, {
+              theme: 'outline', size: 'large', width: 280, text: 'signin_with',
+            })
+          }
+        }, 100)
+      }
     }
   }
 
@@ -525,7 +550,7 @@ function LoginGate({ dark, colors }) {
       padding: '120px 24px', textAlign: 'center',
       fontFamily: FONTS.body,
     }}>
-      <div style={{ fontSize: 40, marginBottom: 20 }}>
+      <div style={{ marginBottom: 20 }}>
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.5" strokeLinecap="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -537,11 +562,15 @@ function LoginGate({ dark, colors }) {
       <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 32, lineHeight: 1.6 }}>
         브리핑과 딥분석은 로그인 후 이용할 수 있습니다.
       </div>
-      <button onClick={handleLogin} style={{
-        padding: '12px 36px', borderRadius: 10, border: 'none',
-        background: '#DC2626', color: '#fff',
-        fontSize: 15, fontWeight: 600, cursor: 'pointer',
-      }}>Google 로그인</button>
+      {showBtn ? (
+        <div ref={btnRef} style={{ display: 'inline-block' }} />
+      ) : (
+        <button onClick={handleLogin} style={{
+          padding: '12px 36px', borderRadius: 10, border: 'none',
+          background: '#DC2626', color: '#fff',
+          fontSize: 15, fontWeight: 600, cursor: 'pointer',
+        }}>Google 로그인</button>
+      )}
     </div>
   )
 }

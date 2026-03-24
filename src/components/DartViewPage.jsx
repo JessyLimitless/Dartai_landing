@@ -525,6 +525,9 @@ function DeepAnalysisMarkdown({ content, colors, dark }) {
 }
 
 function LoginGate({ dark, colors, label = '브리핑' }) {
+  const btnRef = React.useRef(null)
+  const [showBtn, setShowBtn] = React.useState(false)
+
   const handleLogin = () => {
     if (window.google?.accounts?.id) {
       window.google.accounts.id.initialize({
@@ -546,7 +549,29 @@ function LoginGate({ dark, colors, label = '브리핑' }) {
           } catch {}
         },
       })
-      window.google.accounts.id.prompt()
+      try {
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            setShowBtn(true)
+            setTimeout(() => {
+              if (btnRef.current) {
+                window.google.accounts.id.renderButton(btnRef.current, {
+                  theme: 'outline', size: 'large', width: 280, text: 'signin_with',
+                })
+              }
+            }, 100)
+          }
+        })
+      } catch {
+        setShowBtn(true)
+        setTimeout(() => {
+          if (btnRef.current) {
+            window.google.accounts.id.renderButton(btnRef.current, {
+              theme: 'outline', size: 'large', width: 280, text: 'signin_with',
+            })
+          }
+        }, 100)
+      }
     }
   }
 
@@ -568,11 +593,15 @@ function LoginGate({ dark, colors, label = '브리핑' }) {
       <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 32, lineHeight: 1.6 }}>
         {label}은 로그인 후 이용할 수 있습니다.
       </div>
-      <button onClick={handleLogin} style={{
-        padding: '12px 36px', borderRadius: 10, border: 'none',
-        background: '#DC2626', color: '#fff',
-        fontSize: 15, fontWeight: 600, cursor: 'pointer',
-      }}>Google 로그인</button>
+      {showBtn ? (
+        <div ref={btnRef} style={{ display: 'inline-block' }} />
+      ) : (
+        <button onClick={handleLogin} style={{
+          padding: '12px 36px', borderRadius: 10, border: 'none',
+          background: '#DC2626', color: '#fff',
+          fontSize: 15, fontWeight: 600, cursor: 'pointer',
+        }}>Google 로그인</button>
+      )}
     </div>
   )
 }
