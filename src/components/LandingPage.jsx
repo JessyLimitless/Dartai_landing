@@ -242,8 +242,7 @@ export default function LandingPage() {
               매일 저녁, 핵심 공시 5건을 해석합니다
             </h2>
             <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 48px', lineHeight: 1.6 }}>
-              공시 유형 분류 → 맥락 해석 → 이해관계 분석 → 시그널 판정 → 감시 포인트까지.<br />
-              5-Step 프레임워크로 공시의 이면을 읽어드립니다.
+              공시의 이면을 5-Step 프레임워크로 읽어드립니다.
             </p>
           </Reveal>
 
@@ -257,22 +256,26 @@ export default function LandingPage() {
                 <span style={{ fontSize: 12, color: '#A1A1AA', fontFamily: FONTS.mono }}>2026-03-23</span>
               </div>
               {[
-                { num: '1', name: '사람인', type: '공개매수', signal: '🔵 Mild Bull' },
-                { num: '2', name: '삼성중공업', type: 'LNG 수주 7,700억', signal: '🔵 Mild Bull' },
-                { num: '3', name: '세나테크놀로지', type: '자사주 50억 소각', signal: '🟢 Strong Bull' },
-                { num: '4', name: 'EDGC', type: '회생 유상증자 165억', signal: '⚪ Neutral' },
-                { num: '5', name: '대한조선', type: '원유운반선 수주', signal: '🔵 Mild Bull' },
+                { num: '1', name: '사람인', type: '공개매수', signal: '긍정', color: '#0D9488' },
+                { num: '2', name: '삼성중공업', type: 'LNG 수주 7,700억', signal: '긍정', color: '#0D9488' },
+                { num: '3', name: '세나테크놀로지', type: '자사주 50억 소각', signal: '강력 긍정', color: '#16A34A' },
+                { num: '4', name: 'EDGC', type: '회생 유상증자 165억', signal: '중립', color: '#A1A1AA' },
+                { num: '5', name: '대한조선', type: '원유운반선 수주', signal: '긍정', color: '#0D9488' },
               ].map((item, i) => (
                 <div key={i} style={{
                   padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12,
                   borderBottom: i < 4 ? '1px solid #F4F4F5' : 'none',
                 }}>
                   <span style={{ fontSize: 14, fontWeight: 800, color: R, fontFamily: FONTS.mono, width: 20 }}>{item.num}</span>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: 14, fontWeight: 600, color: '#18181B' }}>{item.name}</span>
                     <span style={{ fontSize: 12, color: '#A1A1AA', marginLeft: 8 }}>{item.type}</span>
                   </div>
-                  <span style={{ fontSize: 11, color: '#71717A', flexShrink: 0 }}>{item.signal}</span>
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, color: item.color, flexShrink: 0,
+                    padding: '3px 10px', borderRadius: 12,
+                    background: `${item.color}15`,
+                  }}>{item.signal}</span>
                 </div>
               ))}
             </div>
