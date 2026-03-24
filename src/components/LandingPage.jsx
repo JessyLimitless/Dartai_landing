@@ -390,37 +390,6 @@ export default function LandingPage() {
             ))}
           </div>
 
-          {/* 무료 전자책 — 작동 방식과 자연 연결 */}
-          <Reveal d={300}>
-            <a href="https://jessylimitless.github.io/dartbook/" target="_blank" rel="noopener noreferrer"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 16,
-                padding: '18px 20px', borderRadius: 14, textDecoration: 'none',
-                background: '#FFFFFF', border: '1px solid #F0F0F2',
-                marginTop: 48, transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#C9A84C'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
-            >
-              <div style={{
-                width: 44, height: 44, borderRadius: 11, flexShrink: 0,
-                background: '#0F2440', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                </svg>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, color: '#C9A84C', fontWeight: 700, letterSpacing: '0.05em', marginBottom: 3 }}>FREE E-BOOK</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B' }}>전자공시 시그널 가이드</div>
-                <div style={{ fontSize: 12, color: '#71717A', marginTop: 2 }}>공시의 첫걸음 — 무료로 읽어보세요</div>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-            </a>
-          </Reveal>
         </div>
       </section>
 
@@ -518,6 +487,37 @@ export default function LandingPage() {
               onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = 'none' }}
             >무료로 시작하기</button>
           </Reveal>
+
+          <Reveal d={200}>
+            <a href="https://jessylimitless.github.io/dartbook/" target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 16,
+                padding: '18px 20px', borderRadius: 14, textDecoration: 'none',
+                background: '#FAFAFA', border: '1px solid #F0F0F2',
+                marginTop: 40, textAlign: 'left', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#C9A84C'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+            >
+              <div style={{
+                width: 44, height: 44, borderRadius: 11, flexShrink: 0,
+                background: '#0F2440', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, color: '#C9A84C', fontWeight: 700, letterSpacing: '0.05em', marginBottom: 3 }}>FREE E-BOOK</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B' }}>전자공시 시그널 가이드</div>
+                <div style={{ fontSize: 12, color: '#71717A', marginTop: 2 }}>공시의 첫걸음 — 무료로 읽어보세요</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </a>
+          </Reveal>
         </div>
       </section>
 
@@ -548,7 +548,7 @@ export default function LandingPage() {
         borderTop: '1px solid #F4F4F5', padding: '24px clamp(20px, 5vw, 64px)',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
-        <span style={{ fontSize: 12, color: '#A1A1AA' }}>© 2026 DART Insight</span>
+        <span style={{ fontSize: 12, color: '#A1A1AA' }}>© 2026 주식회사 뮤즈에이아이</span>
         <span onClick={() => navigate('/inquiry')} style={{
           fontSize: 12, color: '#A1A1AA', cursor: 'pointer',
         }}>문의하기</span>
