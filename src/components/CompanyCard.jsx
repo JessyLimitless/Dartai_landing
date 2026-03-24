@@ -244,7 +244,7 @@ function CompanyHeader({ header, market, corpCode }) {
             background: PREMIUM.accent, color: '#fff',
             fontSize: 13, fontWeight: 700, cursor: 'pointer', minHeight: 42,
           }}>
-            <img src="/bufit.png" alt="Buffett AI" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.3)' }} />
+            <img src="/bufit.png" alt="Buffett AI" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.3)' }} />
             Buffett AI
           </button>
           <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
@@ -317,7 +317,7 @@ function TossStyleHeader({ header, market, corpCode, colors, dark }) {
             background: PREMIUM.accent, color: '#fff',
             fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 44,
           }}>
-            <img src="/bufit.png" alt="Buffett AI" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.3)' }} />
+            <img src="/bufit.png" alt="Buffett AI" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.3)' }} />
             Buffett AI
           </button>
           <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
