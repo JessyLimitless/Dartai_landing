@@ -9,6 +9,10 @@ export default function BriefingPage() {
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // 로그인 체크
+  const user = (() => { try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null } })()
+  if (!user) return <LoginGate dark={dark} colors={colors} />
+
   useEffect(() => {
     fetch(`${API}/api/briefings`)
       .then(r => r.json())
@@ -485,6 +489,59 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
           )
         })}
       </div>
+    </div>
+  )
+}
+
+function LoginGate({ dark, colors }) {
+  const handleLogin = () => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: '20826231899-mfkodjf7svaafnr63ne773g5s6cf5k1m.apps.googleusercontent.com',
+        callback: async (response) => {
+          try {
+            const res = await fetch(`${API || ''}/api/auth/google`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ credential: response.credential }),
+            })
+            if (res.ok) {
+              const data = await res.json()
+              if (data.user) {
+                localStorage.setItem('dart_user', JSON.stringify(data.user))
+                window.location.reload()
+              }
+            }
+          } catch {}
+        },
+      })
+      window.google.accounts.id.prompt()
+    }
+  }
+
+  return (
+    <div className="page-enter" style={{
+      maxWidth: 640, margin: '0 auto',
+      padding: '120px 24px', textAlign: 'center',
+      fontFamily: FONTS.body,
+    }}>
+      <div style={{ fontSize: 40, marginBottom: 20 }}>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.5" strokeLinecap="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      </div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif, marginBottom: 8 }}>
+        로그인이 필요합니다
+      </div>
+      <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 32, lineHeight: 1.6 }}>
+        브리핑과 딥분석은 로그인 후 이용할 수 있습니다.
+      </div>
+      <button onClick={handleLogin} style={{
+        padding: '12px 36px', borderRadius: 10, border: 'none',
+        background: '#DC2626', color: '#fff',
+        fontSize: 15, fontWeight: 600, cursor: 'pointer',
+      }}>Google 로그인</button>
     </div>
   )
 }

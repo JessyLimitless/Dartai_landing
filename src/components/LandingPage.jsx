@@ -560,12 +560,12 @@ export default function LandingPage() {
             <div>사업자등록번호 : 764-88-03375</div>
             <div>서울특별시 은평구 통일로62길 7, 3층</div>
           </div>
-          <div style={{ display: 'flex', gap: 20, marginBottom: 24 }}>
+          <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center' }}>
             <span onClick={() => setShowTerms('terms')} style={{ fontSize: 13, color: '#A1A1AA', cursor: 'pointer', borderBottom: '1px solid #E4E4E7', paddingBottom: 1 }}>이용약관</span>
             <span onClick={() => setShowTerms('privacy')} style={{ fontSize: 13, color: '#A1A1AA', cursor: 'pointer', borderBottom: '1px solid #E4E4E7', paddingBottom: 1 }}>개인정보 처리방침</span>
             <span onClick={() => navigate('/inquiry')} style={{
-              fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer',
-              padding: '5px 14px', borderRadius: 6, background: '#DC2626',
+              fontSize: 11, fontWeight: 600, color: '#fff', cursor: 'pointer',
+              padding: '4px 12px', borderRadius: 6, background: '#DC2626',
             }}>자동매매 프로그램 문의</span>
           </div>
           <div style={{ fontSize: 12, color: '#D4D4D8', lineHeight: 1.6, borderTop: '1px solid #E4E4E7', paddingTop: 20 }}>
