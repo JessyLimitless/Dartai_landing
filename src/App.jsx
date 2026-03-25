@@ -18,6 +18,7 @@ const CompanyCard = lazy(() => import('./components/CompanyCard'))
 const DeepDataPage = lazy(() => import('./components/DeepDataPage'))
 const PremiumPage = lazy(() => import('./components/PremiumPage'))
 const DartEventPage = lazy(() => import('./components/DartEventPage'))
+const IssuePage = lazy(() => import('./components/IssuePage'))
 const LibraryPage = lazy(() => import('./components/LibraryPage'))
 const BriefingPage = lazy(() => import('./components/BriefingPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
@@ -121,6 +122,7 @@ export default function App() {
               <Route path="/deep-dive" element={<CompanyCard onViewCard={navigateToCard} />} />
               <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
               <Route path="/deep-data" element={<DeepDataPage onViewCard={navigateToCard} />} />
+              <Route path="/issues" element={<IssuePage />} />
               <Route path="/dart-view" element={<DartViewPage />} />
               <Route path="/dart-view/:stockCode" element={<DartViewDetailLazy />} />
               <Route path="/dart-event" element={<DartEventPage />} />
