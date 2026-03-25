@@ -550,42 +550,59 @@ function TodayBriefingSummary({ dark, colors }) {
   }, [])
 
   if (items.length === 0) return null
-  const sep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
   return (
-    <div className="today-pad" style={{ paddingTop: 16 }}>
+    <div className="today-pad" style={{ paddingTop: 12 }}>
       <div onClick={() => window.location.href = '/briefing'} style={{
-        borderRadius: 14, overflow: 'hidden', cursor: 'pointer',
-        border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff',
+        padding: '16px 18px', borderRadius: 14, cursor: 'pointer',
+        background: dark
+          ? 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))'
+          : 'linear-gradient(135deg, rgba(0,0,0,0.02), rgba(0,0,0,0.005))',
+        border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+        transition: 'all 0.2s',
       }}>
-        <div style={{
-          padding: '12px 16px', borderBottom: `1px solid ${sep}`,
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}>
-          <span style={{
-            fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 4,
-            background: PREMIUM.accent, color: '#fff', letterSpacing: '0.05em',
-          }}>DAILY BRIEF</span>
-          <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{dateLabel}</span>
-        </div>
-        {items.map((item, i) => (
-          <div key={i} style={{
-            padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
-            borderBottom: i < items.length - 1 ? `1px solid ${sep}` : 'none',
-          }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: PREMIUM.accent, fontFamily: FONTS.mono, width: 16 }}>{item.num}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{item.name}</span>
-              <span style={{ fontSize: 11, color: colors.textMuted, marginLeft: 6 }}>{item.type}</span>
-            </div>
-            {item.signal && (
-              <span style={{
-                fontSize: 10, fontWeight: 700, color: item.color, flexShrink: 0,
-                padding: '2px 8px', borderRadius: 10, background: `${item.color}15`,
-              }}>{item.signal}</span>
-            )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{
+              fontSize: 13, fontWeight: 700, color: colors.textPrimary,
+              fontFamily: FONTS.serif,
+            }}>오늘의 브리핑</span>
+            <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{dateLabel}</span>
           </div>
-        ))}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {items.map((item, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '8px 0',
+            }}>
+              <span style={{
+                fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono,
+                color: dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
+                width: 14,
+              }}>{item.num}</span>
+              <span style={{
+                fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+                fontFamily: FONTS.serif,
+              }}>{item.name}</span>
+              <span style={{
+                fontSize: 11, color: colors.textMuted,
+                flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>{item.type}</span>
+              {item.signal && (
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: item.color, flexShrink: 0,
+                  padding: '3px 10px', borderRadius: 12,
+                  background: `${item.color}12`,
+                  letterSpacing: '-0.2px',
+                }}>{item.signal}</span>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
