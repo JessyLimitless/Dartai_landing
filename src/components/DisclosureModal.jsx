@@ -267,17 +267,24 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
               DART 원문
             </a>
           ) : (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              flex: 1, padding: '12px', borderRadius: 12,
-              border: `1px solid ${border}`,
-              background: 'transparent',
-              color: colors.textMuted,
-              fontSize: 13, fontWeight: 500,
-              minHeight: 48, opacity: 0.5,
-            }}>
-              거래소 공시 (원문 미제공)
-            </div>
+            <a
+              className="touch-press"
+              href={`https://kind.krx.co.kr/disclosure/todaydisclosure.do?method=searchTodayDisclosureSub&searchCorpName=${encodeURIComponent(data?.corp_name || '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                flex: 1, padding: '12px', borderRadius: 12,
+                border: `1px solid ${border}`,
+                background: 'transparent',
+                color: colors.textMuted,
+                fontSize: 13, fontWeight: 500,
+                textDecoration: 'none',
+                minHeight: 48,
+              }}
+            >
+              KIND에서 원문 보기
+            </a>
           )}
 
           {(raw.corp_code || data?.corp_code || raw.stock_code) && (
