@@ -243,28 +243,42 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
           display: 'flex', gap: 8,
           flexShrink: 0,
         }}>
-          <a
-            className="touch-press"
-            href={`${DART_URL}${rcept_no}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
+          {!rcept_no?.startsWith('KIND_') ? (
+            <a
+              className="touch-press"
+              href={`${DART_URL}${rcept_no}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                flex: 1, padding: '12px', borderRadius: 12,
+                border: `1px solid ${border}`,
+                background: 'transparent',
+                color: colors.textSecondary,
+                fontSize: 14, fontWeight: 600,
+                textDecoration: 'none',
+                minHeight: 48,
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              DART 원문
+            </a>
+          ) : (
+            <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               flex: 1, padding: '12px', borderRadius: 12,
               border: `1px solid ${border}`,
               background: 'transparent',
-              color: colors.textSecondary,
-              fontSize: 14, fontWeight: 600,
-              textDecoration: 'none',
-              minHeight: 48,
-            }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            DART 원문
-          </a>
+              color: colors.textMuted,
+              fontSize: 13, fontWeight: 500,
+              minHeight: 48, opacity: 0.5,
+            }}>
+              거래소 공시 (원문 미제공)
+            </div>
+          )}
 
           {(raw.corp_code || data?.corp_code || raw.stock_code) && (
             <button
