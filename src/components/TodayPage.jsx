@@ -554,24 +554,31 @@ function TodayBriefingSummary({ dark, colors }) {
   return (
     <div className="today-pad" style={{ paddingTop: 12 }}>
       <div onClick={() => window.location.href = '/briefing'} style={{
-        padding: '16px 18px', borderRadius: 14, cursor: 'pointer',
+        padding: '20px 20px 16px', borderRadius: 16, cursor: 'pointer',
         background: dark
-          ? 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))'
-          : 'linear-gradient(135deg, rgba(0,0,0,0.02), rgba(0,0,0,0.005))',
-        border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+          ? 'linear-gradient(160deg, rgba(220,38,38,0.04), rgba(255,255,255,0.01))'
+          : 'linear-gradient(160deg, rgba(220,38,38,0.025), rgba(255,255,255,0.8))',
+        border: `1px solid ${dark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.06)'}`,
         transition: 'all 0.2s',
+        boxShadow: dark ? 'none' : '0 1px 8px rgba(220,38,38,0.04)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 6, height: 6, borderRadius: 3, background: '#DC2626',
+              boxShadow: '0 0 6px rgba(220,38,38,0.4)',
+            }} />
             <span style={{
-              fontSize: 13, fontWeight: 700, color: colors.textPrimary,
-              fontFamily: FONTS.serif,
+              fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+              fontFamily: FONTS.serif, letterSpacing: '-0.3px',
             }}>오늘의 브리핑</span>
-            <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{dateLabel}</span>
+            <span style={{
+              fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono,
+              padding: '2px 8px', borderRadius: 6,
+              background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+            }}>{dateLabel}</span>
           </div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <span style={{ fontSize: 11, color: colors.textMuted, fontWeight: 500 }}>보기 →</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {items.map((item, i) => (
@@ -607,15 +614,6 @@ function TodayBriefingSummary({ dark, colors }) {
               )}
             </div>
           ))}
-        </div>
-        <div style={{
-          marginTop: 12, paddingTop: 10,
-          borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
-          textAlign: 'center',
-        }}>
-          <span style={{ fontSize: 11, color: colors.textMuted, fontWeight: 500 }}>
-            전체 분석 보기 →
-          </span>
         </div>
       </div>
     </div>
