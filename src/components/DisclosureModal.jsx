@@ -270,12 +270,10 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
             <button
               className="touch-press"
               onClick={() => {
-                const cc = raw.corp_code || data?.corp_code
+                // corp_code 우선, 없으면 stock_code
+                const cc = data?.corp_code || raw.corp_code || data?.stock_code || raw.stock_code
                 if (cc) {
                   onViewCard?.(cc)
-                } else if (raw.stock_code) {
-                  // corp_code 없으면 stock_code 기반으로 기업카드 검색 페이지로 이동
-                  onViewCard?.(raw.stock_code)
                 }
                 handleClose()
               }}
