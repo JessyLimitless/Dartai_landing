@@ -573,35 +573,49 @@ function TodayBriefingSummary({ dark, colors }) {
             <path d="M9 18l6-6-6-6" />
           </svg>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {items.map((item, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: 10,
-              padding: '8px 0',
+              padding: '9px 4px',
+              borderBottom: i < items.length - 1 ? `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}` : 'none',
             }}>
               <span style={{
-                fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono,
-                color: dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
-                width: 14,
+                fontSize: 10, fontWeight: 800, fontFamily: FONTS.mono,
+                color: dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
+                width: 14, textAlign: 'right',
               }}>{item.num}</span>
-              <span style={{
-                fontSize: 14, fontWeight: 700, color: colors.textPrimary,
-                fontFamily: FONTS.serif,
-              }}>{item.name}</span>
-              <span style={{
-                fontSize: 11, color: colors.textMuted,
-                flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>{item.type}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{
+                    fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+                    fontFamily: FONTS.serif, letterSpacing: '-0.3px',
+                  }}>{item.name}</span>
+                  <span style={{
+                    fontSize: 11, color: colors.textMuted,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{item.type}</span>
+                </div>
+              </div>
               {item.signal && (
                 <span style={{
-                  fontSize: 10, fontWeight: 700, color: item.color, flexShrink: 0,
-                  padding: '3px 10px', borderRadius: 12,
-                  background: `${item.color}12`,
-                  letterSpacing: '-0.2px',
+                  fontSize: 9, fontWeight: 700, color: item.color, flexShrink: 0,
+                  padding: '3px 10px', borderRadius: 20,
+                  background: `${item.color}10`,
+                  fontFamily: FONTS.serif,
                 }}>{item.signal}</span>
               )}
             </div>
           ))}
+        </div>
+        <div style={{
+          marginTop: 12, paddingTop: 10,
+          borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+          textAlign: 'center',
+        }}>
+          <span style={{ fontSize: 11, color: colors.textMuted, fontWeight: 500 }}>
+            전체 분석 보기 →
+          </span>
         </div>
       </div>
     </div>
