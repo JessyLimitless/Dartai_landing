@@ -240,6 +240,7 @@ export function DartViewDetail() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [cardInfo, setCardInfo] = useState(null)
+  const [livePrice, setLivePrice] = useState(null)
 
   useEffect(() => {
     if (!stockCode) return
@@ -266,6 +267,17 @@ export function DartViewDetail() {
         setLoading(false)
       }
     }).catch(() => setLoading(false))
+
+    // 실시간 시세 조회 (키움 API)
+    const code6 = stockCode.length <= 6 ? stockCode : null
+    if (code6) {
+      fetch(`${API}/api/prices/batch`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock_codes: [code6] }),
+      }).then(r => r.json()).then(d => {
+        if (d[code6]) setLivePrice(d[code6])
+      }).catch(() => {})
+    }
   }, [stockCode])
 
   const sep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
@@ -347,6 +359,36 @@ export function DartViewDetail() {
         >기업카드</button>
       </div>
 
+      {/* 실시간 시세 블록 (키움 API) */}
+      {(livePrice || market.per || market.pbr) && (
+        <div style={{
+          margin: '16px 24px 0', padding: '14px 18px', borderRadius: 12,
+          background: dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)',
+          border: `1px solid ${dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.08)'}`,
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#DC2626', letterSpacing: '0.05em', marginBottom: 8 }}>
+            📊 실시간 시세 (키움 API)
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', fontSize: 13 }}>
+            {livePrice?.price > 0 && (
+              <span style={{ color: colors.textPrimary, fontWeight: 600, fontFamily: FONTS.mono }}>
+                {livePrice.price.toLocaleString()}원
+                <span style={{
+                  marginLeft: 6, fontSize: 12,
+                  color: livePrice.change_pct > 0 ? '#DC2626' : livePrice.change_pct < 0 ? '#2563EB' : colors.textMuted,
+                }}>
+                  {livePrice.change_pct > 0 ? '+' : ''}{livePrice.change_pct?.toFixed(1)}%
+                </span>
+              </span>
+            )}
+            {capStr && <span style={{ color: colors.textMuted }}>시총 {capStr}</span>}
+            {market.per > 0 && <span style={{ color: colors.textMuted, fontFamily: FONTS.mono }}>PER {market.per.toFixed(1)}배</span>}
+            {market.pbr > 0 && <span style={{ color: colors.textMuted, fontFamily: FONTS.mono }}>PBR {market.pbr.toFixed(2)}배</span>}
+            {market.foreign_ratio > 0 && <span style={{ color: colors.textMuted }}>외국인 {market.foreign_ratio.toFixed(1)}%</span>}
+          </div>
+        </div>
+      )}
+
       {/* 딥분석 본문 */}
       <div style={{ padding: '20px 24px' }}>
         <DeepAnalysisMarkdown content={content} colors={colors} dark={dark} />
@@ -357,7 +399,7 @@ export function DartViewDetail() {
         padding: '16px 24px', borderTop: `1px solid ${sep}`,
         fontSize: 11, color: colors.textMuted, lineHeight: 1.6,
       }}>
-        본 분석은 DART 공시 재무제표 기반 AI 자동 생성 리포트이며, 투자 판단의 최종 책임은 투자자 본인에게 있습니다.
+        본 분석은 DART 공시 재무제표(2024년 연간 기준) 기반 AI 자동 생성 리포트입니다. 본문 내 밸류에이션 수치는 작성 시점 기준이며, 상단 실시간 시세를 참고하세요. 투자 판단의 최종 책임은 투자자 본인에게 있습니다.
       </div>
     </div>
   )
