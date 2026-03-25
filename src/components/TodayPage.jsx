@@ -186,6 +186,9 @@ export default function TodayPage({ onViewCard }) {
         </div>
       )}
 
+      {/* ── 오늘의 브리핑 요약 ── */}
+      <TodayBriefingSummary dark={dark} colors={colors} />
+
       {/* ── 등급 탭 ── */}
       {!loading && todayCounts.total > 0 && (
         <div style={{
@@ -510,6 +513,80 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
   )
 }
 
+
+function TodayBriefingSummary({ dark, colors }) {
+  const [items, setItems] = useState([])
+  const [dateLabel, setDateLabel] = useState('')
+
+  useEffect(() => {
+    fetch(`${API}/api/briefings`)
+      .then(r => r.json())
+      .then(d => {
+        const list = d.briefings || []
+        const latest = list.find(b => b.id && /^\d{4}-\d{2}-\d{2}$/.test(b.id))
+        if (!latest) return
+        setDateLabel(latest.date_label || latest.id)
+        const lines = (latest.content || '').split('\n')
+        const extracted = []
+        const signalMap = { '강력 긍정': '#16A34A', '긍정': '#0D9488', '중립': '#94A3B8', '부정': '#D97706', '강력 부정': '#DC2626' }
+        for (const line of lines) {
+          const m = line.match(/^## (\d)\.\s*(.+?)\s*\((\d+)\)\s*\|\s*(.+)/)
+          if (m) extracted.push({ num: m[1], name: m[2], type: m[4] })
+        }
+        let idx = 0
+        for (const line of lines) {
+          const sm = line.match(/판정.*?(강력 긍정|긍정|중립|부정|강력 부정)/)
+          if (sm && idx < extracted.length) {
+            extracted[idx].signal = sm[1]
+            extracted[idx].color = signalMap[sm[1]] || '#94A3B8'
+            idx++
+          }
+        }
+        setItems(extracted.slice(0, 5))
+      }).catch(() => {})
+  }, [])
+
+  if (items.length === 0) return null
+  const sep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+
+  return (
+    <div className="today-pad" style={{ paddingTop: 16 }}>
+      <div onClick={() => window.location.href = '/briefing'} style={{
+        borderRadius: 14, overflow: 'hidden', cursor: 'pointer',
+        border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff',
+      }}>
+        <div style={{
+          padding: '12px 16px', borderBottom: `1px solid ${sep}`,
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span style={{
+            fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 4,
+            background: PREMIUM.accent, color: '#fff', letterSpacing: '0.05em',
+          }}>DAILY BRIEF</span>
+          <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{dateLabel}</span>
+        </div>
+        {items.map((item, i) => (
+          <div key={i} style={{
+            padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
+            borderBottom: i < items.length - 1 ? `1px solid ${sep}` : 'none',
+          }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: PREMIUM.accent, fontFamily: FONTS.mono, width: 16 }}>{item.num}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{item.name}</span>
+              <span style={{ fontSize: 11, color: colors.textMuted, marginLeft: 6 }}>{item.type}</span>
+            </div>
+            {item.signal && (
+              <span style={{
+                fontSize: 10, fontWeight: 700, color: item.color, flexShrink: 0,
+                padding: '2px 8px', borderRadius: 10, background: `${item.color}15`,
+              }}>{item.signal}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function SearchBar({ search, setSearch, colors, dark, onClose }) {
   const [val, setVal] = useState(search || '')
