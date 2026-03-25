@@ -73,11 +73,13 @@ export default function InquiryPage() {
         border: `1px solid ${sep}`,
         background: dark ? '#0C0C0E' : '#111',
       }}>
-        <img
-          src="/dart_trading_promo.gif"
-          alt="자동매매 프로그램 시연"
-          style={{ width: '100%', display: 'block' }}
-        />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '16px' }}>
+          <img
+            src="/dart_trading_promo.gif"
+            alt="자동매매 프로그램 시연"
+            style={{ width: '45%', borderRadius: 8, display: 'block' }}
+          />
+        </div>
         <div style={{
           padding: '14px 18px',
           background: dark ? '#0C0C0E' : '#111',
