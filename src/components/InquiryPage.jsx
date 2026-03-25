@@ -67,6 +67,31 @@ export default function InquiryPage() {
         </div>
       </div>
 
+      {/* 자동매매 시연 GIF */}
+      <div style={{
+        marginBottom: 20, borderRadius: 16, overflow: 'hidden',
+        border: `1px solid ${sep}`,
+        background: dark ? '#0C0C0E' : '#111',
+      }}>
+        <img
+          src="/dart_trading_promo.gif"
+          alt="자동매매 프로그램 시연"
+          style={{ width: '100%', display: 'block' }}
+        />
+        <div style={{
+          padding: '14px 18px',
+          background: dark ? '#0C0C0E' : '#111',
+        }}>
+          <div style={{
+            fontSize: 15, fontWeight: 700, color: '#FAFAFA',
+            fontFamily: FONTS.serif, marginBottom: 4,
+          }}>실제 자동매매 프로그램 작동 화면</div>
+          <div style={{ fontSize: 12, color: '#71717A', lineHeight: 1.5 }}>
+            키움 API 기반 · 실시간 주문 · 맞춤 알고리즘
+          </div>
+        </div>
+      </div>
+
       {/* 문의 폼 */}
       <div style={{
         borderRadius: 14, padding: '20px',
