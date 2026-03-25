@@ -55,7 +55,7 @@ export default function InquiryPage() {
   }
 
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 20px 80px', fontFamily: FONTS.body }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px 80px', fontFamily: FONTS.body }}>
 
       {/* 헤더 */}
       <div style={{ marginBottom: 24 }}>
@@ -67,32 +67,11 @@ export default function InquiryPage() {
         </div>
       </div>
 
-      {/* 자동매매 시연 GIF */}
-      <div style={{
-        marginBottom: 20, borderRadius: 16, overflow: 'hidden',
-        border: `1px solid ${sep}`,
-        background: dark ? '#0C0C0E' : '#111',
+      {/* 문의 폼 + GIF 2컬럼 */}
+      <div className="inquiry-grid" style={{
+        display: 'grid', gridTemplateColumns: '1fr 1fr',
+        gap: 20, alignItems: 'start',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '16px' }}>
-          <img
-            src="/dart_trading_promo.gif"
-            alt="자동매매 프로그램 시연"
-            style={{ width: '45%', borderRadius: 8, display: 'block' }}
-          />
-        </div>
-        <div style={{
-          padding: '14px 18px',
-          background: dark ? '#0C0C0E' : '#111',
-        }}>
-          <div style={{
-            fontSize: 15, fontWeight: 700, color: '#FAFAFA',
-            fontFamily: FONTS.serif, marginBottom: 4,
-          }}>실제 자동매매 프로그램 작동 화면</div>
-          <div style={{ fontSize: 12, color: '#71717A', lineHeight: 1.5 }}>
-            키움 API 기반 · 실시간 주문 · 맞춤 알고리즘
-          </div>
-        </div>
-      </div>
 
       {/* 문의 폼 */}
       <div style={{
@@ -166,11 +145,44 @@ export default function InquiryPage() {
         </button>
       </div>
 
+      {/* GIF 시연 (오른쪽 컬럼) */}
+      <div style={{
+        borderRadius: 16, overflow: 'hidden',
+        border: `1px solid ${sep}`,
+        background: dark ? '#0C0C0E' : '#111',
+        alignSelf: 'start',
+      }}>
+        <div style={{ padding: '16px' }}>
+          <img
+            src="/dart_trading_promo.gif"
+            alt="자동매매 프로그램 시연"
+            style={{ width: '100%', borderRadius: 8, display: 'block' }}
+          />
+        </div>
+        <div style={{ padding: '0 18px 16px' }}>
+          <div style={{
+            fontSize: 15, fontWeight: 700, color: '#FAFAFA',
+            fontFamily: FONTS.serif, marginBottom: 4,
+          }}>실제 작동 화면</div>
+          <div style={{ fontSize: 12, color: '#71717A', lineHeight: 1.6 }}>
+            키움 API 기반 · 실시간 주문 · 맞춤 알고리즘
+          </div>
+        </div>
+      </div>
+
+      </div>{/* inquiry-grid 끝 */}
+
       {/* 회사 정보 */}
       <div style={{ marginTop: 24, fontSize: 12, color: colors.textMuted, lineHeight: 1.8, textAlign: 'center' }}>
         주식회사 뮤즈에이아이 | 사업자등록번호 764-88-03375<br />
         서울특별시 은평구 통일로62길 7, 3층
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .inquiry-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   )
 }
