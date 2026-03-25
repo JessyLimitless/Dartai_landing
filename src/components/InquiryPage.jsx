@@ -139,8 +139,6 @@ export default function InquiryPage() {
         </button>
       </div>
 
-      </div>{/* inquiry-grid 끝 */}
-
       {/* 회사 정보 */}
       <div style={{ marginTop: 24, fontSize: 12, color: colors.textMuted, lineHeight: 1.8, textAlign: 'center' }}>
         주식회사 뮤즈에이아이 | 사업자등록번호 764-88-03375<br />
