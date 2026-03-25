@@ -137,7 +137,10 @@ export default function TodayPage({ onViewCard }) {
       {pick && (
         <div className="today-pad" style={{ paddingTop: 20 }}>
           <div className="touch-press" onClick={() => {
-            window.location.href = '/briefing'
+            if (pick.stock_code) {
+              const cc = pick.corp_code || pick.stock_code
+              window.location.href = `/deep-dive/${cc}`
+            }
           }} style={{
             padding: '16px 18px', borderRadius: 14, cursor: 'pointer',
             background: dark
