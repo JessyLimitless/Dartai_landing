@@ -133,17 +133,17 @@ export default function LandingPage() {
               lineHeight: 1.15, letterSpacing: '-0.03em',
               margin: '0 0 24px', fontFamily: FONTS.serif, color: '#18181B',
             }}>
-              매일 800건의 공시,<br />
-              <span style={{ color: R }}>5건</span>만 읽으세요
+              공시가 나오면,<br />
+              <span style={{ color: R }}>주가가 움직입니다</span>
             </h1>
           </Reveal>
           <Reveal d={160}>
             <p style={{
               fontSize: 'clamp(15px, 2vw, 18px)', color: '#71717A',
-              lineHeight: 1.6, margin: '0 0 40px', maxWidth: 440, marginLeft: 'auto', marginRight: 'auto',
+              lineHeight: 1.6, margin: '0 0 40px', maxWidth: 480, marginLeft: 'auto', marginRight: 'auto',
             }}>
-              DART 공시를 AI가 실시간 분석하고,<br />
-              주가에 영향을 주는 핵심만 골라드립니다.
+              매일 800건의 공시 중 주가에 영향을 주는 핵심만 골라내고,<br />
+              공시 직후 움직이는 종목을 실시간으로 포착합니다.
             </p>
           </Reveal>
 
@@ -194,20 +194,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 2. 공시 후 급등 — 가장 강력한 셀링 포인트 ━━━ */}
+      {/* ━━━ 2. 공시 임팩트 — 킬러콘텐츠 ━━━ */}
       <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
-            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>LIVE SIGNAL</p>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>DISCLOSURE IMPACT</p>
             <h2 style={{
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
-              공시가 나오면, 주가가 움직입니다
+              공시 직후, 주가가 움직이는 종목을 포착합니다
             </h2>
             <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
-              실시간으로 포착한 공시 직후 급등 종목입니다.<br />
-              이 알림을 받았다면, 당신도 탈 수 있었습니다.
+              자사주 소각 → 급등, 유상증자 → 급락.<br />
+              공시와 시세를 동시에 보여주는 건 DART Insight뿐입니다.
             </p>
           </Reveal>
 
@@ -350,9 +350,9 @@ export default function LandingPage() {
           </Reveal>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
             {[
-              { step: '01', title: '실시간 수집 + 알림', desc: 'DART + KRX KIND에서 30초 간격으로 수집하고, 핵심 공시가 나올 때마다 즉시 Push 알림으로 전달합니다.' },
-              { step: '02', title: '공시 후 급등 종목 실시간 추적', desc: '공시 발표 직후 주가가 움직이는 종목을 실시간으로 포착합니다. 어떤 공시가 시장을 움직이는지, 데이터로 증명합니다.' },
-              { step: '03', title: '딥분석 + 브리핑', desc: '462종목 8섹션 재무 딥분석과 매일 저녁 핵심 공시 5건의 5-Step 브리핑을 제공합니다.' },
+              { step: '01', title: '공시 실시간 수집', desc: 'DART + KRX KIND에서 매 분 수집합니다. 800건 중 주가에 영향을 주는 S/A등급만 필터링합니다.' },
+              { step: '02', title: '공시 임팩트 포착', desc: '공시 발표 후 주가가 움직이는 종목을 10분 간격으로 추적합니다. 소각 → 급등, 유상증자 → 급락을 실시간으로 보여줍니다.' },
+              { step: '03', title: 'AI 기업소개 + 딥분석', desc: '종목을 클릭하면 AI가 이 기업이 뭘 하는 곳인지, 재무가 어떤지, 차트가 어떤 흐름인지 즉시 설명합니다.' },
             ].map((item, i) => (
               <Reveal key={i} d={i * 100}>
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
@@ -452,10 +452,10 @@ export default function LandingPage() {
               fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
-              공시를 읽는 새로운 방법
+              공시가 주가를 움직이는 순간,<br />놓치지 마세요
             </h2>
             <p style={{ fontSize: 15, color: '#71717A', margin: '0 0 36px', lineHeight: 1.6 }}>
-              매일 저녁, 3분이면 충분합니다.
+              지금 바로 오늘의 공시 임팩트를 확인하세요.
             </p>
             <button onClick={() => navigate('/today')} style={{
               padding: '16px 48px', borderRadius: 10, border: 'none',

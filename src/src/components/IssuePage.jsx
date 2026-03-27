@@ -1,10 +1,132 @@
 import React, { useState } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
-import { FONTS, PREMIUM } from '../constants/theme'
+import { FONTS, PREMIUM, SPACING } from '../constants/theme'
 
 const ISSUES = [
   {
+    id: 'tway-trinity',
+    title: '티웨이항공 → 트리니티 항공: 4,000억 유상증자 완료 + 사명 변경',
+    subtitle: '수십 건 동시 공시 — 소노인터내셔널 47.75% 장악, LCC→FSC 전환 선언',
+    status: 'NEW',
+    statusColor: '#DC2626',
+    tag: '유상증자 완료',
+    tagColor: '#D97706',
+    lastUpdate: '2026.03.27',
+    price: '1,090',
+    change: '-',
+    changeNeg: false,
+    timeline: [
+      { date: '2025.12', title: '주주배정 유상증자 결정', desc: '약 4,000억원 규모 주주배정 유상증자 공시', signal: '시작' },
+      { date: '2026.01~02', title: '소노인터내셔널 증자 참여', desc: '대명소노그룹이 증자에 적극 참여, 지분 확대', signal: '진행' },
+      { date: '2026.03.27', title: '유상증자 완료 — 수십 건 동시 공시', desc: '임원·주요주주 소유상황 + 최대주주 변동 수십 건 동시 제출. 소노인터내셔널 지분 47.75% 확정', signal: '완료', highlight: true },
+      { date: '2026.03.31', title: '주주총회 — 사명 변경 의결 예정', desc: '티웨이항공 → 트리니티 항공(Trinity Airways)으로 사명 변경 안건 상정', signal: '예정' },
+    ],
+    analysis: `## 공시가 말하는 것
+
+3/27 하루에 수십 건의 **임원·주요주주 소유상황보고서**와 **최대주주 변동신고서**가 동시 제출되었다. 이는 약 4,000억원 규모 유상증자가 완료되었음을 알리는 종결 신호다.
+
+## 지배구조 변동
+
+| 항목 | 내용 |
+|------|------|
+| **소노인터내셔널 지분** | 47.75% (단독 지배력 확보) |
+| **기존 최대주주 측** | 지분 희석 |
+| **의미** | 지배구조 불확실성 해소 |
+
+## 재무 현황 (공시 기반)
+
+| 항목 | 수치 |
+|------|------|
+| **2025년 매출** | 1.8조원 (역대 최고) |
+| **2025년 영업손실** | △2,655억원 |
+| **유상증자 규모** | 약 4,000억원 |
+| **부채비율 변화** | 3,000%대 → 700%대 |
+| **신주 발행가** | 952원 |
+
+수치 출처: DART 공시 원문 확인 필요
+
+## 한화솔루션과의 대비
+
+같은 유상증자이지만 방향이 정반대다:
+
+| 기업 | 유상증자 | 상태 | 시장 반응 |
+|------|---------|------|----------|
+| **한화솔루션** | 주총 결정 | 적자+증자 = 희석 공포 | -18.22% |
+| **티웨이항공** | 완료 | 증자 완료 = 재무 정상화 | 발행가 근처 바닥 다지기 |
+
+## 리스크
+
+| 리스크 | 내용 |
+|--------|------|
+| 🔴 안전 이슈 | 최근 5년간 국적사 중 최대 47억원 과징금 부과 이력 |
+| 🟠 환율·유가 | 리스료·항공유 달러 결제 — 고환율 시 현금 소진 가속 |
+| 🟡 오버행 | 유상증자 신주 상장 이후 물량 출회 → 단기 주가 하방 압력 |
+
+## 감시 포인트
+
+- 3/31 주총: 사명 변경(트리니티 항공) 의결 여부
+- 신주 상장일 및 거래량 추이
+- 유럽 노선(파리·로마·바르셀로나·프랑크푸르트) 탑승률 공시
+- 2026 Q1 잠정실적 — 영업손실 축소 여부`,
+    insight: '같은 유상증자라도 "결정"은 공포이고 "완료"는 정상화다. 한화솔루션은 전자, 티웨이는 후자. 공시의 타이밍이 방향을 결정한다.',
+  },
+  {
+    id: 'hanwha-solutions',
+    archived: true,
+    title: '한화솔루션 주총 유상증자 → -18% 폭락',
+    subtitle: '적자 기업이 주총에서 유상증자를 결정하자 시장이 하루 만에 -18%로 응답',
+    status: 'CLOSED',
+    statusColor: '#DC2626',
+    tag: '유상증자',
+    tagColor: '#DC2626',
+    lastUpdate: '2026.03.26',
+    price: '36,800',
+    change: '-18.22%',
+    changeNeg: true,
+    timeline: [
+      { date: '2026.03.20', title: '투자판단관련주요경영사항 공시', desc: '유상증자 관련 사전 공시 제출', signal: '전조' },
+      { date: '2026.03.24~25', title: '임원·주요주주 소유상황 보고', desc: '내부자 지분 변동 보고서 다수 제출', signal: '전조' },
+      { date: '2026.03.26', title: '정기주주총회 — 유상증자 결정', desc: '주총에서 유상증자 의결. 종가 36,800원(-18.22%), 거래량 1,060만 주 폭증', signal: '폭락', highlight: true },
+    ],
+    analysis: `## 왜 -18% 폭락했나
+
+한화솔루션은 현재 **EPS -3,728원으로 적자** 상태다. 적자 기업이 유상증자를 결정한 것은 두 가지를 의미한다:
+
+1. **자금 조달이 절박하다** — 영업으로 돈을 벌지 못하니 주주에게서 가져와야 한다
+2. **기존 주주 가치가 희석된다** — PBR 0.70배, 자산가치 이하에서 신주를 발행
+
+## 시세 데이터 (키움 API 3/26)
+
+| 항목 | 수치 |
+|------|------|
+| **종가** | 36,800원 |
+| **등락률** | -18.22% (-8,200원) |
+| **거래량** | 10,598,663주 |
+| **시총** | 6.3조 |
+| **PBR** | 0.70배 |
+| **외국인** | 14.0% |
+
+## 같은 날, 정반대 공시
+
+같은 주총 시즌에 **메리츠금융지주는 자사주 소각+재매입 3종 세트**, **포스코홀딩스는 6,351억 소각**을 결정했다. 한화솔루션만 반대 방향이다.
+
+| 기업 | 주총 결정 | 주가 반응 |
+|------|----------|----------|
+| 메리츠금융지주 | 소각+재매입 | +2.51% |
+| 포스코홀딩스 | 6,351억 소각 | +0.15% |
+| **한화솔루션** | **유상증자** | **-18.22%** |
+
+## 감시 포인트
+
+- 유상증자 상세 조건 (규모, 발행가, 배정 방식) — 원문 확인 필요
+- 자금 사용 목적 (부채상환? 신사업 투자?)
+- 추가 하락 여부 — 유증 후 통상 2~3일 추가 조정
+- 외국인 지분 이탈 여부 (현재 14.0%)`,
+    insight: '소각은 주주에게 돌려주는 것이고, 유증은 주주에게서 빼앗는 것이다. 주총은 경영진의 본심이 드러나는 자리다.',
+  },
+  {
     id: 'korea-zinc',
+    archived: true,
     title: '고려아연 경영권 분쟁',
     subtitle: 'MBK+영풍 vs 최윤범 — 한국 증시 최대 지배구조 전쟁',
     status: 'LIVE',
@@ -12,6 +134,9 @@ const ISSUES = [
     tag: '경영권 분쟁',
     tagColor: '#DC2626',
     lastUpdate: '2026.03.25',
+    price: '1,280,000',
+    change: '+1.19%',
+    changeNeg: false,
     timeline: [
       { date: '2024.09', title: 'MBK+영풍, 공개매수 발표', desc: '주당 66만원, 지분 14.6% 목표. 경영권 분쟁 시작', signal: '시작' },
       { date: '2024.10', title: '최윤범 회장, 자사주 매입 방어', desc: '1조원+ 자사주 매입 결정. "경영권 방어" 명분', signal: '방어' },
@@ -78,146 +203,405 @@ const ISSUES = [
 
 export default function IssuePage() {
   const { colors, dark } = useTheme()
-  const [selectedId, setSelectedId] = useState(ISSUES[0]?.id || null)
+  const currentIssues = ISSUES.filter(i => !i.archived)
+  const archivedIssues = ISSUES.filter(i => i.archived)
+  const [selectedId, setSelectedId] = useState(currentIssues[0]?.id || null)
   const selected = ISSUES.find(i => i.id === selectedId)
 
   const sep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
-  return (
-    <div className="page-enter" style={{
-      maxWidth: 640, margin: '0 auto',
-      paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-      fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
-    }}>
+  const [archivePage, setArchivePage] = useState(0)
+  const ARCHIVE_PER_PAGE = 10
+  const archivePages = Math.ceil(archivedIssues.length / ARCHIVE_PER_PAGE)
+  const pagedArchive = archivedIssues.slice(archivePage * ARCHIVE_PER_PAGE, (archivePage + 1) * ARCHIVE_PER_PAGE)
 
+  const ArchiveSidebar = () => archivedIssues.length > 0 ? (
+    <div style={{
+      borderRadius: 14, overflow: 'hidden',
+      background: dark ? '#111113' : '#FAFAFA',
+      border: `1px solid ${sep}`,
+    }}>
       {/* 헤더 */}
-      <div style={{ padding: '24px 24px 0' }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5, fontFamily: FONTS.serif }}>
-          이슈 <span style={{ color: PREMIUM.accent }}>트래커</span>
+      <div style={{
+        padding: '12px 16px',
+        borderBottom: `1px solid ${sep}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <span style={{ fontSize: 12, fontWeight: 700, color: colors.textPrimary }}>지난 이슈</span>
         </div>
-        <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
-          시장을 움직이는 이슈를 처음부터 끝까지 추적합니다
-        </div>
+        <span style={{
+          fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono,
+        }}>{archivedIssues.length}건</span>
       </div>
 
-      {/* 이슈 카드 리스트 */}
-      <div style={{ padding: '20px 24px 0' }}>
-        {ISSUES.map((issue) => {
+      {/* 리스트 */}
+      <div style={{ padding: '6px 10px' }}>
+        {pagedArchive.map((issue, i) => {
           const active = selectedId === issue.id
           return (
             <div key={issue.id} className="touch-press"
               onClick={() => setSelectedId(issue.id)}
               style={{
-                padding: '18px 20px', borderRadius: 16, cursor: 'pointer',
-                marginBottom: 12,
+                padding: '12px 14px', cursor: 'pointer', marginBottom: 6,
+                borderRadius: 10,
                 background: active
-                  ? (dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)')
-                  : (dark ? '#141416' : '#fff'),
-                border: `1px solid ${active ? 'rgba(220,38,38,0.15)' : sep}`,
-                transition: 'all 0.2s',
+                  ? (dark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.04)')
+                  : (dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)'),
+                border: `1px solid ${active ? 'rgba(220,38,38,0.15)' : 'transparent'}`,
+                transition: 'all 0.15s',
               }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              {/* 상단: 태그 + 날짜 */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                    background: `${issue.tagColor}12`, color: issue.tagColor,
+                  }}>{issue.tag}</span>
+                  {issue.status === 'CLOSED' && (
+                    <span style={{
+                      fontSize: 8, fontWeight: 600, padding: '1px 5px', borderRadius: 3,
+                      background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                      color: colors.textMuted,
+                    }}>종료</span>
+                  )}
+                </div>
                 <span style={{
-                  fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 4,
-                  background: issue.statusColor, color: '#fff', letterSpacing: '0.05em',
-                }}>{issue.status}</span>
-                <span style={{
-                  fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
-                  background: `${issue.tagColor}15`, color: issue.tagColor,
-                }}>{issue.tag}</span>
-                <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 'auto' }}>
-                  {issue.lastUpdate}
-                </span>
+                  fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono,
+                }}>{issue.lastUpdate}</span>
               </div>
+              {/* 제목 */}
               <div style={{
-                fontSize: 17, fontWeight: 800, color: colors.textPrimary,
-                fontFamily: FONTS.serif, letterSpacing: '-0.3px', marginBottom: 4,
+                fontSize: 13, fontWeight: 700,
+                color: active ? PREMIUM.accent : colors.textPrimary,
+                lineHeight: 1.4, marginBottom: 4,
+                fontFamily: FONTS.serif,
               }}>{issue.title}</div>
-              <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.5 }}>
-                {issue.subtitle}
-              </div>
+              {/* 서브타이틀 */}
+              <div style={{
+                fontSize: 11, color: colors.textMuted, lineHeight: 1.4,
+                display: '-webkit-box', WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical', overflow: 'hidden',
+              }}>{issue.subtitle}</div>
+              {/* 가격 */}
+              {issue.price && (
+                <div style={{
+                  marginTop: 8, paddingTop: 6,
+                  borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                    {issue.price}원
+                  </span>
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, fontFamily: FONTS.mono,
+                    color: issue.changeNeg ? '#2563EB' : '#DC2626',
+                  }}>{issue.change}</span>
+                </div>
+              )}
             </div>
           )
         })}
       </div>
 
-      {/* 선택된 이슈 상세 */}
-      {selected && (
-        <div style={{ padding: '0 24px' }}>
+      {/* 페이지 터너 */}
+      {archivePages > 1 && (
+        <div style={{
+          padding: '8px 16px',
+          borderTop: `1px solid ${sep}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          <button onClick={() => setArchivePage(Math.max(0, archivePage - 1))}
+            disabled={archivePage === 0}
+            style={{
+              background: 'none', border: 'none', cursor: archivePage === 0 ? 'default' : 'pointer',
+              color: archivePage === 0 ? (dark ? '#333' : '#D4D4D8') : colors.textMuted,
+              fontSize: 12, padding: '2px 6px',
+            }}>←</button>
+          {Array.from({ length: archivePages }).map((_, p) => (
+            <button key={p} onClick={() => setArchivePage(p)}
+              style={{
+                width: 22, height: 22, borderRadius: 6, border: 'none',
+                fontSize: 10, fontWeight: 700, fontFamily: FONTS.mono,
+                cursor: 'pointer',
+                background: p === archivePage ? PREMIUM.accent : 'transparent',
+                color: p === archivePage ? '#fff' : colors.textMuted,
+              }}>{p + 1}</button>
+          ))}
+          <button onClick={() => setArchivePage(Math.min(archivePages - 1, archivePage + 1))}
+            disabled={archivePage === archivePages - 1}
+            style={{
+              background: 'none', border: 'none',
+              cursor: archivePage === archivePages - 1 ? 'default' : 'pointer',
+              color: archivePage === archivePages - 1 ? (dark ? '#333' : '#D4D4D8') : colors.textMuted,
+              fontSize: 12, padding: '2px 6px',
+            }}>→</button>
+        </div>
+      )}
+    </div>
+  ) : null
 
-          {/* 타임라인 */}
-          <div style={{
-            padding: '20px', borderRadius: 16,
-            background: dark ? '#141416' : '#fff',
-            border: `1px solid ${sep}`,
-            marginBottom: 16,
-          }}>
-            <div style={{
-              fontSize: 14, fontWeight: 700, color: colors.textPrimary,
-              fontFamily: FONTS.serif, marginBottom: 16,
-            }}>타임라인</div>
-            {selected.timeline.map((event, i) => (
-              <div key={i} style={{
-                display: 'flex', gap: 14, marginBottom: i < selected.timeline.length - 1 ? 16 : 0,
-                position: 'relative',
-              }}>
-                {/* 세로선 */}
-                {i < selected.timeline.length - 1 && (
-                  <div style={{
-                    position: 'absolute', left: 5, top: 14, bottom: -16,
-                    width: 1, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                  }} />
-                )}
-                {/* 점 */}
+  return (
+    <div className="page-enter" style={{
+      maxWidth: 960, margin: '0 auto',
+      paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+      fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
+    }}>
+
+      {/* 헤더 */}
+      <div style={{ padding: '28px 24px 0' }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5, fontFamily: FONTS.serif }}>
+          이슈 <span style={{ color: PREMIUM.accent }}>트래커</span>
+        </div>
+        <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 6 }}>
+          시장을 움직이는 이슈를 처음부터 끝까지 추적합니다
+        </div>
+      </div>
+
+      {/* 2컬럼: 본문 + 사이드바 (데스크톱) / 1컬럼 (모바일) */}
+      <div className="issue-layout" style={{
+        display: 'flex', gap: 20, padding: '22px 24px 0',
+        alignItems: 'flex-start',
+      }}>
+
+        {/* 좌: 본문 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* 현재 이슈 카드 — 지난 이슈 선택 시 숨김 */}
+          {!(selected && selected.archived) && currentIssues.map((issue) => {
+            const active = selectedId === issue.id
+            return (
+              <div key={issue.id} className="touch-press"
+                onClick={() => setSelectedId(issue.id)}
+                style={{
+                  display: 'flex', borderRadius: 16, cursor: 'pointer',
+                  marginBottom: 14, overflow: 'hidden',
+                  background: active
+                    ? (dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)')
+                    : (dark ? '#141416' : '#fff'),
+                  border: `1px solid ${active ? 'rgba(220,38,38,0.15)' : sep}`,
+                  transition: 'all 0.2s',
+                }}>
+                {/* 좌측 액센트바 */}
                 <div style={{
-                  width: 11, height: 11, borderRadius: '50%', flexShrink: 0, marginTop: 3,
-                  background: event.highlight ? PREMIUM.accent : (dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'),
-                  boxShadow: event.highlight ? '0 0 8px rgba(220,38,38,0.4)' : 'none',
+                  width: active ? 4 : 0, flexShrink: 0,
+                  background: PREMIUM.accent,
+                  borderRadius: '4px 0 0 4px',
+                  transition: 'width 0.2s',
                 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                    <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{event.date}</span>
+                <div style={{ flex: 1, padding: '18px 20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <span style={{
-                      fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4,
-                      background: event.highlight ? `${PREMIUM.accent}15` : (dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'),
-                      color: event.highlight ? PREMIUM.accent : colors.textMuted,
-                    }}>{event.signal}</span>
+                      fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 4,
+                      background: issue.statusColor, color: '#fff', letterSpacing: '0.05em',
+                    }}>{issue.status}</span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
+                      background: `${issue.tagColor}15`, color: issue.tagColor,
+                    }}>{issue.tag}</span>
+                    <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 'auto' }}>
+                      {issue.lastUpdate}
+                    </span>
                   </div>
                   <div style={{
-                    fontSize: 14, fontWeight: event.highlight ? 700 : 600,
-                    color: event.highlight ? PREMIUM.accent : colors.textPrimary,
-                    fontFamily: FONTS.serif, marginBottom: 2,
-                  }}>{event.title}</div>
-                  <div style={{ fontSize: 12, color: colors.textMuted, lineHeight: 1.5 }}>
-                    {event.desc}
+                    fontSize: 17, fontWeight: 800, color: colors.textPrimary,
+                    fontFamily: FONTS.serif, letterSpacing: '-0.3px', marginBottom: 4,
+                  }}>{issue.title}</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginTop: 6 }}>
+                    <div style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.5, flex: 1 }}>
+                      {issue.subtitle}
+                    </div>
+                    {issue.price && (
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexShrink: 0 }}>
+                        <span style={{
+                          fontSize: 14, fontWeight: 700, fontFamily: FONTS.mono,
+                          color: colors.textPrimary,
+                        }}>{issue.price}</span>
+                        <span style={{
+                          fontSize: 11, fontWeight: 600, fontFamily: FONTS.mono,
+                          color: issue.changeNeg ? '#2563EB' : PREMIUM.accent,
+                        }}>{issue.change}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            )
+          })}
 
-          {/* 분석 본문 */}
-          <div style={{
-            padding: '20px', borderRadius: 16,
-            background: dark ? '#141416' : '#fff',
-            border: `1px solid ${sep}`,
-            marginBottom: 16,
-          }}>
-            <IssueMarkdown content={selected.analysis} colors={colors} dark={dark} />
-          </div>
+          {/* 아카이브 이슈 선택 시: 돌아가기 버튼 + 제목 */}
+          {selected && selected.archived && (
+            <>
+              <button className="touch-press" onClick={() => setSelectedId(currentIssues[0]?.id)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 12, fontWeight: 600, color: PREMIUM.accent,
+                  padding: 0, marginBottom: 8,
+                }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={PREMIUM.accent} strokeWidth="2" strokeLinecap="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                현재 이슈로
+              </button>
+              <div style={{
+                padding: '16px 20px', borderRadius: 14, marginBottom: 14,
+                background: dark ? '#141416' : '#fff',
+                border: `1px solid ${sep}`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                    background: `${selected.tagColor}15`, color: selected.tagColor,
+                  }}>{selected.tag}</span>
+                  <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                    {selected.lastUpdate}
+                  </span>
+                  <span style={{
+                    fontSize: 8, fontWeight: 600, padding: '1px 6px', borderRadius: 3,
+                    background: dark ? '#27272A' : '#E4E4E7', color: colors.textMuted,
+                  }}>지난 이슈</span>
+                </div>
+                <div style={{
+                  fontSize: 17, fontWeight: 800, color: colors.textPrimary,
+                  fontFamily: FONTS.serif, letterSpacing: '-0.3px',
+                }}>{selected.title}</div>
+                <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4, lineHeight: 1.5 }}>
+                  {selected.subtitle}
+                </div>
+              </div>
+            </>
+          )}
 
-          {/* 인사이트 */}
-          <div style={{
-            padding: '16px 20px', borderRadius: 14,
-            borderLeft: `3px solid ${PREMIUM.accent}`,
-            background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)',
-            fontSize: 14, fontStyle: 'italic', color: colors.textSecondary,
-            lineHeight: 1.6, fontFamily: FONTS.serif,
-          }}>
-            {selected.insight}
+          {/* 선택된 이슈 상세 */}
+          {selected && (
+            <>
+              {/* 타임라인 */}
+              <div style={{
+                padding: '22px 20px', borderRadius: 16,
+                background: dark ? '#141416' : '#fff',
+                border: `1px solid ${sep}`,
+                marginBottom: 16,
+              }}>
+                <div style={{
+                  fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+                  fontFamily: FONTS.serif, marginBottom: 18,
+                }}>타임라인</div>
+                {selected.timeline.map((event, i) => {
+                  const dotSize = event.highlight ? 14 : 9
+                  const lineLeft = event.highlight ? 7 : 4
+                  return (
+                  <div key={i} style={{
+                    display: 'flex', gap: 14, marginBottom: i < selected.timeline.length - 1 ? 18 : 0,
+                    position: 'relative',
+                  }}>
+                    {i < selected.timeline.length - 1 && (
+                      <div style={{
+                        position: 'absolute', left: lineLeft, top: dotSize + 4, bottom: -18,
+                        width: 1, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                      }} />
+                    )}
+                    <div className={event.highlight ? 'timeline-dot-pulse' : undefined} style={{
+                      width: dotSize, height: dotSize, borderRadius: '50%', flexShrink: 0, marginTop: 3,
+                      background: event.highlight ? PREMIUM.accent : (dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'),
+                      boxShadow: event.highlight ? '0 0 0 4px rgba(220,38,38,0.15)' : 'none',
+                      border: event.highlight ? '2px solid rgba(220,38,38,0.3)' : 'none',
+                    }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{event.date}</span>
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4,
+                          background: event.highlight ? `${PREMIUM.accent}15` : (dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'),
+                          color: event.highlight ? PREMIUM.accent : colors.textMuted,
+                        }}>{event.signal}</span>
+                      </div>
+                      <div style={{
+                        fontSize: 14, fontWeight: event.highlight ? 700 : 600,
+                        color: event.highlight ? PREMIUM.accent : colors.textPrimary,
+                        fontFamily: FONTS.serif, marginBottom: 3,
+                      }}>{event.title}</div>
+                      <div style={{ fontSize: 12, color: colors.textMuted, lineHeight: 1.55 }}>
+                        {event.desc}
+                      </div>
+                    </div>
+                  </div>
+                  )
+                })}
+              </div>
+
+              {/* 분석 본문 */}
+              <div style={{
+                padding: '22px 20px', borderRadius: 16,
+                background: dark ? '#141416' : '#fff',
+                border: `1px solid ${sep}`,
+                marginBottom: 16,
+              }}>
+                <IssueMarkdown content={selected.analysis} colors={colors} dark={dark} />
+              </div>
+
+              {/* 인사이트 */}
+              <div style={{
+                padding: '18px 22px', borderRadius: 14,
+                borderLeft: `3px solid ${PREMIUM.accent}`,
+                background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)',
+                position: 'relative',
+              }}>
+                <span style={{
+                  position: 'absolute', top: 10, left: 18,
+                  fontSize: 36, fontFamily: FONTS.serif, fontWeight: 700,
+                  color: dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.08)',
+                  lineHeight: 1, pointerEvents: 'none', userSelect: 'none',
+                }}>"</span>
+                <div style={{
+                  fontSize: 14, fontStyle: 'italic', color: colors.textSecondary,
+                  lineHeight: 1.7, fontFamily: FONTS.serif,
+                  paddingLeft: 20, paddingTop: 4,
+                }}>
+                  {selected.insight}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* 모바일: 지난 이슈 하단 표시 */}
+          <div className="issue-archive-mobile">
+            <ArchiveSidebar />
           </div>
         </div>
-      )}
+
+        {/* 우: 사이드바 (데스크톱만) */}
+        <div className="issue-sidebar" style={{ width: 280, flexShrink: 0 }}>
+          <div style={{ position: 'sticky', top: 80 }}>
+            <ArchiveSidebar />
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        .issue-sidebar { display: block; }
+        .issue-archive-mobile { display: none; }
+        @media (max-width: 768px) {
+          .issue-layout { flex-direction: column !important; }
+          .issue-sidebar { display: none !important; }
+          .issue-archive-mobile { display: block; margin-top: 20px; }
+        }
+        .issue-archive-item:hover {
+          background: ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'} !important;
+        }
+        @keyframes timeline-pulse {
+          0% { box-shadow: 0 0 0 4px rgba(220,38,38,0.15); }
+          50% { box-shadow: 0 0 0 8px rgba(220,38,38,0.06); }
+          100% { box-shadow: 0 0 0 4px rgba(220,38,38,0.15); }
+        }
+        .timeline-dot-pulse {
+          animation: timeline-pulse 2s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   )
 }

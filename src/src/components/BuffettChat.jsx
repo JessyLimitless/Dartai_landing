@@ -36,7 +36,7 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
   }, [])
 
   const autoAsk = useCallback(async (corpCode) => {
-    const text = '이 기업을 분석해줘'
+    const text = '이 기업을 소개해줘'
     setMessages(prev => [...prev, { role: 'user', content: text }])
     setLoading(true)
     try {
@@ -122,7 +122,7 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <img src="/bufit.png" alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
-            <span style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary }}>Buffett AI</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary }}>AI 기업소개</span>
           </div>
           <div style={{ display: 'flex', gap: 4 }}>
             {messages.length > 0 && (
@@ -145,7 +145,7 @@ export default function BuffettChatPanel({ corpCode: externalCorpCode }) {
             <div style={{ textAlign: 'center', padding: '40px 16px 20px' }}>
               <img src="/bufit.png" alt="" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', marginBottom: 14 }} />
               <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, marginBottom: 6 }}>
-                안녕하세요, Buffett AI입니다
+                안녕하세요, AI 기업소개입니다. 궁금한 기업에 대해 물어보세요
               </div>
               <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.6, marginBottom: 24 }}>
                 기업의 내재가치를 분석해드려요

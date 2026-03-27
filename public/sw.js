@@ -1,5 +1,5 @@
 // DART Insight — Service Worker (PWA + Push)
-const CACHE_NAME = 'dart-insight-v4'
+const CACHE_NAME = 'dart-insight-v9'
 const OFFLINE_URL = '/today'
 
 // 설치: 핵심 리소스 캐싱
@@ -16,16 +16,23 @@ self.addEventListener('install', (event) => {
   self.skipWaiting()
 })
 
-// 활성화: 이전 캐시 정리
+// 활성화: 이전 캐시 정리 + 모든 클라이언트 강제 리로드
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
       )
+    }).then(() => {
+      // 모든 열린 탭/PWA 인스턴스에 새 버전 적용
+      return self.clients.claim()
+    }).then(() => {
+      // 모든 클라이언트에게 리로드 요청
+      return self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => client.postMessage({ type: 'SW_UPDATED' }))
+      })
     })
   )
-  self.clients.claim()
 })
 
 // 네트워크 우선, 실패 시 캐시 폴백
