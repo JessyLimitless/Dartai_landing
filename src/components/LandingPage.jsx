@@ -635,25 +635,58 @@ export default function LandingPage() {
           </Reveal>
 
           <Reveal d={200}>
-            <div style={{
-              display: 'flex', justifyContent: 'center', gap: 8, marginTop: 32,
-              flexWrap: 'wrap',
-            }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 40, textAlign: 'left' }}>
               {[
-                { label: '공시 시그널', url: 'https://jessylimitless.github.io/dartbook/', color: '#DC2626' },
-                { label: 'Financial Signal', url: 'https://jessylimitless.github.io/financial_signal/', color: '#10B981' },
-                { label: '상법 Signal', url: 'https://jessylimitless.github.io/law_signal/', color: '#7C3AED' },
-              ].map((b, i) => (
-                <a key={i} href={b.url} target="_blank" rel="noopener noreferrer"
+                {
+                  title: '전자공시 시그널',
+                  desc: '공시의 첫걸음 — 800건에서 S등급을 골라내는 법',
+                  url: 'https://jessylimitless.github.io/dartbook/',
+                  accent: '#DC2626',
+                  tag: 'Vol.1 공시',
+                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>,
+                },
+                {
+                  title: 'Financial Signal',
+                  desc: '재무제표는 경영진이 쓴 자서전이다',
+                  url: 'https://jessylimitless.github.io/financial_signal/',
+                  accent: '#10B981',
+                  tag: 'Vol.2 재무',
+                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round"><path d="M2 3h20v18H2z" /><path d="M2 9h20" /><path d="M8 3v18" /></svg>,
+                },
+                {
+                  title: '상법 Signal',
+                  desc: '지배구조의 소스코드를 읽는 기술',
+                  url: 'https://jessylimitless.github.io/law_signal/',
+                  accent: '#7C3AED',
+                  tag: 'Vol.3 법률',
+                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>,
+                },
+              ].map((book, i) => (
+                <a key={i} href={book.url} target="_blank" rel="noopener noreferrer"
                   style={{
-                    fontSize: 12, fontWeight: 600, color: b.color, textDecoration: 'none',
-                    padding: '6px 14px', borderRadius: 20,
-                    background: `${b.color}08`, border: `1px solid ${b.color}20`,
+                    display: 'flex', alignItems: 'center', gap: 16,
+                    padding: '18px 20px', borderRadius: 14, textDecoration: 'none',
+                    background: '#FAFAFA', border: '1px solid #F0F0F2',
                     transition: 'all 0.2s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = `${b.color}15`; e.currentTarget.style.borderColor = b.color }}
-                  onMouseLeave={e => { e.currentTarget.style.background = `${b.color}08`; e.currentTarget.style.borderColor = `${b.color}20` }}
-                >{b.label}</a>
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = book.accent; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 16px ${book.accent}18` }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+                >
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 11, flexShrink: 0,
+                    background: `${book.accent}10`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {book.icon}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 11, color: book.accent, fontWeight: 700, letterSpacing: '0.05em', marginBottom: 3 }}>{book.tag}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B' }}>{book.title}</div>
+                    <div style={{ fontSize: 12, color: '#71717A', marginTop: 2 }}>{book.desc}</div>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </a>
               ))}
             </div>
           </Reveal>
