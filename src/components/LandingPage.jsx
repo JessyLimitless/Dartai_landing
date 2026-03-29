@@ -133,17 +133,17 @@ export default function LandingPage() {
               lineHeight: 1.15, letterSpacing: '-0.03em',
               margin: '0 0 24px', fontFamily: FONTS.serif, color: '#18181B',
             }}>
-              매일 800건의 공시,<br />
-              <span style={{ color: R }}>5건</span>만 읽으세요
+              공시가 나오면,<br />
+              <span style={{ color: R }}>주가가 움직입니다</span>
             </h1>
           </Reveal>
           <Reveal d={160}>
             <p style={{
               fontSize: 'clamp(15px, 2vw, 18px)', color: '#71717A',
-              lineHeight: 1.6, margin: '0 0 40px', maxWidth: 440, marginLeft: 'auto', marginRight: 'auto',
+              lineHeight: 1.6, margin: '0 0 40px', maxWidth: 480, marginLeft: 'auto', marginRight: 'auto',
             }}>
-              DART 공시를 AI가 실시간 분석하고,<br />
-              주가에 영향을 주는 핵심만 골라드립니다.
+              매일 800건의 공시 중 주가에 영향을 주는 핵심만 골라내고,<br />
+              공시 직후 움직이는 종목을 실시간으로 포착합니다.
             </p>
           </Reveal>
 
@@ -194,20 +194,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 2. 공시 후 급등 — 가장 강력한 셀링 포인트 ━━━ */}
+      {/* ━━━ 2. 공시 임팩트 — 킬러콘텐츠 ━━━ */}
       <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
-            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>LIVE SIGNAL</p>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>DISCLOSURE IMPACT</p>
             <h2 style={{
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
-              공시가 나오면, 주가가 움직입니다
+              공시 직후, 주가가 움직이는 종목을 포착합니다
             </h2>
             <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
-              실시간으로 포착한 공시 직후 급등 종목입니다.<br />
-              이 알림을 받았다면, 당신도 탈 수 있었습니다.
+              자사주 소각 → 급등, 유상증자 → 급락.<br />
+              공시와 시세를 동시에 보여주는 건 DART Insight뿐입니다.
             </p>
           </Reveal>
 
@@ -268,7 +268,70 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 3. DART View — 딥분석 ━━━ */}
+      {/* ━━━ 3.5. 이슈 리포트 — 킬러콘텐츠 ━━━ */}
+      <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
+          <Reveal>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>ISSUE TRACKER</p>
+            <h2 style={{
+              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
+            }}>
+              공시의 이면을 읽습니다
+            </h2>
+            <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
+              유상증자 27건이 한꺼번에 나온 이유, 경영권 분쟁의 다음 수순,<br />
+              정치경제가 공시에 남기는 흔적까지. 숫자 너머의 구도를 해석합니다.
+            </p>
+          </Reveal>
+
+          <Reveal d={100}>
+            <div style={{
+              borderRadius: 16, overflow: 'hidden',
+              border: '1px solid #F0F0F2', background: '#FFFFFF',
+            }}>
+              {[
+                { tag: '매크로', tagColor: '#2563EB', title: '비용의 시대는 끝났다 — 정치경제가 지배하는 새로운 투자 문법', date: '2026.03.28' },
+                { tag: '유상증자', tagColor: '#D97706', title: '티웨이 → 트리니티: 4,000억 유증 완료 + 사명 변경', date: '2026.03.27' },
+                { tag: '경영권', tagColor: '#DC2626', title: '한화솔루션 주총 유상증자 → -18% 폭락', date: '2026.03.26' },
+              ].map((item, i) => (
+                <div key={i} onClick={() => navigate('/issue')}
+                  style={{
+                    padding: '16px 20px', cursor: 'pointer',
+                    borderBottom: i < 2 ? '1px solid #F4F4F5' : 'none',
+                    display: 'flex', alignItems: 'flex-start', gap: 14,
+                  }}>
+                  <div style={{ flexShrink: 0, marginTop: 2 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
+                      background: `${item.tagColor}15`, color: item.tagColor,
+                    }}>{item.tag}</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#18181B', lineHeight: 1.4 }}>{item.title}</div>
+                    <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 4, fontFamily: 'var(--font-mono, monospace)' }}>{item.date}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+
+          <Reveal d={200}>
+            <div style={{ textAlign: 'center', marginTop: 32 }}>
+              <button onClick={() => navigate('/issue')} style={{
+                padding: '12px 32px', borderRadius: 10, border: 'none',
+                background: R, color: '#fff',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+              }}
+                onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 8px 24px rgba(220,38,38,0.4)' }}
+                onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = 'none' }}
+              >이슈 트래커 보기</button>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ━━━ 4. DART View — 딥분석 ━━━ */}
       <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
@@ -336,6 +399,110 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ━━━ 4.5. 시그널 시리즈 — 전자책 3부작 ━━━ */}
+      <section style={{ borderTop: '1px solid #F4F4F5' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
+          <Reveal>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>SIGNAL SERIES</p>
+            <h2 style={{
+              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
+            }}>
+              공시 · 재무 · 법률, 세 겹의 시그널을 읽는 법
+            </h2>
+            <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 48px', lineHeight: 1.6 }}>
+              전자공시 시그널에서 시작해, 재무제표의 행간과 상법의 구조까지.<br />
+              숫자 너머의 진짜 시그널을 읽는 3부작 시리즈입니다.
+            </p>
+          </Reveal>
+
+          <Reveal d={100}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                {
+                  num: 'Vol. 1',
+                  title: '전자공시 시그널',
+                  desc: '800건의 공시에서 주가를 움직이는 S등급을 골라내는 체계적 방법론',
+                  url: 'https://jessylimitless.github.io/dartbook/',
+                  accent: '#DC2626',
+                  tag: '공시',
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                  ),
+                },
+                {
+                  num: 'Vol. 2',
+                  title: 'Financial Signal',
+                  desc: '재무제표는 경영진이 쓴 자서전이다 — 적힌 것보다 빠진 것이 더 중요하다',
+                  url: 'https://jessylimitless.github.io/financial_signal/',
+                  accent: '#10B981',
+                  tag: '재무',
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round">
+                      <path d="M2 3h20v18H2z" /><path d="M2 9h20" /><path d="M8 3v18" />
+                    </svg>
+                  ),
+                },
+                {
+                  num: 'Vol. 3',
+                  title: '상법 Signal',
+                  desc: '법적 리스크를 투자 시그널로 전환하는 법 — 지배구조의 소스코드를 읽는 기술',
+                  url: 'https://jessylimitless.github.io/law_signal/',
+                  accent: '#7C3AED',
+                  tag: '법률',
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round">
+                      <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
+                    </svg>
+                  ),
+                },
+              ].map((book, i) => (
+                <a key={i} href={book.url} target="_blank" rel="noopener noreferrer"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 16,
+                    padding: '20px 20px', borderRadius: 14, textDecoration: 'none',
+                    background: '#FFFFFF', border: '1px solid #F0F0F2',
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = book.accent; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${book.accent}15` }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+                >
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                    background: `${book.accent}10`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {book.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: book.accent, letterSpacing: '0.05em', fontFamily: FONTS.mono }}>{book.num}</span>
+                      <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4, background: `${book.accent}12`, color: book.accent }}>{book.tag}</span>
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B', marginBottom: 2 }}>{book.title}</div>
+                    <div style={{ fontSize: 12, color: '#71717A', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{book.desc}</div>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </a>
+              ))}
+            </div>
+          </Reveal>
+
+          <Reveal d={200}>
+            <div style={{ textAlign: 'center', marginTop: 32 }}>
+              <button onClick={() => navigate('/library')} style={{
+                padding: '10px 28px', borderRadius: 8,
+                border: '1px solid #E4E4E7', background: 'transparent',
+                color: '#71717A', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              }}>전체 서재 보기</button>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ━━━ 4. 작동 방식 ━━━ */}
       <section style={{ borderTop: '1px solid #F4F4F5' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
@@ -350,9 +517,9 @@ export default function LandingPage() {
           </Reveal>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
             {[
-              { step: '01', title: '실시간 수집 + 알림', desc: 'DART + KRX KIND에서 30초 간격으로 수집하고, 핵심 공시가 나올 때마다 즉시 Push 알림으로 전달합니다.' },
-              { step: '02', title: '공시 후 급등 종목 실시간 추적', desc: '공시 발표 직후 주가가 움직이는 종목을 실시간으로 포착합니다. 어떤 공시가 시장을 움직이는지, 데이터로 증명합니다.' },
-              { step: '03', title: '딥분석 + 브리핑', desc: '462종목 8섹션 재무 딥분석과 매일 저녁 핵심 공시 5건의 5-Step 브리핑을 제공합니다.' },
+              { step: '01', title: '공시 실시간 수집', desc: 'DART + KRX KIND에서 매 분 수집합니다. 800건 중 주가에 영향을 주는 S/A등급만 필터링합니다.' },
+              { step: '02', title: '공시 임팩트 포착', desc: '공시 발표 후 주가가 움직이는 종목을 10분 간격으로 추적합니다. 소각 → 급등, 유상증자 → 급락을 실시간으로 보여줍니다.' },
+              { step: '03', title: 'AI 기업소개 + 딥분석', desc: '종목을 클릭하면 AI가 이 기업이 뭘 하는 곳인지, 재무가 어떤지, 차트가 어떤 흐름인지 즉시 설명합니다.' },
             ].map((item, i) => (
               <Reveal key={i} d={i * 100}>
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
@@ -452,10 +619,10 @@ export default function LandingPage() {
               fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
-              공시를 읽는 새로운 방법
+              공시가 주가를 움직이는 순간,<br />놓치지 마세요
             </h2>
             <p style={{ fontSize: 15, color: '#71717A', margin: '0 0 36px', lineHeight: 1.6 }}>
-              매일 저녁, 3분이면 충분합니다.
+              지금 바로 오늘의 공시 임팩트를 확인하세요.
             </p>
             <button onClick={() => navigate('/today')} style={{
               padding: '16px 48px', borderRadius: 10, border: 'none',
@@ -468,34 +635,27 @@ export default function LandingPage() {
           </Reveal>
 
           <Reveal d={200}>
-            <a href="https://jessylimitless.github.io/dartbook/" target="_blank" rel="noopener noreferrer"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 16,
-                padding: '18px 20px', borderRadius: 14, textDecoration: 'none',
-                background: '#FAFAFA', border: '1px solid #F0F0F2',
-                marginTop: 40, textAlign: 'left', transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#DC2626'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(220,38,38,0.08)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
-            >
-              <div style={{
-                width: 44, height: 44, borderRadius: 11, flexShrink: 0,
-                background: 'rgba(220,38,38,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                </svg>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, color: '#DC2626', fontWeight: 700, letterSpacing: '0.05em', marginBottom: 3 }}>FREE E-BOOK</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B' }}>전자공시 시그널 가이드</div>
-                <div style={{ fontSize: 12, color: '#71717A', marginTop: 2 }}>공시의 첫걸음 — 무료로 읽어보세요</div>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-            </a>
+            <div style={{
+              display: 'flex', justifyContent: 'center', gap: 8, marginTop: 32,
+              flexWrap: 'wrap',
+            }}>
+              {[
+                { label: '공시 시그널', url: 'https://jessylimitless.github.io/dartbook/', color: '#DC2626' },
+                { label: 'Financial Signal', url: 'https://jessylimitless.github.io/financial_signal/', color: '#10B981' },
+                { label: '상법 Signal', url: 'https://jessylimitless.github.io/law_signal/', color: '#7C3AED' },
+              ].map((b, i) => (
+                <a key={i} href={b.url} target="_blank" rel="noopener noreferrer"
+                  style={{
+                    fontSize: 12, fontWeight: 600, color: b.color, textDecoration: 'none',
+                    padding: '6px 14px', borderRadius: 20,
+                    background: `${b.color}08`, border: `1px solid ${b.color}20`,
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = `${b.color}15`; e.currentTarget.style.borderColor = b.color }}
+                  onMouseLeave={e => { e.currentTarget.style.background = `${b.color}08`; e.currentTarget.style.borderColor = `${b.color}20` }}
+                >{b.label}</a>
+              ))}
+            </div>
           </Reveal>
         </div>
       </section>

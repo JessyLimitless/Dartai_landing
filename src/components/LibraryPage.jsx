@@ -9,6 +9,20 @@ const BookIcons = {
       <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
     </svg>
   ),
+  financial: (color) => (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 3h20v18H2z" />
+      <path d="M2 9h20" /><path d="M2 15h20" />
+      <path d="M8 3v18" /><path d="M16 3v18" />
+    </svg>
+  ),
+  law: (color) => (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+      <path d="M2 17l10 5 10-5" />
+      <path d="M2 12l10 5 10-5" />
+    </svg>
+  ),
   philosophy: (color) => (
     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
@@ -53,6 +67,28 @@ const BOOKS = [
     iconKey: 'signal',
     description: 'DART 공시에서 숨겨진 투자 시그널을 포착하는 고급 전략서',
     tags: ['공시분석', 'S등급', '실전'],
+  },
+  {
+    id: 'financial-signal',
+    title: 'Financial Signal',
+    subtitle: '재무제표가 보내는 시그널',
+    url: 'https://jessylimitless.github.io/financial_signal/',
+    color: '#0C2D48',
+    accentColor: '#10B981',
+    iconKey: 'financial',
+    description: '재무제표는 경영진이 쓴 자서전이다 — 적힌 것보다 빠진 것이 더 중요한 숫자의 해독법',
+    tags: ['재무분석', '회계', '심화'],
+  },
+  {
+    id: 'law-signal',
+    title: '상법 Signal',
+    subtitle: '기업 지배구조의 소스코드',
+    url: 'https://jessylimitless.github.io/law_signal/',
+    color: '#1A1A2E',
+    accentColor: '#E11D48',
+    iconKey: 'law',
+    description: '법적 리스크를 투자 시그널로 전환하는 실전 가이드 — 숫자 너머의 구조를 읽는 법',
+    tags: ['상법', '지배구조', '리스크'],
   },
   {
     id: 'kostolany',
@@ -352,8 +388,8 @@ export default function LibraryPage() {
     try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
   })()
 
-  const topRow = BOOKS.slice(0, 3)
-  const bottomRow = BOOKS.slice(3, 5)
+  const topRow = BOOKS.slice(0, 4)
+  const bottomRow = BOOKS.slice(4, 7)
 
   // 로그인 안 했으면 로그인 유도
   if (!user) {
@@ -372,7 +408,7 @@ export default function LibraryPage() {
           서재는 회원 전용입니다
         </div>
         <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.6, marginBottom: 24 }}>
-          로그인하시면 5권의 전자책을 무료로 열람할 수 있습니다
+          로그인하시면 7권의 전자책을 무료로 열람할 수 있습니다
         </div>
         <button onClick={() => window.location.href = '/'} style={{
           padding: '12px 28px', borderRadius: 10, border: 'none',
