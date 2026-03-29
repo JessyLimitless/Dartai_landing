@@ -400,104 +400,106 @@ export default function LandingPage() {
       </section>
 
       {/* ━━━ 4.5. 시그널 시리즈 — 전자책 3부작 ━━━ */}
-      <section style={{ borderTop: '1px solid #F4F4F5' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
+      <section style={{ background: '#0A0A0B', position: 'relative', overflow: 'hidden' }}>
+        {/* 배경 그라디언트 악센트 */}
+        <div style={{
+          position: 'absolute', top: '-30%', right: '-10%',
+          width: '50%', height: '160%',
+          background: 'radial-gradient(ellipse, rgba(220,38,38,0.06) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{ maxWidth: 600, margin: '0 auto', padding: 'clamp(72px, 10vh, 110px) clamp(20px, 5vw, 40px)', position: 'relative' }}>
           <Reveal>
-            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>SIGNAL SERIES</p>
+            <p style={{
+              fontSize: 11, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.2em', fontWeight: 600,
+              textTransform: 'uppercase', marginBottom: 20, fontFamily: FONTS.mono,
+            }}>Signal Series — 3 Volumes</p>
             <h2 style={{
-              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
-              color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
+              fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#FFFFFF', margin: '0 0 14px', letterSpacing: '-0.03em', lineHeight: 1.25,
             }}>
-              공시 · 재무 · 법률, 세 겹의 시그널을 읽는 법
+              공시 · 재무 · 법률<br />
+              <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400, fontSize: '0.65em' }}>세 겹의 시그널을 읽는 법</span>
             </h2>
-            <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 48px', lineHeight: 1.6 }}>
-              전자공시 시그널에서 시작해, 재무제표의 행간과 상법의 구조까지.<br />
-              숫자 너머의 진짜 시그널을 읽는 3부작 시리즈입니다.
-            </p>
+            <div style={{ width: 40, height: 2, background: R, borderRadius: 1, margin: '0 0 40px' }} />
           </Reveal>
 
-          <Reveal d={100}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {[
-                {
-                  num: 'Vol. 1',
-                  title: '전자공시 시그널',
-                  desc: '800건의 공시에서 주가를 움직이는 S등급을 골라내는 체계적 방법론',
-                  url: 'https://jessylimitless.github.io/dartbook/',
-                  accent: '#DC2626',
-                  tag: '공시',
-                  icon: (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                  ),
-                },
-                {
-                  num: 'Vol. 2',
-                  title: 'Financial Signal',
-                  desc: '재무제표는 경영진이 쓴 자서전이다 — 적힌 것보다 빠진 것이 더 중요하다',
-                  url: 'https://jessylimitless.github.io/financial_signal/',
-                  accent: '#10B981',
-                  tag: '재무',
-                  icon: (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M2 3h20v18H2z" /><path d="M2 9h20" /><path d="M8 3v18" />
-                    </svg>
-                  ),
-                },
-                {
-                  num: 'Vol. 3',
-                  title: '상법 Signal',
-                  desc: '법적 리스크를 투자 시그널로 전환하는 법 — 지배구조의 소스코드를 읽는 기술',
-                  url: 'https://jessylimitless.github.io/law_signal/',
-                  accent: '#7C3AED',
-                  tag: '법률',
-                  icon: (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
-                    </svg>
-                  ),
-                },
-              ].map((book, i) => (
-                <a key={i} href={book.url} target="_blank" rel="noopener noreferrer"
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {[
+              {
+                num: '01', title: '전자공시 시그널', accent: '#DC2626',
+                quote: '800건의 노이즈에서 주가를 움직이는 단 5건의 시그널을 잡아낸다',
+                url: 'https://jessylimitless.github.io/dartbook/',
+              },
+              {
+                num: '02', title: 'Financial Signal', accent: '#10B981',
+                quote: '재무제표는 경영진이 쓴 자서전이다 — 적힌 것보다 빠진 것이 더 중요하다',
+                url: 'https://jessylimitless.github.io/financial_signal/',
+              },
+              {
+                num: '03', title: '상법 Signal', accent: '#7C3AED',
+                quote: '법적 리스크는 평상시에 잠들어 있다가, 실패가 겹칠 때 한꺼번에 깨어난다',
+                url: 'https://jessylimitless.github.io/law_signal/',
+              },
+            ].map((book, i) => (
+              <Reveal key={i} d={i * 120}>
+                <a href={book.url} target="_blank" rel="noopener noreferrer"
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 16,
-                    padding: '20px 20px', borderRadius: 14, textDecoration: 'none',
-                    background: '#FFFFFF', border: '1px solid #F0F0F2',
-                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                    display: 'block', textDecoration: 'none',
+                    padding: '28px 0', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                    transition: 'all 0.3s ease', position: 'relative',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = book.accent; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${book.accent}15` }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+                  onMouseEnter={e => { e.currentTarget.style.paddingLeft = '16px'; e.currentTarget.querySelector('[data-bar]').style.opacity = '1'; e.currentTarget.querySelector('[data-arrow]').style.opacity = '1'; e.currentTarget.querySelector('[data-arrow]').style.transform = 'translateX(0)' }}
+                  onMouseLeave={e => { e.currentTarget.style.paddingLeft = '0'; e.currentTarget.querySelector('[data-bar]').style.opacity = '0'; e.currentTarget.querySelector('[data-arrow]').style.opacity = '0'; e.currentTarget.querySelector('[data-arrow]').style.transform = 'translateX(-8px)' }}
                 >
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 12, flexShrink: 0,
-                    background: `${book.accent}10`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {book.icon}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: book.accent, letterSpacing: '0.05em', fontFamily: FONTS.mono }}>{book.num}</span>
-                      <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4, background: `${book.accent}12`, color: book.accent }}>{book.tag}</span>
+                  {/* 좌측 악센트 바 */}
+                  <div data-bar="" style={{
+                    position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
+                    width: 3, height: '60%', borderRadius: 2,
+                    background: book.accent, opacity: 0, transition: 'opacity 0.3s ease',
+                  }} />
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
+                    <span style={{
+                      fontSize: 28, fontWeight: 800, fontFamily: FONTS.mono,
+                      color: book.accent, lineHeight: 1, flexShrink: 0, width: 40,
+                      opacity: 0.8,
+                    }}>{book.num}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: 18, fontWeight: 700, color: '#FFFFFF',
+                        fontFamily: FONTS.serif, marginBottom: 8, letterSpacing: '-0.01em',
+                      }}>{book.title}</div>
+                      <div style={{
+                        fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6,
+                        fontStyle: 'italic',
+                      }}>"{book.quote}"</div>
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B', marginBottom: 2 }}>{book.title}</div>
-                    <div style={{ fontSize: 12, color: '#71717A', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{book.desc}</div>
+                    <div data-arrow="" style={{
+                      flexShrink: 0, marginTop: 4, opacity: 0, transform: 'translateX(-8px)',
+                      transition: 'all 0.3s ease',
+                    }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={book.accent} strokeWidth="2" strokeLinecap="round">
+                        <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
                 </a>
-              ))}
-            </div>
-          </Reveal>
+              </Reveal>
+            ))}
+          </div>
 
-          <Reveal d={200}>
-            <div style={{ textAlign: 'center', marginTop: 32 }}>
+          <Reveal d={400}>
+            <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', gap: 16 }}>
               <button onClick={() => navigate('/library')} style={{
-                padding: '10px 28px', borderRadius: 8,
-                border: '1px solid #E4E4E7', background: 'transparent',
-                color: '#71717A', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-              }}>전체 서재 보기</button>
+                padding: '12px 32px', borderRadius: 8, border: 'none',
+                background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                backdropFilter: 'blur(8px)',
+              }}
+                onMouseEnter={e => { e.target.style.background = 'rgba(255,255,255,0.14)'; e.target.style.color = '#fff' }}
+                onMouseLeave={e => { e.target.style.background = 'rgba(255,255,255,0.08)'; e.target.style.color = 'rgba(255,255,255,0.7)' }}
+              >서재 전체 보기</button>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontFamily: FONTS.mono }}>7 books available</span>
             </div>
           </Reveal>
         </div>
@@ -635,56 +637,35 @@ export default function LandingPage() {
           </Reveal>
 
           <Reveal d={200}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 40, textAlign: 'left' }}>
+            <div style={{
+              marginTop: 48, padding: '24px 28px', borderRadius: 16,
+              background: '#0A0A0B', position: 'relative', overflow: 'hidden',
+            }}>
+              <div style={{
+                position: 'absolute', top: 0, right: 0, width: '50%', height: '100%',
+                background: 'radial-gradient(ellipse at right, rgba(220,38,38,0.08) 0%, transparent 70%)',
+                pointerEvents: 'none',
+              }} />
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: FONTS.mono, letterSpacing: '0.15em', marginBottom: 16, position: 'relative' }}>SIGNAL SERIES</div>
               {[
-                {
-                  title: '전자공시 시그널',
-                  desc: '공시의 첫걸음 — 800건에서 S등급을 골라내는 법',
-                  url: 'https://jessylimitless.github.io/dartbook/',
-                  accent: '#DC2626',
-                  tag: 'Vol.1 공시',
-                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>,
-                },
-                {
-                  title: 'Financial Signal',
-                  desc: '재무제표는 경영진이 쓴 자서전이다',
-                  url: 'https://jessylimitless.github.io/financial_signal/',
-                  accent: '#10B981',
-                  tag: 'Vol.2 재무',
-                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round"><path d="M2 3h20v18H2z" /><path d="M2 9h20" /><path d="M8 3v18" /></svg>,
-                },
-                {
-                  title: '상법 Signal',
-                  desc: '지배구조의 소스코드를 읽는 기술',
-                  url: 'https://jessylimitless.github.io/law_signal/',
-                  accent: '#7C3AED',
-                  tag: 'Vol.3 법률',
-                  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>,
-                },
-              ].map((book, i) => (
-                <a key={i} href={book.url} target="_blank" rel="noopener noreferrer"
+                { num: '01', title: '전자공시 시그널', accent: '#DC2626', url: 'https://jessylimitless.github.io/dartbook/' },
+                { num: '02', title: 'Financial Signal', accent: '#10B981', url: 'https://jessylimitless.github.io/financial_signal/' },
+                { num: '03', title: '상법 Signal', accent: '#7C3AED', url: 'https://jessylimitless.github.io/law_signal/' },
+              ].map((b, i) => (
+                <a key={i} href={b.url} target="_blank" rel="noopener noreferrer"
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 16,
-                    padding: '18px 20px', borderRadius: 14, textDecoration: 'none',
-                    background: '#FAFAFA', border: '1px solid #F0F0F2',
-                    transition: 'all 0.2s',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '10px 0', textDecoration: 'none',
+                    borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                    transition: 'all 0.2s', position: 'relative',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = book.accent; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 16px ${book.accent}18` }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#F0F0F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+                  onMouseEnter={e => { e.currentTarget.style.paddingLeft = '8px' }}
+                  onMouseLeave={e => { e.currentTarget.style.paddingLeft = '0' }}
                 >
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 11, flexShrink: 0,
-                    background: `${book.accent}10`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {book.icon}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, color: book.accent, fontWeight: 700, letterSpacing: '0.05em', marginBottom: 3 }}>{book.tag}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B' }}>{book.title}</div>
-                    <div style={{ fontSize: 12, color: '#71717A', marginTop: 2 }}>{book.desc}</div>
-                  </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                  <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FONTS.mono, color: b.accent, opacity: 0.6, width: 28 }}>{b.num}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#FFFFFF', fontFamily: FONTS.serif, flex: 1 }}>{b.title}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                    <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
                   </svg>
                 </a>
               ))}
