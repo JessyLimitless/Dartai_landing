@@ -120,6 +120,7 @@ const ISSUES = [
   },
   {
     id: '2026-political-economy',
+    archived: true,
     title: '비용의 시대는 끝났다 — 정치경제가 지배하는 새로운 투자 문법',
     subtitle: '효율성이 안보에 자리를 내주고, 시장 논리가 권력 논리에 흡수되는 시대. 공시는 기업의 지정학적 선택서다.',
     status: 'REPORT',
