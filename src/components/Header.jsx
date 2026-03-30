@@ -12,6 +12,7 @@ const TABS = [
   { key: '/issues', label: '이슈', mobileLabel: '이슈' },
   { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
   { key: '/dart-event', label: '일정', mobileLabel: '일정' },
+  { key: '/deep-dive', label: '기업카드', mobileLabel: '기업카드' },
 ]
 
 const TAB_ICONS = {
@@ -45,6 +46,11 @@ const TAB_ICONS = {
   '/dart-event': (color, size = 18) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="10" y1="14" x2="14" y2="14" />
+    </svg>
+  ),
+  '/deep-dive': (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
     </svg>
   ),
 }
