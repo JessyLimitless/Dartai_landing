@@ -74,7 +74,8 @@ export default function TodayPage({ onViewCard }) {
   const visibleItems = showAll ? filtered : filtered.slice(0, 20)
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
-  // 공시 후 상승 종목 — base_price(공시 시점) 대비 현재가 변동률
+  // 공시 후 상승 종목 — base_price(공시 시점) 대비 현재가 변동률만 표시
+  // base_price 없는 공시는 표시하지 않음 (가짜 데이터보다 없는 게 낫다)
   const risers = useMemo(() => {
     const seen = new Set()
     return todayDisclosures
@@ -92,13 +93,10 @@ export default function TodayPage({ onViewCard }) {
         }
         const bp = d.base_price
         const pd = prices[d.stock_code]
-        // base_price가 있으면 공시 대비, 없으면 전일 대비 폴백
-        if (bp && bp > 0 && pd?.price > 0) {
-          const impact = (pd.price - bp) / bp * 100
-          if (impact <= 0) return false
-        } else {
-          if (!pd || pd.change_pct == null || pd.price <= 0 || pd.change_pct <= 0) return false
-        }
+        // base_price 필수 — 없으면 급등 리스트에 표시 안 함
+        if (!bp || bp <= 0 || !pd?.price || pd.price <= 0) return false
+        const impact = (pd.price - bp) / bp * 100
+        if (impact <= 0) return false
         if (seen.has(d.stock_code)) return false
         seen.add(d.stock_code)
         return true
@@ -106,12 +104,9 @@ export default function TodayPage({ onViewCard }) {
       .map(d => {
         const pd = prices[d.stock_code]
         const bp = d.base_price
-        const currentPrice = pd?.price || 0
-        // 공시 대비 변동률 (base_price 있으면) or 전일 대비 폴백
-        const impact = (bp && bp > 0 && currentPrice > 0)
-          ? (currentPrice - bp) / bp * 100
-          : (pd?.change_pct || 0)
-        return { ...d, changePct: Math.round(impact * 10) / 10, price: currentPrice, basePrice: bp || 0 }
+        const currentPrice = pd.price
+        const impact = (currentPrice - bp) / bp * 100
+        return { ...d, changePct: Math.round(impact * 10) / 10, price: currentPrice, basePrice: bp }
       })
       .sort((a, b) => b.changePct - a.changePct)
       .slice(0, 10)
@@ -296,10 +291,10 @@ export default function TodayPage({ onViewCard }) {
               const pd = prices[d.stock_code]
               const currentPrice = pd?.price || 0
               const bp = d.base_price
-              // 공시 대비 변동률 (base_price 있으면) or 전일 대비 폴백
+              // 공시 대비 변동률 — base_price 없으면 null (폴백 안 함)
               const changePct = (bp && bp > 0 && currentPrice > 0)
                 ? Math.round((currentPrice - bp) / bp * 1000) / 10
-                : pd?.change_pct
+                : null
               const price = currentPrice
               const hasPrice = price != null && price > 0
               const priceColor = changePct > 0 ? '#DC2626' : changePct < 0 ? '#2563EB' : colors.textMuted
