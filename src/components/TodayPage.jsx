@@ -74,8 +74,9 @@ export default function TodayPage({ onViewCard }) {
   const visibleItems = showAll ? filtered : filtered.slice(0, 20)
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
-  // 공시 후 상승 종목 — base_price(공시 시점) 대비 현재가 변동률만 표시
-  // base_price 없는 공시는 표시하지 않음 (가짜 데이터보다 없는 게 낫다)
+  // 공시 후 상승 종목
+  // 장중: base_price(공시 시점) 대비 현재가 변동률
+  // 장외: base_price 없거나 변동 0이면 전일 대비(change_pct)로 폴백
   const risers = useMemo(() => {
     const seen = new Set()
     return todayDisclosures
@@ -93,20 +94,31 @@ export default function TodayPage({ onViewCard }) {
         }
         const bp = d.base_price
         const pd = prices[d.stock_code]
-        // base_price 필수 — 없으면 급등 리스트에 표시 안 함
-        if (!bp || bp <= 0 || !pd?.price || pd.price <= 0) return false
-        const impact = (pd.price - bp) / bp * 100
-        if (impact <= 0) return false
-        if (seen.has(d.stock_code)) return false
-        seen.add(d.stock_code)
-        return true
+        if (!pd?.price || pd.price <= 0) return false
+        // base_price 기준 변동률
+        if (bp && bp > 0) {
+          const impact = (pd.price - bp) / bp * 100
+          if (impact > 0.5) return !seen.has(d.stock_code) && seen.add(d.stock_code)
+        }
+        // 폴백: 전일 대비 변동률 (장외 또는 base_price 변동 미미할 때)
+        if (pd.change_pct > 0.5) return !seen.has(d.stock_code) && seen.add(d.stock_code)
+        return false
       })
       .map(d => {
         const pd = prices[d.stock_code]
         const bp = d.base_price
         const currentPrice = pd.price
-        const impact = (currentPrice - bp) / bp * 100
-        return { ...d, changePct: Math.round(impact * 10) / 10, price: currentPrice, basePrice: bp }
+        // base_price 기준 우선, 변동 미미하면 전일 대비 사용
+        let impact = 0
+        let useBase = false
+        if (bp && bp > 0) {
+          impact = (currentPrice - bp) / bp * 100
+          useBase = Math.abs(impact) > 0.5
+        }
+        if (!useBase) {
+          impact = pd.change_pct || 0
+        }
+        return { ...d, changePct: Math.round(impact * 10) / 10, price: currentPrice, basePrice: useBase ? bp : 0 }
       })
       .sort((a, b) => b.changePct - a.changePct)
       .slice(0, 10)
