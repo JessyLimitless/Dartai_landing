@@ -83,7 +83,7 @@ export default function TodayPage({ onViewCard }) {
         // 투자주의/경고/위험 필터 — KIND 인코딩 깨짐 대응
         const rn = d.report_nm || ''
         const rno = d.rcept_no || ''
-        if (rno.startsWith('KIND_')) {
+        if (rno.startsWith('KIND_') || d.source === 'KIND') {
           if (d.grade === 'D') return false
         } else if (rno.startsWith('NAVER_')) {
           if (/소수계좌|소수지점/.test(rn)) { /* 포함 */ }

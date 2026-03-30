@@ -243,7 +243,7 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
           display: 'flex', gap: 8,
           flexShrink: 0,
         }}>
-          {!rcept_no?.startsWith('KIND_') ? (
+          {!rcept_no?.startsWith('KIND_') && data?.source !== 'KIND' ? (
             <a
               className="touch-press"
               href={`${DART_URL}${rcept_no}`}
