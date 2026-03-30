@@ -12,7 +12,7 @@ const TABS = [
   { key: '/issues', label: '이슈', mobileLabel: '이슈' },
   { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
   { key: '/dart-event', label: '일정', mobileLabel: '일정' },
-  { key: '/deep-dive', label: '기업카드', mobileLabel: '기업카드' },
+  { key: '/deep-dive', label: '기업카드', mobileLabel: '기업카드', desktopOnly: true },
 ]
 
 const TAB_ICONS = {
@@ -185,7 +185,7 @@ export default function Header({
         backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
         borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
       }}>
-        {TABS.map((tab) => {
+        {TABS.filter(tab => !tab.desktopOnly).map((tab) => {
           const active = isActive(tab.key)
           const iconColor = active ? accentColor : '#94A3B8'
           const IconFn = TAB_ICONS[tab.key]
