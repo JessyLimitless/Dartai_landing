@@ -292,12 +292,14 @@ export default function TodayPage({ onViewCard }) {
               const currentPrice = pd?.price || 0
               const bp = d.base_price
               // 공시 대비 변동률 — base_price 없으면 null (폴백 안 함)
-              const changePct = (bp && bp > 0 && currentPrice > 0)
+              const changePctRaw = (bp && bp > 0 && currentPrice > 0)
                 ? Math.round((currentPrice - bp) / bp * 1000) / 10
                 : null
+              const changePct = changePctRaw
               const price = currentPrice
               const hasPrice = price != null && price > 0
-              const priceColor = changePct > 0 ? '#DC2626' : changePct < 0 ? '#2563EB' : colors.textMuted
+              const hasChange = changePct != null
+              const priceColor = hasChange ? (changePct > 0 ? '#DC2626' : changePct < 0 ? '#2563EB' : colors.textMuted) : colors.textMuted
 
               return (
                 <div key={d.rcept_no} className="touch-press today-row"
@@ -343,7 +345,7 @@ export default function TodayPage({ onViewCard }) {
                         <div className="today-right-num" style={{
                           fontWeight: 700, fontFamily: FONTS.mono, color: priceColor,
                         }}>
-                          {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
+                          {hasChange ? `${changePct > 0 ? '+' : ''}${changePct.toFixed(1)}%` : '-'}
                         </div>
                         <div style={{
                           fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 2,
