@@ -74,20 +74,47 @@ export default function TodayPage({ onViewCard }) {
   const visibleItems = showAll ? filtered : filtered.slice(0, 20)
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
-  // 공시 후 상승 종목 (중복 제거, 상승률 TOP 5)
+  // 공시 후 상승 종목 — base_price(공시 시점) 대비 현재가 변동률
   const risers = useMemo(() => {
     const seen = new Set()
     return todayDisclosures
       .filter(d => {
+        // 투자주의/경고/위험 필터 — KIND 인코딩 깨짐 대응
+        const rn = d.report_nm || ''
+        const rno = d.rcept_no || ''
+        if (rno.startsWith('KIND_')) {
+          if (d.grade === 'D') return false
+        } else if (rno.startsWith('NAVER_')) {
+          if (/소수계좌|소수지점/.test(rn)) { /* 포함 */ }
+          else return false
+        } else {
+          if (/투자주의|투자경고|투자위험/.test(rn)) return false
+        }
+        const bp = d.base_price
         const pd = prices[d.stock_code]
-        if (!pd || pd.change_pct == null || pd.price <= 0 || pd.change_pct <= 0) return false
+        // base_price가 있으면 공시 대비, 없으면 전일 대비 폴백
+        if (bp && bp > 0 && pd?.price > 0) {
+          const impact = (pd.price - bp) / bp * 100
+          if (impact <= 0) return false
+        } else {
+          if (!pd || pd.change_pct == null || pd.price <= 0 || pd.change_pct <= 0) return false
+        }
         if (seen.has(d.stock_code)) return false
         seen.add(d.stock_code)
         return true
       })
-      .map(d => ({ ...d, changePct: prices[d.stock_code].change_pct, price: prices[d.stock_code].price }))
+      .map(d => {
+        const pd = prices[d.stock_code]
+        const bp = d.base_price
+        const currentPrice = pd?.price || 0
+        // 공시 대비 변동률 (base_price 있으면) or 전일 대비 폴백
+        const impact = (bp && bp > 0 && currentPrice > 0)
+          ? (currentPrice - bp) / bp * 100
+          : (pd?.change_pct || 0)
+        return { ...d, changePct: Math.round(impact * 10) / 10, price: currentPrice, basePrice: bp || 0 }
+      })
       .sort((a, b) => b.changePct - a.changePct)
-      .slice(0, 5)
+      .slice(0, 10)
   }, [todayDisclosures, prices])
 
   // DART Pick
@@ -116,6 +143,24 @@ export default function TodayPage({ onViewCard }) {
             <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
               {dateStr}{kstHour < 9 && ' · 09시에 오늘 공시로 전환'}
             </div>
+            {(() => {
+              const kstMin = kstNow.getUTCMinutes()
+              const isMarketOpen = (kstHour > 9 || (kstHour === 9 && kstMin >= 0)) && (kstHour < 15 || (kstHour === 15 && kstMin <= 30))
+              const dotColor = isMarketOpen ? '#16A34A' : '#9CA3AF'
+              return (
+                <div style={{
+                  fontSize: 11, color: isMarketOpen ? '#16A34A' : '#9CA3AF', fontWeight: 600, marginTop: 6,
+                  display: 'flex', alignItems: 'center', gap: 5,
+                }}>
+                  <span style={{
+                    width: 6, height: 6, borderRadius: 3, background: dotColor,
+                    boxShadow: isMarketOpen ? '0 0 6px rgba(22,163,74,0.4)' : 'none',
+                    animation: isMarketOpen ? 'pulse 1.4s ease-in-out infinite' : 'none',
+                  }} />
+                  {isMarketOpen ? '공시 대비 · 10분 주기' : '공시 대비 · 종가 기준'}
+                </div>
+              )
+            })()}
           </div>
           <button className="touch-press" onClick={() => setSearchOpen(!searchOpen)} style={{
             width: 44, height: 44, borderRadius: 22, border: 'none',
@@ -189,9 +234,6 @@ export default function TodayPage({ onViewCard }) {
         </div>
       )}
 
-      {/* ── 오늘의 브리핑 요약 ── */}
-      <TodayBriefingSummary dark={dark} colors={colors} />
-
       {/* ── 등급 탭 ── */}
       {!loading && todayCounts.total > 0 && (
         <div style={{
@@ -226,7 +268,12 @@ export default function TodayPage({ onViewCard }) {
               </button>
             )
           })}
-          <div style={{ width: 24, flexShrink: 0 }} />
+          <div style={{ flex: 1 }} />
+          <span style={{
+            fontSize: 10, fontWeight: 600, color: colors.textMuted,
+            alignSelf: 'center', paddingRight: 24, whiteSpace: 'nowrap',
+            fontFamily: FONTS.mono,
+          }}>공시 후 변동</span>
         </div>
       )}
 
@@ -247,8 +294,13 @@ export default function TodayPage({ onViewCard }) {
             {visibleItems.map((d, i) => {
               const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
               const pd = prices[d.stock_code]
-              const changePct = pd?.change_pct
-              const price = pd?.price
+              const currentPrice = pd?.price || 0
+              const bp = d.base_price
+              // 공시 대비 변동률 (base_price 있으면) or 전일 대비 폴백
+              const changePct = (bp && bp > 0 && currentPrice > 0)
+                ? Math.round((currentPrice - bp) / bp * 1000) / 10
+                : pd?.change_pct
+              const price = currentPrice
               const hasPrice = price != null && price > 0
               const priceColor = changePct > 0 ? '#DC2626' : changePct < 0 ? '#2563EB' : colors.textMuted
 
@@ -299,9 +351,9 @@ export default function TodayPage({ onViewCard }) {
                           {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
                         </div>
                         <div style={{
-                          fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 2,
+                          fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 2,
                         }}>
-                          {price.toLocaleString()}원
+                          {price.toLocaleString()}원 {d.base_price > 0 ? '· 공시 대비' : ''}
                         </div>
                       </>
                     ) : null}
@@ -364,12 +416,12 @@ export default function TodayPage({ onViewCard }) {
 
         /* 급등 패널 — 데스크톱: 우측 상단 고정 */
         .riser-panel {
-          top: 64px; right: max(16px, calc((100vw - 640px) / 2 - 260px));
-          width: 240px;
+          top: 64px; right: max(12px, calc((100vw - 640px) / 2 - 220px));
+          width: 200px;
         }
         /* 태블릿: 우측 고정 */
         @media (max-width: 1024px) {
-          .riser-panel { right: 12px; width: 220px; }
+          .riser-panel { right: 8px; width: 180px; }
         }
         /* 모바일: 숨기고 FAB로 전환 */
         @media (max-width: 768px) {
@@ -385,87 +437,128 @@ export default function TodayPage({ onViewCard }) {
 // ══ 공시 후 급등 — 데스크톱: 우측 고정 패널, 모바일: FAB + 바텀시트 ══
 function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
   const RiserList = ({ onItemClick }) => (
     <div style={{ padding: '4px 0' }}>
       {risers.map((d, i) => {
-        const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8' }
+        const pctSize = d.changePct >= 10 ? 14 : 12
         return (
           <div key={d.rcept_no} className="touch-press"
             onClick={() => onItemClick?.(d.rcept_no)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 16px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 12px', cursor: 'pointer',
               borderBottom: i < risers.length - 1 ? `1px solid ${lineSep}` : 'none',
+              transition: 'background 0.1s',
             }}>
             <span style={{
-              fontSize: 14, fontWeight: 700, fontFamily: FONTS.mono,
-              color: '#DC2626', minWidth: 14, textAlign: 'right',
+              fontSize: 10, fontWeight: 800, fontFamily: FONTS.mono,
+              color: i < 3 ? '#DC2626' : (dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'),
+              width: 14, textAlign: 'right', flexShrink: 0,
             }}>{i + 1}</span>
-            <div style={{
-              width: 28, height: 28, borderRadius: 14,
-              background: gc.bg, color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono, flexShrink: 0,
-            }}>{d.grade}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+                fontSize: 12, fontWeight: 700, color: colors.textPrimary,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                letterSpacing: '-0.2px',
               }}>{d.corp_name}</div>
               <div style={{
-                fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 1,
-              }}>{d.price.toLocaleString()}원</div>
+                fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 2,
+                display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                {d.created_at && (() => {
+                  const dt = new Date(d.created_at)
+                  const k = new Date(dt.getTime() + 9*3600000)
+                  return `${String(k.getUTCHours()).padStart(2,'0')}:${String(k.getUTCMinutes()).padStart(2,'0')}`
+                })()}
+                {d.price > 0 && <span>{d.price.toLocaleString()}</span>}
+              </div>
             </div>
-            <span style={{
-              fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono,
-              color: '#DC2626', flexShrink: 0,
-            }}>+{d.changePct.toFixed(1)}%</span>
+            <div style={{
+              flexShrink: 0, textAlign: 'right',
+              padding: '3px 8px', borderRadius: 6,
+              background: 'rgba(220,38,38,0.08)',
+            }}>
+              <span style={{
+                fontSize: pctSize, fontWeight: 800, fontFamily: FONTS.mono,
+                color: '#DC2626',
+              }}>+{d.changePct.toFixed(1)}%</span>
+            </div>
           </div>
         )
       })}
     </div>
   )
 
-  const PanelHeader = ({ onClose }) => (
-    <div style={{
-      padding: '12px 16px',
-      borderBottom: `1px solid ${lineSep}`,
-      display: 'flex', alignItems: 'center', gap: 6,
-    }}>
-      <svg width="10" height="10" viewBox="0 0 16 16" fill="#DC2626">
-        <path d="M8 2L13 9H3L8 2Z" />
-      </svg>
-      <span style={{ fontSize: 14, fontWeight: 800, color: colors.textPrimary }}>
-        공시 후 급등
-      </span>
-      <span style={{
-        fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
-        background: '#DC2626', color: '#fff', marginLeft: 2,
-      }}>LIVE</span>
-      {onClose && (
-        <button onClick={onClose} style={{
-          marginLeft: 'auto', background: 'none', border: 'none',
-          cursor: 'pointer', color: colors.textMuted, fontSize: 16, padding: '2px 4px',
-        }}>✕</button>
-      )}
-    </div>
-  )
+  const PanelHeader = ({ onClose, onToggle, isCollapsed }) => {
+    const topPct = risers[0]?.changePct
+    const kstNow2 = new Date(Date.now() + 9 * 3600000)
+    const h = kstNow2.getUTCHours(), m = kstNow2.getUTCMinutes()
+    const live = (h > 9 || (h === 9 && m >= 0)) && (h < 15 || (h === 15 && m <= 30))
+
+    return (
+      <div style={{
+        padding: '10px 12px',
+        borderBottom: isCollapsed ? 'none' : `1px solid ${lineSep}`,
+        display: 'flex', alignItems: 'center', gap: 6,
+        cursor: onToggle ? 'pointer' : 'default',
+        background: dark ? 'rgba(220,38,38,0.03)' : 'rgba(220,38,38,0.015)',
+      }} onClick={onToggle}>
+        <div style={{
+          width: 22, height: 22, borderRadius: 6,
+          background: 'rgba(220,38,38,0.10)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="#DC2626">
+            <path d="M8 2L13 9H3L8 2Z" />
+          </svg>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: colors.textPrimary }}>공시 후 급등</span>
+            <span style={{
+              fontSize: 8, fontWeight: 700, padding: '1px 5px', borderRadius: 8,
+              background: '#DC2626', color: '#fff',
+            }}>{risers.length}</span>
+          </div>
+          {!isCollapsed && (
+            <div style={{ fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 1 }}>
+              공시 대비 · {live ? '10분 주기' : '종가'}{topPct ? ` · 최대 +${topPct.toFixed(1)}%` : ''}
+            </div>
+          )}
+        </div>
+        {onToggle && (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round"
+            style={{ transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>
+            <polyline points="18 15 12 9 6 15" />
+          </svg>
+        )}
+        {onClose && (
+          <button onClick={(e) => { e.stopPropagation(); onClose() }} style={{
+            background: 'none', border: 'none',
+            cursor: 'pointer', color: colors.textMuted, fontSize: 14, padding: '0 2px', flexShrink: 0,
+          }}>✕</button>
+        )}
+      </div>
+    )
+  }
 
   return (
     <>
-      {/* 데스크톱: 우측 고정 패널 */}
+      {/* 데스크톱: 우측 고정 패널 (접기/펼치기) */}
       <div className="riser-panel" style={{
         position: 'fixed', zIndex: 90,
         background: dark ? '#141416' : '#FFFFFF',
         borderRadius: 14,
         border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#F0F0F2'}`,
         boxShadow: dark ? '0 4px 24px rgba(0,0,0,0.4)' : '0 4px 24px rgba(0,0,0,0.06)',
-        overflow: 'hidden',
+        overflow: 'hidden', transition: 'all 0.2s ease',
       }}>
-        <PanelHeader />
-        <RiserList onItemClick={onOpenModal} />
+        <PanelHeader onToggle={() => setCollapsed(!collapsed)} isCollapsed={collapsed} />
+        {!collapsed && <RiserList onItemClick={onOpenModal} />}
       </div>
 
       {/* 모바일: FAB 버튼 */}
@@ -504,7 +597,7 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
               <div style={{ width: 36, height: 4, borderRadius: 2, background: dark ? '#333' : '#D4D4D8' }} />
             </div>
             <div style={{ flexShrink: 0 }}>
-              <PanelHeader onClose={() => setMobileOpen(false)} />
+              <PanelHeader onClose={() => setMobileOpen(false)} isCollapsed={false} />
             </div>
             <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <RiserList onItemClick={(rcept) => { onOpenModal(rcept); setMobileOpen(false) }} />
@@ -583,35 +676,35 @@ function TodayBriefingSummary({ dark, colors }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {items.map((item, i) => (
             <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '9px 4px',
+              display: 'flex', alignItems: 'flex-start', gap: 8,
+              padding: '10px 2px',
               borderBottom: i < items.length - 1 ? `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}` : 'none',
             }}>
               <span style={{
                 fontSize: 10, fontWeight: 800, fontFamily: FONTS.mono,
                 color: dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
-                width: 14, textAlign: 'right',
+                width: 14, textAlign: 'right', flexShrink: 0, marginTop: 3,
               }}>{item.num}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span style={{
                     fontSize: 14, fontWeight: 700, color: colors.textPrimary,
                     fontFamily: FONTS.serif, letterSpacing: '-0.3px',
                   }}>{item.name}</span>
-                  <span style={{
-                    fontSize: 11, color: colors.textMuted,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>{item.type}</span>
+                  {item.signal && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, color: item.color,
+                      padding: '2px 8px', borderRadius: 20,
+                      background: `${item.color}10`,
+                      fontFamily: FONTS.serif, whiteSpace: 'nowrap',
+                    }}>{item.signal}</span>
+                  )}
                 </div>
+                <div style={{
+                  fontSize: 12, color: colors.textMuted, marginTop: 2,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>{item.type}</div>
               </div>
-              {item.signal && (
-                <span style={{
-                  fontSize: 9, fontWeight: 700, color: item.color, flexShrink: 0,
-                  padding: '3px 10px', borderRadius: 20,
-                  background: `${item.color}10`,
-                  fontFamily: FONTS.serif,
-                }}>{item.signal}</span>
-              )}
             </div>
           ))}
         </div>

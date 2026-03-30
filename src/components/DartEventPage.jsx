@@ -4,10 +4,14 @@ import { FONTS, PREMIUM } from '../constants/theme'
 import WEEKLY_EVENTS, { CURRENT_EVENTS, ARCHIVED_EVENTS } from '../data/weeklyEvents'
 
 const TAG_COLORS = {
+  'AGM': { bg: 'rgba(220,38,38,0.10)', color: '#F87171', label: '주총' },
+  'DIVIDEND': { bg: 'rgba(22,163,74,0.10)', color: '#4ADE80', label: '배당' },
+  'FILING': { bg: 'rgba(217,119,6,0.10)', color: '#FBBF24', label: '공시의무' },
+  'EARNINGS': { bg: 'rgba(22,163,74,0.10)', color: '#4ADE80', label: '실적' },
+  'STOCK EVENT': { bg: 'rgba(220,38,38,0.10)', color: '#F87171', label: '종목이슈' },
   'GLOBAL EVENT': { bg: 'rgba(220,38,38,0.10)', color: '#F87171', label: '글로벌' },
   'INDUSTRY': { bg: 'rgba(37,99,235,0.10)', color: '#60A5FA', label: '산업' },
   'MACRO': { bg: 'rgba(217,119,6,0.10)', color: '#FBBF24', label: '매크로' },
-  'EARNINGS': { bg: 'rgba(22,163,74,0.10)', color: '#4ADE80', label: '실적' },
 }
 
 // **bold** → <strong>
@@ -76,10 +80,10 @@ export default function DartEventPage() {
       {/* ── 헤더 ── */}
       <div style={{ padding: '20px 4px 20px' }}>
         <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
-          이벤트 캘린더
+          공시 일정
         </div>
         <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>
-          글로벌 이벤트 일정과 투자 인사이트
+          이번 주 핵심 공시 일정과 체크 포인트
         </div>
       </div>
 
@@ -107,6 +111,7 @@ export default function DartEventPage() {
             return (
               <div key={event.id} className="touch-press"
                 onClick={() => setSelectedId(event.id)}
+                className="event-card"
                 style={{
                   padding: 16, borderRadius: 14, cursor: 'pointer',
                   border: `1px solid ${active ? PREMIUM.accent : c.sep}`,
@@ -139,9 +144,10 @@ export default function DartEventPage() {
                     }}>지난주</span>
                   )}
                 </div>
-                <div style={{
+                <div className="event-card-title" style={{
                   fontSize: 15, fontWeight: 700, color: colors.textPrimary,
                   fontFamily: FONTS.serif, lineHeight: 1.4, marginBottom: 6,
+                  wordBreak: 'keep-all',
                 }}>{event.title}</div>
                 <div style={{
                   fontSize: 12, color: colors.textMuted, lineHeight: 1.5,
@@ -184,9 +190,10 @@ export default function DartEventPage() {
         }}>
           {selected ? (
             <>
-              <div style={{
+              <div className="event-insight-header" style={{
                 padding: '14px 24px', borderBottom: `1px solid ${c.sep}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                flexWrap: 'wrap', gap: 6,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FONTS.serif, color: colors.textPrimary }}>
@@ -202,7 +209,7 @@ export default function DartEventPage() {
                   {selected.week} | {selected.date}
                 </span>
               </div>
-              <div style={{ padding: '20px 24px 32px', maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}>
+              <div className="event-insight-body" style={{ padding: '20px 24px 32px', maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}>
                 <MarkdownRenderer content={selected.insight} />
               </div>
             </>
@@ -217,6 +224,15 @@ export default function DartEventPage() {
       <style>{`
         @media (max-width: 768px) {
           .event-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .event-insight-body { padding: 14px 16px 24px !important; }
+          .event-insight-header { padding: 10px 14px !important; }
+          .event-insight-header span { font-size: 10px !important; }
+          .event-card { padding: 12px !important; }
+          .event-card-title { font-size: 14px !important; }
+          .event-cal-legend { display: none !important; }
+          .event-cal-wrap { padding: 14px !important; margin: 0 !important; }
         }
       `}</style>
     </div>
@@ -245,7 +261,7 @@ function MiniCalendar({ eventDayMap, selectedId, onSelectEvent, dark, colors, c 
   for (let d = 1; d <= daysInMonth; d++) cells.push(d)
 
   return (
-    <div style={{
+    <div className="event-cal-wrap" style={{
       padding: '20px', borderRadius: 14,
       background: c.cardBg, border: `1px solid ${c.sep}`,
       margin: '0 4px',
@@ -261,7 +277,7 @@ function MiniCalendar({ eventDayMap, selectedId, onSelectEvent, dark, colors, c 
         }}>
           {year}년 {month + 1}월
         </span>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="event-cal-legend" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {Object.entries(TAG_COLORS).map(([key, tc]) => {
             const hasEvent = WEEKLY_EVENTS.some(e => e.tag === key)
             if (!hasEvent) return null
@@ -378,14 +394,15 @@ function MarkdownRenderer({ content }) {
   const flushTable = () => {
     if (tableHeaders.length > 0) {
       elements.push(
-        <div key={`tbl-${elements.length}`} style={{ overflowX: 'auto', margin: '14px 0' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div key={`tbl-${elements.length}`} style={{ overflowX: 'auto', margin: '14px -4px', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 280 }}>
             <thead>
               <tr>{tableHeaders.map((h, i) => (
                 <th key={i} style={{
-                  padding: '8px 12px', textAlign: 'left',
+                  padding: '6px 8px', textAlign: 'left',
                   borderBottom: `2px solid ${dark ? '#27272A' : '#E4E4E7'}`,
-                  color: colors.textMuted, fontWeight: 600, fontSize: 12,
+                  color: colors.textMuted, fontWeight: 600, fontSize: 11,
+                  whiteSpace: 'nowrap',
                 }}>{renderCell(h)}</th>
               ))}</tr>
             </thead>
@@ -393,9 +410,9 @@ function MarkdownRenderer({ content }) {
               {tableRows.map((row, ri) => (
                 <tr key={ri}>{row.map((cell, ci) => (
                   <td key={ci} style={{
-                    padding: '8px 12px',
+                    padding: '6px 8px',
                     borderBottom: `1px solid ${dark ? '#1E1E22' : '#F4F4F5'}`,
-                    color: colors.textSecondary, fontSize: 13, lineHeight: 1.5,
+                    color: colors.textSecondary, fontSize: 12, lineHeight: 1.5,
                   }}>{renderCell(cell)}</td>
                 ))}</tr>
               ))}

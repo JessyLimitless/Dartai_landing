@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useError } from '../contexts/ErrorContext'
 import { API } from '../lib/api'
 
@@ -12,47 +12,31 @@ export function useDisclosures() {
   const [selectedRceptNo, setSelectedRceptNo] = useState(null)
   const [detail, setDetail] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
-  const [prices, setPrices] = useState({}) // stock_code → {price, change_pct}
-  const pricesRef = useRef({}) // 누적 캐시 — 필터 변경 시에도 유지
+  const [prices, setPrices] = useState({})
 
-  const fetchDisclosures = useCallback(async () => {
+  // 공시 + 시세 조회 — 캐시 없이 매번 서버에서 받은 값을 그대로 사용
+  const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      // 전체 공시를 항상 가져옴 (필터링은 클라이언트에서)
-      const params = new URLSearchParams()
-      params.set('limit', '200')
-
-      const res = await fetch(`${API}/api/disclosures?${params}`)
+      const res = await fetch(`${API}/api/disclosures?limit=200`)
       if (!res.ok) throw new Error('fetch failed')
       const data = await res.json()
       const items = data.disclosures || []
       setDisclosures(items)
       setCounts(data.counts || { S: 0, A: 0, D: 0, total: 0 })
 
-      // 종목코드 있는 것만 배치 시세 조회 (이미 캐시에 있는 것 제외)
-      const allCodes = [...new Set(items.map(d => d.stock_code).filter(Boolean))]
-      const newCodes = allCodes.filter(c => !pricesRef.current[c])
-      const codesToFetch = newCodes.length > 0 ? newCodes : allCodes // 초회엔 전부, 이후엔 새것만
-
-      if (codesToFetch.length > 0) {
+      const codes = [...new Set(items.map(d => d.stock_code).filter(Boolean))]
+      if (codes.length > 0) {
         try {
-          const priceRes = await fetch(`${API}/api/prices/batch`, {
+          const pr = await fetch(`${API}/api/prices/batch`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ stock_codes: codesToFetch }),
+            body: JSON.stringify({ stock_codes: codes }),
           })
-          if (priceRes.ok) {
-            const priceMap = await priceRes.json()
-            // 누적 병합 — 기존 데이터 보존 + 새 데이터 덮어쓰기
-            pricesRef.current = { ...pricesRef.current, ...priceMap }
-            setPrices({ ...pricesRef.current })
+          if (pr.ok) {
+            setPrices(await pr.json()) // 캐시 없음 — 서버 응답을 그대로 사용
           }
-        } catch {
-          // 시세 조회 실패해도 기존 캐시는 유지
-          if (Object.keys(pricesRef.current).length > 0) {
-            setPrices({ ...pricesRef.current })
-          }
-        }
+        } catch {}
       }
     } catch {
       setDisclosures([])
@@ -60,7 +44,7 @@ export function useDisclosures() {
     } finally {
       setLoading(false)
     }
-  }, [showError]) // gradeFilter, search 제거 — 서버 필터링 안 함
+  }, [showError])
 
   const fetchDetail = useCallback(async (rceptNo) => {
     setSelectedRceptNo(rceptNo)
@@ -68,8 +52,7 @@ export function useDisclosures() {
     try {
       const res = await fetch(`${API}/api/disclosures/${rceptNo}`)
       if (!res.ok) throw new Error('fetch failed')
-      const data = await res.json()
-      setDetail(data)
+      setDetail(await res.json())
     } catch {
       setDetail(null)
     } finally {
@@ -77,27 +60,31 @@ export function useDisclosures() {
     }
   }, [])
 
-  // 초기 로드 + 30초 간격 자동 갱신 (시세 업데이트)
+  // 초기 로드
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  // 10분마다 갱신 — 한국시간 주중 08:00~20:00만 (주말/휴일/야간 불필요)
   useEffect(() => {
-    fetchDisclosures()
-    const iv = setInterval(fetchDisclosures, 30000)
+    const iv = setInterval(() => {
+      const now = new Date()
+      const kst = new Date(now.getTime() + 9 * 3600000)
+      const day = kst.getUTCDay() // 0=일, 6=토
+      const hour = kst.getUTCHours()
+      // 평일 08:00~20:00 KST만 (주말 제외, 장외시간에도 공시는 올라오므로 20시까지)
+      if (day >= 1 && day <= 5 && hour >= 8 && hour < 20) {
+        fetchAll()
+      }
+    }, 600000) // 10분
     return () => clearInterval(iv)
-  }, [fetchDisclosures])
+  }, [fetchAll])
 
   return {
-    disclosures,
-    counts,
-    loading,
-    gradeFilter,
-    setGradeFilter,
-    search,
-    setSearch,
-    selectedRceptNo,
-    detail,
-    detailLoading,
-    fetchDetail,
-    setSelectedRceptNo,
-    refresh: fetchDisclosures,
+    disclosures, counts, loading,
+    gradeFilter, setGradeFilter,
+    search, setSearch,
+    selectedRceptNo, detail, detailLoading,
+    fetchDetail, setSelectedRceptNo,
+    refresh: fetchAll,
     prices,
   }
 }
