@@ -133,8 +133,8 @@ export default function LandingPage() {
               lineHeight: 1.15, letterSpacing: '-0.03em',
               margin: '0 0 24px', fontFamily: FONTS.serif, color: '#18181B',
             }}>
-              공시가 나오면,<br />
-              <span style={{ color: R }}>주가가 움직입니다</span>
+              공시 후 급등 종목,<br />
+              <span style={{ color: R }}>AI가 실시간으로 해석합니다</span>
             </h1>
           </Reveal>
           <Reveal d={160}>
@@ -142,8 +142,8 @@ export default function LandingPage() {
               fontSize: 'clamp(15px, 2vw, 18px)', color: '#71717A',
               lineHeight: 1.6, margin: '0 0 40px', maxWidth: 480, marginLeft: 'auto', marginRight: 'auto',
             }}>
-              매일 800건의 공시 중 주가에 영향을 주는 핵심만 골라내고,<br />
-              공시 직후 움직이는 종목을 실시간으로 포착합니다.
+              매일 800건 공시 중 주가에 영향을 주는 핵심만 골라내고,<br />
+              왜 올랐는지 AI가 원문을 읽고 즉시 알려드립니다.
             </p>
           </Reveal>
 
@@ -184,18 +184,8 @@ export default function LandingPage() {
           </Reveal>
 
           <Reveal d={400}>
-            <div style={{ marginTop: 48, maxWidth: 480, marginLeft: 'auto', marginRight: 'auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#A1A1AA', letterSpacing: '0.05em' }}>AI가 분석한 오늘의 급등</span>
-                <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#18181B', color: '#fff' }}>LIVE</span>
-              </div>
-              <LiveRiserLanding navigate={navigate} />
-            </div>
-          </Reveal>
-
-          <Reveal d={480}>
             <div onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-              style={{ marginTop: 40, cursor: 'pointer', opacity: 0.25 }}>
+              style={{ marginTop: 56, cursor: 'pointer', opacity: 0.25 }}>
               <svg width="24" height="24" viewBox="0 0 16 16" fill="none" style={{ display: 'block', margin: '0 auto' }}>
                 <path d="M4 6L8 10L12 6" stroke="#18181B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
