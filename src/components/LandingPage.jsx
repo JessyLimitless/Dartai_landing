@@ -184,74 +184,31 @@ export default function LandingPage() {
           </Reveal>
 
           <Reveal d={400}>
-            <div style={{ marginTop: 48, maxWidth: 480, marginLeft: 'auto', marginRight: 'auto' }}>
-              <LiveRiserLanding navigate={navigate} />
+            <div onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+              style={{ marginTop: 56, cursor: 'pointer', opacity: 0.25 }}>
+              <svg width="24" height="24" viewBox="0 0 16 16" fill="none" style={{ display: 'block', margin: '0 auto' }}>
+                <path d="M4 6L8 10L12 6" stroke="#18181B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ━━━ 1.5 실시간 공시 피드 ━━━ */}
+      {/* ━━━ 1.5 실시간 급등 피드 ━━━ */}
       <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
-            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>LIVE FEED</p>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>LIVE SURGE</p>
             <h2 style={{
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 48px', letterSpacing: '-0.02em',
             }}>
-              지금 이 공시가 올라왔습니다
+              공시 직후 급등한 종목을 실시간으로
             </h2>
           </Reveal>
-          {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} style={{ height: 64, background: '#F0F0F2', borderRadius: 8, animation: 'pulse 1.4s ease-in-out infinite' }} />
-              ))}
-            </div>
-          ) : !recentDisclosures || recentDisclosures.length === 0 ? (
-            <div style={{ padding: '48px 0', textAlign: 'center', color: '#A1A1AA', fontSize: 14 }}>
-              오늘 공시를 기다리는 중...
-            </div>
-          ) : (
-            <div>
-              {recentDisclosures.slice(0, 5).map((d, i) => {
-                const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
-                const kstTime = d.created_at ? (() => {
-                  const dt = new Date(d.created_at)
-                  const k = new Date(dt.getTime() + 9 * 3600000)
-                  return `${String(k.getUTCHours()).padStart(2, '0')}:${String(k.getUTCMinutes()).padStart(2, '0')}`
-                })() : ''
-                return (
-                  <div key={d.rcept_no} onClick={() => navigate('/today')}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 14,
-                      padding: '18px 0', cursor: 'pointer',
-                      borderBottom: i < 4 ? '1px solid #F4F4F5' : 'none',
-                    }}>
-                    <div style={{
-                      width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-                      background: gc.bg, color: gc.color || '#fff',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono,
-                    }}>{d.grade}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{d.corp_name}</div>
-                      <div style={{ fontSize: 13, color: '#A1A1AA', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.report_nm}</div>
-                    </div>
-                    <span style={{ fontSize: 12, color: '#A1A1AA', fontFamily: FONTS.mono, flexShrink: 0 }}>{kstTime}</span>
-                  </div>
-                )
-              })}
-              <div style={{ textAlign: 'center', marginTop: 32 }}>
-                <button onClick={() => navigate('/today')} style={{
-                  padding: '10px 28px', borderRadius: 8,
-                  border: '1px solid #E4E4E7', background: 'transparent',
-                  color: '#71717A', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                }}>전체 공시 보기</button>
-              </div>
-            </div>
-          )}
+          <Reveal d={100}>
+            <LiveRiserLanding navigate={navigate} />
+          </Reveal>
         </div>
       </section>
 
