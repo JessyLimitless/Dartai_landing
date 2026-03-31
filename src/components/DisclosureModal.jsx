@@ -241,17 +241,19 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
           const firstLine = lines[0] || ''
           const isPositive = firstLine.includes('긍정')
           const isNegative = firstLine.includes('부정') || firstLine.includes('주의')
-          const signalColor = isPositive ? '#16A34A' : isNegative ? '#DC2626' : '#D97706'
+          // 한국 증시: 상승=빨강, 하락=파랑, 중립=초록
+          const signalColor = isPositive ? '#DC2626' : isNegative ? '#2563EB' : '#0D9488'
           const signalBg = isPositive
-            ? (dark ? 'rgba(22,163,74,0.08)' : 'rgba(22,163,74,0.04)')
+            ? (dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)')
             : isNegative
-              ? (dark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.04)')
-              : (dark ? 'rgba(217,119,6,0.08)' : 'rgba(217,119,6,0.04)')
+              ? (dark ? 'rgba(37,99,235,0.06)' : 'rgba(37,99,235,0.03)')
+              : (dark ? 'rgba(13,148,136,0.06)' : 'rgba(13,148,136,0.03)')
           const signalBorder = isPositive
-            ? (dark ? 'rgba(22,163,74,0.15)' : 'rgba(22,163,74,0.1)')
+            ? (dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.08)')
             : isNegative
-              ? (dark ? 'rgba(220,38,38,0.15)' : 'rgba(220,38,38,0.1)')
-              : (dark ? 'rgba(217,119,6,0.15)' : 'rgba(217,119,6,0.1)')
+              ? (dark ? 'rgba(37,99,235,0.12)' : 'rgba(37,99,235,0.08)')
+              : (dark ? 'rgba(13,148,136,0.12)' : 'rgba(13,148,136,0.08)')
+          const signalIcon = isPositive ? '▲' : isNegative ? '▼' : '—'
 
           return (
             <div style={{
@@ -265,10 +267,20 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
               }}>
                 {/* 시그널 배지 + 제목 */}
                 <div style={{
-                  fontSize: 14, fontWeight: 700, color: colors.textPrimary,
-                  lineHeight: 1.5, marginBottom: 12,
+                  display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14,
                 }}>
-                  {firstLine}
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                    background: signalColor, color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, fontWeight: 800,
+                  }}>{signalIcon}</div>
+                  <div style={{
+                    fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+                    lineHeight: 1.4,
+                  }}>
+                    {firstLine.replace(/🟢|🟡|🔴|🔵|⚪/g, '').replace(/긍정\s*\|?\s*|부정\s*\|?\s*|중립\s*\|?\s*|주의\s*\|?\s*/, '').trim()}
+                  </div>
                 </div>
 
                 {/* 본문 */}
