@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import NotificationBell from './NotificationBell'
 import { useTheme } from '../contexts/ThemeContext'
@@ -67,6 +67,49 @@ export default function Header({
   const navigate = useNavigate()
   const location = useLocation()
   const { dark, toggle, colors } = useTheme()
+  const googleBtnRef = useRef(null)
+  const [showGoogleBtn, setShowGoogleBtn] = useState(false)
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
+  })
+
+  const handleGoogleLogin = () => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: '20826231899-mfkodjf7svaafnr63ne773g5s6cf5k1m.apps.googleusercontent.com',
+        callback: async (response) => {
+          try {
+            const API_URL = import.meta.env.VITE_API_URL || ''
+            const res = await fetch(`${API_URL}/api/auth/google`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ credential: response.credential }),
+            })
+            if (res.ok) {
+              const data = await res.json()
+              if (data.user) {
+                setUser(data.user)
+                localStorage.setItem('dart_user', JSON.stringify(data.user))
+                setShowGoogleBtn(false)
+              }
+            }
+          } catch {}
+        },
+      })
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          setShowGoogleBtn(true)
+          setTimeout(() => {
+            if (googleBtnRef.current) {
+              window.google.accounts.id.renderButton(googleBtnRef.current, {
+                theme: 'outline', size: 'large', width: 280, text: 'signin_with',
+              })
+            }
+          }, 100)
+        }
+      })
+    }
+  }
 
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/'
@@ -156,6 +199,19 @@ export default function Header({
 
         {/* Right: Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+          {user ? (
+            <div onClick={() => { localStorage.removeItem('dart_user'); setUser(null) }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 8px', borderRadius: 8 }}>
+              {user.picture && <img src={user.picture} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />}
+              <span className="desktop-nav" style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>{user.name?.split(' ')[0]}</span>
+            </div>
+          ) : (
+            <button onClick={handleGoogleLogin} style={{
+              background: 'none', border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+              color: colors.textMuted, fontSize: 12, fontWeight: 500,
+              padding: '5px 12px', borderRadius: 6, cursor: 'pointer',
+            }}>로그인</button>
+          )}
           <button onClick={toggle} aria-label={dark ? 'Light' : 'Dark'}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
@@ -173,6 +229,28 @@ export default function Header({
           />
         </div>
       </header>}
+
+      {/* Google 로그인 폴백 모달 */}
+      {showGoogleBtn && (
+        <div onClick={() => setShowGoogleBtn(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 10000,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: dark ? '#1A1A1E' : '#FFFFFF', borderRadius: 16, padding: '32px 28px',
+            textAlign: 'center', boxShadow: '0 16px 48px rgba(0,0,0,0.2)',
+          }}>
+            <p style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary, marginBottom: 20 }}>Google 계정으로 로그인</p>
+            <div ref={googleBtnRef} />
+            <button onClick={() => setShowGoogleBtn(false)} style={{
+              marginTop: 16, padding: '8px 20px', borderRadius: 6,
+              border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : '#E4E4E7'}`, background: 'transparent',
+              color: colors.textMuted, fontSize: 13, cursor: 'pointer',
+            }}>취소</button>
+          </div>
+        </div>
+      )}
 
       {/* ── 모바일 하단 탭 바 ── */}
       {!hiddenTopBar && <nav className="bottom-tab-bar" style={{
