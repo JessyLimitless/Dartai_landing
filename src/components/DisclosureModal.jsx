@@ -237,80 +237,56 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
 
         {/* 원문 요약 */}
         {data?.ai_summary && (() => {
-          const lines = data.ai_summary.split('\n').filter(Boolean)
-          const firstLine = lines[0] || ''
-          // {UP}/{DOWN}/{NEUTRAL}/{WARN} 태그 기반 시그널 판단
-          const sigMatch = firstLine.match(/^\{(UP|DOWN|NEUTRAL|WARN)\}\s*/)
-          let isPositive, isNegative
-          if (sigMatch) {
-            isPositive = sigMatch[1] === 'UP'
-            isNegative = sigMatch[1] === 'DOWN' || sigMatch[1] === 'WARN'
-          } else {
-            isPositive = firstLine.includes('긍정')
-            isNegative = firstLine.includes('부정') || firstLine.includes('주의')
-          }
-          // 한국 증시: 상승=빨강, 주의=주황, 하락=파랑, 중립=초록
-          const isWarn = sigMatch && sigMatch[1] === 'WARN'
-          const signalColor = isPositive ? '#DC2626' : isWarn ? '#D97706' : isNegative ? '#2563EB' : '#0D9488'
-          const signalBg = isPositive
-            ? (dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)')
-            : isNegative
-              ? (dark ? 'rgba(37,99,235,0.06)' : 'rgba(37,99,235,0.03)')
-              : (dark ? 'rgba(13,148,136,0.06)' : 'rgba(13,148,136,0.03)')
-          const signalBorder = isPositive
-            ? (dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.08)')
-            : isNegative
-              ? (dark ? 'rgba(37,99,235,0.12)' : 'rgba(37,99,235,0.08)')
-              : (dark ? 'rgba(13,148,136,0.12)' : 'rgba(13,148,136,0.08)')
-          const signalIcon = isPositive ? '▲' : isNegative ? '▼' : '—'
+          const raw = data.ai_summary
+          // {UP}/{DOWN}/{NEUTRAL}/{WARN} 태그 파싱
+          const sigMatch = raw.match(/^\{(UP|DOWN|NEUTRAL|WARN)\}\s*/)
+          const sigType = sigMatch ? sigMatch[1] : null
+          const cleaned = sigMatch ? raw.slice(sigMatch[0].length) : raw
+          const lines = cleaned.split('\n').filter(Boolean)
+          const title = lines[0] || ''
+          const body = lines.slice(1)
+
+          // 시그널 컬러: UP=빨강, WARN=주황, DOWN=파랑, NEUTRAL=초록
+          const dotColor = { UP: '#DC2626', WARN: '#D97706', DOWN: '#2563EB', NEUTRAL: '#0D9488' }[sigType] || colors.textMuted
 
           return (
-            <div style={{
-              padding: '0 16px 12px',
-              maxHeight: 300, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-            }}>
+            <div style={{ padding: '0 16px 12px' }}>
               <div style={{
-                background: signalBg,
-                border: `1px solid ${signalBorder}`,
-                borderRadius: 14, padding: '16px 18px',
+                borderRadius: 12, padding: '14px 16px',
+                background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
+                border: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
               }}>
-                {/* 시그널 배지 + 제목 */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14,
-                }}>
+                {/* 제목 + 시그널 dot */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  {sigType && <span style={{
+                    width: 7, height: 7, borderRadius: '50%', background: dotColor,
+                    flexShrink: 0, marginTop: 5,
+                  }} />}
                   <div style={{
-                    width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                    background: signalColor, color: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 14, fontWeight: 800,
-                  }}>{signalIcon}</div>
-                  <div style={{
-                    fontSize: 14, fontWeight: 700, color: colors.textPrimary,
-                    lineHeight: 1.4,
-                  }}>
-                    {firstLine.replace(/^\{(UP|DOWN|NEUTRAL|WARN)\}\s*/, '').replace(/🟢|🟡|🔴|🔵|⚪/g, '').replace(/긍정\s*\|?\s*|부정\s*\|?\s*|중립\s*\|?\s*|주의\s*\|?\s*/, '').trim()}
-                  </div>
+                    fontSize: 13, fontWeight: 700, color: colors.textPrimary,
+                    lineHeight: 1.5,
+                  }}>{title.replace(/^\[\w등급\]\s*/, '')}</div>
                 </div>
 
                 {/* 본문 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {lines.slice(1).map((line, i) => {
-                    const isSectionHeader = line.startsWith('▶')
-                    const isBullet = line.startsWith('•') || line.startsWith('-')
-                    return (
-                      <div key={i} style={{
-                        fontSize: isSectionHeader ? 13 : 12.5,
-                        fontWeight: isSectionHeader ? 700 : 400,
-                        color: isSectionHeader ? colors.textPrimary : colors.textSecondary,
-                        lineHeight: 1.7,
-                        paddingLeft: isBullet ? 8 : 0,
-                        marginTop: isSectionHeader && i > 0 ? 4 : 0,
-                      }}>
-                        {line}
-                      </div>
-                    )
-                  })}
-                </div>
+                {body.length > 0 && (
+                  <div style={{
+                    marginTop: 10, paddingTop: 10,
+                    borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+                    display: 'flex', flexDirection: 'column', gap: 6,
+                  }}>
+                    {body.map((line, i) => {
+                      const isLabel = /^(Why|Signal|Watch|사유|보고|계약|배당|변경):?\s*/i.test(line) || line.startsWith('Watch:')
+                      return (
+                        <div key={i} style={{
+                          fontSize: 12.5, lineHeight: 1.6,
+                          fontWeight: isLabel ? 600 : 400,
+                          color: isLabel ? colors.textPrimary : colors.textSecondary,
+                        }}>{line}</div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )
