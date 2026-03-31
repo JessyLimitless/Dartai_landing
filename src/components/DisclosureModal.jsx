@@ -239,22 +239,57 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
         {data?.ai_summary && (
           <div style={{
             padding: '0 16px 12px',
-            maxHeight: 220, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+            maxHeight: 260, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
           }}>
             <div style={{
-              background: dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)',
-              border: `1px solid ${dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.08)'}`,
+              background: dark ? 'rgba(220,38,38,0.05)' : '#FFF8F8',
+              border: `1px solid ${dark ? 'rgba(220,38,38,0.1)' : 'rgba(220,38,38,0.08)'}`,
               borderRadius: 12, padding: '14px 16px',
             }}>
               <div style={{
-                fontSize: 10, fontWeight: 700, color: '#DC2626',
-                letterSpacing: '0.08em', marginBottom: 8, fontFamily: FONTS.mono,
-              }}>DISCLOSURE SUMMARY</div>
-              <div style={{
-                fontSize: 12.5, color: colors.textSecondary, lineHeight: 1.7,
-                whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10,
               }}>
-                {data.ai_summary.length > 800 ? data.ai_summary.slice(0, 800) + '...' : data.ai_summary}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: '#DC2626',
+                  letterSpacing: '0.08em', fontFamily: FONTS.mono,
+                }}>공시 원문 요약</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {data.ai_summary.split('\n').filter(Boolean).slice(0, 8).map((line, i) => {
+                  const isKeyValue = line.includes(':') || line.includes('：')
+                  const parts = isKeyValue ? line.split(/[:：]/, 2) : null
+                  return (
+                    <div key={i} style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+                      padding: '6px 0',
+                      borderBottom: i < Math.min(data.ai_summary.split('\n').filter(Boolean).length, 8) - 1
+                        ? `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`
+                        : 'none',
+                    }}>
+                      {parts ? (
+                        <>
+                          <span style={{ fontSize: 12, color: colors.textMuted, flexShrink: 0 }}>
+                            {parts[0].trim()}
+                          </span>
+                          <span style={{
+                            fontSize: 13, fontWeight: 600, color: colors.textPrimary,
+                            fontFamily: FONTS.mono, textAlign: 'right', marginLeft: 12,
+                          }}>
+                            {parts[1].trim()}
+                          </span>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: 12.5, color: colors.textSecondary, lineHeight: 1.6 }}>
+                          {line.replace(/^[-·]\s*/, '').trim()}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
