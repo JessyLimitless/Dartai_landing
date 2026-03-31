@@ -9,9 +9,9 @@ export default function BriefingPage() {
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // 로그인 체크
-  const user = (() => { try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null } })()
-  if (!user) return <LoginGate dark={dark} colors={colors} />
+  // 로그인 체크 비활성화 — 전체 공개
+  // const user = (() => { try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null } })()
+  // if (!user) return <LoginGate dark={dark} colors={colors} />
 
   useEffect(() => {
     fetch(`${API}/api/briefings`)

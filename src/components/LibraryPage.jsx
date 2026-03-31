@@ -391,8 +391,8 @@ export default function LibraryPage() {
   const topRow = BOOKS.slice(0, 4)
   const bottomRow = BOOKS.slice(4, 7)
 
-  // 로그인 안 했으면 로그인 유도
-  if (!user) {
+  // 로그인 체크 비활성화 — 전체 공개
+  if (false) {
     return (
       <div style={{
         fontFamily: FONTS.body, minHeight: '100vh',
