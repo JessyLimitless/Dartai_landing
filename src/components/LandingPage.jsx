@@ -184,11 +184,8 @@ export default function LandingPage() {
           </Reveal>
 
           <Reveal d={400}>
-            <div onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-              style={{ marginTop: 56, cursor: 'pointer', opacity: 0.25 }}>
-              <svg width="24" height="24" viewBox="0 0 16 16" fill="none" style={{ display: 'block', margin: '0 auto' }}>
-                <path d="M4 6L8 10L12 6" stroke="#18181B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+            <div style={{ marginTop: 48, maxWidth: 480, marginLeft: 'auto', marginRight: 'auto' }}>
+              <LiveRiserLanding navigate={navigate} />
             </div>
           </Reveal>
         </div>
