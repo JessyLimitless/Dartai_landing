@@ -203,11 +203,11 @@ export default function LandingPage() {
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
-              공시 직후, 주가가 움직이는 종목을 포착합니다
+              급등한 이유를 즉시 알려드립니다
             </h2>
             <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
-              자사주 소각 → 급등, 유상증자 → 급락.<br />
-              공시와 시세를 동시에 보여주는 건 DART Insight뿐입니다.
+              공시 원문을 AI가 직접 읽고, 왜 올랐는지 해석합니다.<br />
+              시그널 판정까지 — 다음날 리포트보다 빠릅니다.
             </p>
           </Reveal>
 
@@ -869,11 +869,11 @@ function LiveRiserLanding({ navigate }) {
       borderRadius: 16, overflow: 'hidden', border: '1px solid #F0F0F2', background: '#FFFFFF',
     }}>
       {[
-        { name: '예시 종목 A', report: '단일판매·공급계약체결 (매출 35%)', pct: '+12.3', grade: 'S' },
-        { name: '예시 종목 B', report: '자기주식취득 결정 (50억 소각)', pct: '+8.7', grade: 'S' },
-        { name: '예시 종목 C', report: '영업이익 흑자전환 (YoY +340%)', pct: '+6.2', grade: 'A' },
-        { name: '예시 종목 D', report: '내부자 장내매수 (대표이사)', pct: '+4.8', grade: 'S' },
-        { name: '예시 종목 E', report: '소수계좌 집중 매수', pct: '+3.5', grade: 'S' },
+        { name: '예시 종목 A', summary: '대형 공급계약 — 매출의 35%, 반도체 장비 수출', pct: '+12.3', grade: 'S' },
+        { name: '예시 종목 B', summary: '자사주 50억 소각 결정 — 주당가치 직접 상승', pct: '+8.7', grade: 'S' },
+        { name: '예시 종목 C', summary: '영업이익 흑자전환 — 적자 3년 만에 YoY +340%', pct: '+6.2', grade: 'A' },
+        { name: '예시 종목 D', summary: '대표이사 장내매수 — 내부자가 지갑으로 말하는 확신', pct: '+4.8', grade: 'S' },
+        { name: '예시 종목 E', summary: '미래에셋 5%+ 신규 대량보유 — 기관 매집 시그널', pct: '+3.5', grade: 'A' },
       ].map((item, i) => (
         <div key={i} style={{
           display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px',
@@ -886,10 +886,12 @@ function LiveRiserLanding({ navigate }) {
             fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: FONTS.mono,
           }}>{item.grade}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{item.name}</div>
-            <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.report}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{item.name}</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: '#DC2626', fontFamily: FONTS.mono }}>{item.pct}%</span>
+            </div>
+            <div style={{ fontSize: 12, color: '#52525B', marginTop: 3, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.summary}</div>
           </div>
-          <span style={{ fontSize: 18, fontWeight: 800, color: '#DC2626', fontFamily: FONTS.mono, flexShrink: 0 }}>{item.pct}%</span>
         </div>
       ))}
       <div style={{ padding: '12px 20px', background: '#FAFAFA', textAlign: 'center', fontSize: 12, color: '#A1A1AA' }}>
@@ -924,12 +926,18 @@ function LiveRiserLanding({ navigate }) {
               fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: FONTS.mono,
             }}>{d.grade}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{d.corp_name}</div>
-              <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.report_nm}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{d.corp_name}</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#DC2626', fontFamily: FONTS.mono }}>+{d.changePct.toFixed(1)}%</span>
+              </div>
+              {d.ai_summary ? (
+                <div style={{ fontSize: 12, color: '#52525B', marginTop: 3, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {d.ai_summary.split('\n')[0].replace(/^\{(UP|DOWN|NEUTRAL|WARN)\}\s*/, '').replace(/^\[\w등급\]\s*/, '').replace(/\*+/g, '').trim()}
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.report_nm}</div>
+              )}
             </div>
-            <span style={{ fontSize: 18, fontWeight: 800, color: '#DC2626', fontFamily: FONTS.mono, flexShrink: 0 }}>
-              +{d.changePct.toFixed(1)}%
-            </span>
           </div>
         )
       })}
