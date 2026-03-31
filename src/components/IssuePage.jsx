@@ -166,6 +166,7 @@ Bull 시나리오에서 Forward PER 23배 — 반도체 팹리스 업종 평균(
   },
   {
     id: '2026-moadata-takeover',
+    archived: true,
     title: '모아데이타 — 최대주주 담보 76%, 경영권이 흔들리는 289억짜리 회사',
     subtitle: '적자 확대, 부채 급증, 대주주 주식 76% 담보 설정. 그런데 누군가 대량 매집 중이고 주가는 +14.9% 급등했다.',
     status: 'TRACKING',
