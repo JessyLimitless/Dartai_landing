@@ -350,16 +350,6 @@ export default function TodayPage({ onViewCard }) {
                     }}>
                       {d.report_nm}
                     </div>
-                    {isSurge && d.ai_summary && (() => {
-                      const line = d.ai_summary.split('\n')[0].replace(/^[🔴🟢🔵⚪🚨📈]+\s*/, '').replace(/\*+/g, '').trim()
-                      return line ? (
-                        <div style={{
-                          fontSize: 11, color: '#DC2626', marginTop: 3, fontWeight: 600,
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          opacity: 0.8,
-                        }}>{line}</div>
-                      ) : null
-                    })()}
                   </div>
                   <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
                     {hasPrice && hasChange ? (
@@ -554,7 +544,6 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
           color: '#DC2626', letterSpacing: '-0.5px', flexShrink: 0, marginLeft: 8,
         }}>+{d.changePct.toFixed(1)}%</span>
       </div>
-      <SummaryLine text={d.ai_summary} full />
     </div>
   )
 
@@ -603,7 +592,6 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
                       })()}
                       {d.price > 0 && <span style={{ opacity: 0.7 }}>{d.price.toLocaleString()}</span>}
                     </div>
-                    <SummaryLine text={d.ai_summary} />
                   </>
                 )}
               </div>

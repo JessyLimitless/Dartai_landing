@@ -239,10 +239,19 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
         {data?.ai_summary && (() => {
           const lines = data.ai_summary.split('\n').filter(Boolean)
           const firstLine = lines[0] || ''
-          const isPositive = firstLine.includes('긍정')
-          const isNegative = firstLine.includes('부정') || firstLine.includes('주의')
-          // 한국 증시: 상승=빨강, 하락=파랑, 중립=초록
-          const signalColor = isPositive ? '#DC2626' : isNegative ? '#2563EB' : '#0D9488'
+          // {UP}/{DOWN}/{NEUTRAL}/{WARN} 태그 기반 시그널 판단
+          const sigMatch = firstLine.match(/^\{(UP|DOWN|NEUTRAL|WARN)\}\s*/)
+          let isPositive, isNegative
+          if (sigMatch) {
+            isPositive = sigMatch[1] === 'UP'
+            isNegative = sigMatch[1] === 'DOWN' || sigMatch[1] === 'WARN'
+          } else {
+            isPositive = firstLine.includes('긍정')
+            isNegative = firstLine.includes('부정') || firstLine.includes('주의')
+          }
+          // 한국 증시: 상승=빨강, 주의=주황, 하락=파랑, 중립=초록
+          const isWarn = sigMatch && sigMatch[1] === 'WARN'
+          const signalColor = isPositive ? '#DC2626' : isWarn ? '#D97706' : isNegative ? '#2563EB' : '#0D9488'
           const signalBg = isPositive
             ? (dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)')
             : isNegative
@@ -279,7 +288,7 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
                     fontSize: 14, fontWeight: 700, color: colors.textPrimary,
                     lineHeight: 1.4,
                   }}>
-                    {firstLine.replace(/🟢|🟡|🔴|🔵|⚪/g, '').replace(/긍정\s*\|?\s*|부정\s*\|?\s*|중립\s*\|?\s*|주의\s*\|?\s*/, '').trim()}
+                    {firstLine.replace(/^\{(UP|DOWN|NEUTRAL|WARN)\}\s*/, '').replace(/🟢|🟡|🔴|🔵|⚪/g, '').replace(/긍정\s*\|?\s*|부정\s*\|?\s*|중립\s*\|?\s*|주의\s*\|?\s*/, '').trim()}
                   </div>
                 </div>
 
