@@ -423,7 +423,8 @@ export default function LandingPage() {
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
-              공시 · 재무 · 법률, 세 겹의 시그널을 읽는 법
+              공시 · 재무 · 법률,<br />
+              세 겹의 시그널을 읽는 법
             </h2>
             <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 48px', lineHeight: 1.6 }}>
               전자공시 시그널에서 시작해, 재무제표의 행간과 상법의 구조까지.<br />
