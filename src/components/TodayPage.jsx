@@ -308,7 +308,6 @@ export default function TodayPage({ onViewCard }) {
               const hasChange = changePct != null
               const priceColor = hasChange ? (changePct > 0 ? '#DC2626' : changePct < 0 ? '#2563EB' : colors.textMuted) : colors.textMuted
 
-              const isSurge = hasChange && changePct >= 2.0
               return (
                 <div key={d.rcept_no} className="touch-press today-row"
                   onClick={() => setModalRceptNo(d.rcept_no)}
@@ -317,10 +316,7 @@ export default function TodayPage({ onViewCard }) {
                     cursor: 'pointer',
                     borderBottom: i < visibleItems.length - 1 ? `1px solid ${lineSep}` : 'none',
                     minHeight: 64,
-                    background: isSurge ? (dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)') : 'transparent',
-                    borderRadius: isSurge ? 8 : 0,
-                    margin: isSurge ? '2px -8px' : 0,
-                    padding: isSurge ? '16px 8px' : '18px 0',
+                    padding: '18px 0',
                   }}>
                   <span className="today-rank" style={{
                     fontWeight: 700, fontFamily: FONTS.mono, color: gc.bg, textAlign: 'right',
@@ -351,25 +347,17 @@ export default function TodayPage({ onViewCard }) {
                       {d.report_nm}
                     </div>
                   </div>
-                  <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+                  <div style={{ flexShrink: 0, textAlign: 'right' }}>
                     {hasPrice && hasChange ? (
                       <>
-                        <div style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 3,
-                          padding: '3px 8px', borderRadius: 8,
-                          background: changePct > 0 ? 'rgba(220,38,38,0.07)' : changePct < 0 ? 'rgba(37,99,235,0.07)' : (dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+                        <div className="today-right-num" style={{
+                          fontWeight: 700, fontFamily: FONTS.mono, color: priceColor,
                         }}>
-                          {changePct > 0 && <svg width="8" height="8" viewBox="0 0 12 12"><path d="M6 2L10 7H2Z" fill="#DC2626"/></svg>}
-                          {changePct < 0 && <svg width="8" height="8" viewBox="0 0 12 12"><path d="M6 10L10 5H2Z" fill="#2563EB"/></svg>}
-                          <span className="today-right-num" style={{
-                            fontWeight: 700, fontFamily: FONTS.mono, color: priceColor,
-                          }}>
-                            {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
-                          </span>
+                          {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
                         </div>
-                        <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                        <div style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 2 }}>
                           {price.toLocaleString()}
-                        </span>
+                        </div>
                       </>
                     ) : hasPrice ? (
                       <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>
@@ -505,100 +493,35 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
     )
   }
 
-  const HeroCard = ({ d, onClick }) => (
-    <div className="touch-press riser-item" onClick={() => onClick?.(d.rcept_no)}
-      style={{
-        margin: '8px 10px 4px', padding: '12px 14px', cursor: 'pointer',
-        borderRadius: 10, position: 'relative', overflow: 'hidden',
-        background: dark
-          ? 'linear-gradient(135deg, rgba(220,38,38,0.10), rgba(220,38,38,0.03))'
-          : 'linear-gradient(135deg, rgba(220,38,38,0.06), rgba(220,38,38,0.01))',
-      }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{
-              fontSize: 9, fontWeight: 800, fontFamily: FONTS.mono,
-              color: '#DC2626', opacity: 0.5,
-            }}>1</span>
-            <span style={{
-              fontSize: 13, fontWeight: 800, color: colors.textPrimary,
-              letterSpacing: '-0.3px',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>{d.corp_name}</span>
-          </div>
-          <div style={{
-            fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 3,
-            display: 'flex', alignItems: 'center', gap: 4,
-          }}>
-            {d.created_at && (() => {
-              const dt = new Date(d.created_at)
-              const k = new Date(dt.getTime() + 9*3600000)
-              return `${String(k.getUTCHours()).padStart(2,'0')}:${String(k.getUTCMinutes()).padStart(2,'0')}`
-            })()}
-            {d.price > 0 && <span style={{ opacity: 0.7 }}>{d.price.toLocaleString()}</span>}
-          </div>
-        </div>
-        <span style={{
-          fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono,
-          color: '#DC2626', letterSpacing: '-0.5px', flexShrink: 0, marginLeft: 8,
-        }}>+{d.changePct.toFixed(1)}%</span>
-      </div>
-    </div>
-  )
+  // 급등 패널은 히어로 없이 동일한 리스트 형태로 통일
 
-  const RiserList = ({ onItemClick, compact, skipHero }) => {
+  const RiserList = ({ onItemClick, skipHero }) => {
     const items = skipHero ? rest : risers
     return (
-      <div style={{ padding: compact ? '2px 0' : '4px 0' }}>
+      <div style={{ padding: '4px 0' }}>
         {items.map((d, idx) => {
           const i = skipHero ? idx + 1 : idx
-          const barW = Math.max(8, (d.changePct / maxPct) * 100)
           return (
             <div key={d.rcept_no} className="touch-press riser-item"
               onClick={() => onItemClick?.(d.rcept_no)}
               style={{
-                position: 'relative', overflow: 'hidden',
                 display: 'flex', alignItems: 'center', gap: 8,
-                padding: compact ? '7px 12px' : '10px 14px', cursor: 'pointer',
-                transition: 'background 0.15s',
+                padding: '8px 12px', cursor: 'pointer',
               }}>
-              <div style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0,
-                width: `${barW}%`, opacity: 0.03,
-                background: '#DC2626', transition: 'width 0.4s ease',
-              }} />
               <span style={{
-                fontSize: 10, fontWeight: 800, fontFamily: FONTS.mono,
-                color: dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.13)',
-                width: 14, textAlign: 'right', flexShrink: 0, position: 'relative',
+                fontSize: 10, fontWeight: 700, fontFamily: FONTS.mono,
+                color: dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
+                width: 14, textAlign: 'right', flexShrink: 0,
               }}>{i + 1}</span>
-              <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontSize: 12, fontWeight: 700, color: colors.textPrimary,
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  letterSpacing: '-0.2px',
                 }}>{d.corp_name}</div>
-                {!compact && (
-                  <>
-                    <div style={{
-                      fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 2,
-                      display: 'flex', alignItems: 'center', gap: 4,
-                    }}>
-                      {d.created_at && (() => {
-                        const dt = new Date(d.created_at)
-                        const k = new Date(dt.getTime() + 9*3600000)
-                        return `${String(k.getUTCHours()).padStart(2,'0')}:${String(k.getUTCMinutes()).padStart(2,'0')}`
-                      })()}
-                      {d.price > 0 && <span style={{ opacity: 0.7 }}>{d.price.toLocaleString()}</span>}
-                    </div>
-                  </>
-                )}
               </div>
               <span style={{
-                fontSize: 12, fontWeight: 800, fontFamily: FONTS.mono,
-                color: '#DC2626', flexShrink: 0, position: 'relative',
-                letterSpacing: '-0.3px',
+                fontSize: 12, fontWeight: 700, fontFamily: FONTS.mono,
+                color: '#DC2626', flexShrink: 0,
               }}>+{d.changePct.toFixed(1)}%</span>
             </div>
           )
@@ -658,31 +581,26 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
       {/* 데스크톱: 우측 고정 패널 (접기/펼치기) */}
       <div className="riser-panel" style={{
         position: 'fixed', zIndex: 90,
-        background: dark ? 'rgba(20,20,22,0.92)' : 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-        borderRadius: 14,
-        border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-        boxShadow: dark
-          ? '0 8px 32px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.04) inset'
-          : '0 8px 32px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(255,255,255,0.8) inset',
-        overflow: 'hidden', transition: 'all 0.2s ease',
+        background: dark ? '#141416' : '#FFFFFF',
+        borderRadius: 12,
+        border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#EBEBED'}`,
+        boxShadow: dark ? '0 4px 16px rgba(0,0,0,0.3)' : '0 4px 16px rgba(0,0,0,0.06)',
+        overflow: 'hidden',
       }}>
         <PanelHeader onToggle={() => setCollapsed(!collapsed)} isCollapsed={collapsed} />
-        {!collapsed && hero && <HeroCard d={hero} onClick={onOpenModal} />}
-        {!collapsed && rest.length > 0 && <RiserList onItemClick={onOpenModal} compact skipHero />}
+        {!collapsed && <RiserList onItemClick={onOpenModal} />}
       </div>
 
       {/* 모바일: FAB 버튼 */}
       <button className="riser-fab touch-press" onClick={() => setMobileOpen(true)} style={{
         display: 'none', position: 'fixed', zIndex: 90,
         right: 16, bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
-        height: 38, borderRadius: 19, padding: '0 16px 0 12px',
-        background: 'linear-gradient(135deg, #DC2626, #B91C1C)',
+        height: 36, borderRadius: 18, padding: '0 14px 0 10px',
+        background: '#DC2626',
         color: '#fff', border: 'none',
-        cursor: 'pointer', gap: 6,
+        cursor: 'pointer', gap: 5,
         alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 4px 20px rgba(220,38,38,0.35), 0 1px 3px rgba(0,0,0,0.1)',
-        animation: 'fab-glow 2s ease-in-out infinite',
+        boxShadow: '0 2px 8px rgba(220,38,38,0.25)',
       }}>
         <svg width="10" height="10" viewBox="0 0 12 12"><path d="M6 1L10 7H2Z" fill="#fff" opacity="0.9"/></svg>
         <span style={{ fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono, letterSpacing: '-0.3px' }}>
@@ -695,15 +613,13 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
         <>
           <div onClick={() => setMobileOpen(false)} style={{
             position: 'fixed', inset: 0, zIndex: 95,
-            background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+            background: 'rgba(0,0,0,0.4)',
           }} />
           <div className="riser-sheet-enter" style={{
             position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 96,
-            background: dark ? 'rgba(20,20,22,0.96)' : 'rgba(255,255,255,0.97)',
-            backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: '20px 20px 0 0',
-            boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+            background: dark ? '#141416' : '#FFFFFF',
+            borderRadius: '16px 16px 0 0',
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.12)',
             paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             maxHeight: '80vh',
             display: 'flex', flexDirection: 'column',
@@ -714,9 +630,8 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
             <div style={{ flexShrink: 0 }}>
               <PanelHeader onClose={() => setMobileOpen(false)} isCollapsed={false} />
             </div>
-            {hero && <HeroCard d={hero} onClick={(rcept) => { onOpenModal(rcept); setMobileOpen(false) }} />}
             <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
-              <RiserList onItemClick={(rcept) => { onOpenModal(rcept); setMobileOpen(false) }} skipHero />
+              <RiserList onItemClick={(rcept) => { onOpenModal(rcept); setMobileOpen(false) }} />
             </div>
           </div>
         </>
