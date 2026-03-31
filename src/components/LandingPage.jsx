@@ -198,16 +198,16 @@ export default function LandingPage() {
       <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
-            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>DISCLOSURE IMPACT</p>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>AI DISCLOSURE ANALYST</p>
             <h2 style={{
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
-              급등한 이유를 즉시 알려드립니다
+              급등한 이유, AI가 즉시 해석합니다
             </h2>
             <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
-              공시 원문을 AI가 직접 읽고, 왜 올랐는지 해석합니다.<br />
-              시그널 판정까지 — 다음날 리포트보다 빠릅니다.
+              공시 원문을 AI가 직접 읽고 핵심을 요약합니다.<br />
+              왜 올랐는지, 어떻게 봐야 하는지 — 증권사 리포트보다 빠릅니다.
             </p>
           </Reveal>
 
@@ -910,7 +910,7 @@ function LiveRiserLanding({ navigate }) {
       }}>
         <svg width="10" height="10" viewBox="0 0 16 16" fill="#DC2626"><path d="M8 2L13 9H3L8 2Z" /></svg>
         <span style={{ fontSize: 13, fontWeight: 800, color: '#18181B' }}>공시 후 급등</span>
-        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#DC2626', color: '#fff' }}>LIVE</span>
+        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#18181B', color: '#fff' }}>AI 요약</span>
       </div>
       {risers.map((d, i) => {
         const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8' }
