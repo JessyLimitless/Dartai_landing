@@ -185,7 +185,7 @@ export default function LandingPage() {
 
           <Reveal d={400}>
             <div style={{ marginTop: 48, maxWidth: 480, marginLeft: 'auto', marginRight: 'auto' }}>
-              <LiveRiserLanding navigate={navigate} heroOnly />
+              <LiveRiserLanding navigate={navigate} />
             </div>
           </Reveal>
         </div>
@@ -857,11 +857,11 @@ function LiveRiserLanding({ navigate, heroOnly }) {
       borderRadius: 16, overflow: 'hidden', border: '1px solid #F0F0F2', background: '#FFFFFF',
     }}>
       {[
-        { name: '예시 종목 A', summary: '대형 공급계약 — 매출의 35%, 반도체 장비 수출', pct: '+12.3', grade: 'S' },
-        { name: '예시 종목 B', summary: '자사주 50억 소각 결정 — 주당가치 직접 상승', pct: '+8.7', grade: 'S' },
-        { name: '예시 종목 C', summary: '영업이익 흑자전환 — 적자 3년 만에 YoY +340%', pct: '+6.2', grade: 'A' },
-        { name: '예시 종목 D', summary: '대표이사 장내매수 — 내부자가 지갑으로 말하는 확신', pct: '+4.8', grade: 'S' },
-        { name: '예시 종목 E', summary: '미래에셋 5%+ 신규 대량보유 — 기관 매집 시그널', pct: '+3.5', grade: 'A' },
+        { name: '예시 종목 A', summary: '대형 공급계약 — 매출의 35%, 반도체 장비 수출', pct: '+12.3', price: '58,400', grade: 'S' },
+        { name: '예시 종목 B', summary: '자사주 50억 소각 결정 — 주당가치 직접 상승', pct: '+8.7', price: '23,150', grade: 'S' },
+        { name: '예시 종목 C', summary: '영업이익 흑자전환 — 적자 3년 만에 YoY +340%', pct: '+6.2', price: '8,920', grade: 'A' },
+        { name: '예시 종목 D', summary: '대표이사 장내매수 — 내부자가 지갑으로 말하는 확신', pct: '+4.8', price: '41,700', grade: 'S' },
+        { name: '예시 종목 E', summary: '미래에셋 5%+ 신규 대량보유 — 기관 매집 시그널', pct: '+3.5', price: '12,650', grade: 'A' },
       ].map((item, i) => (
         <div key={i} style={{
           display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px',
@@ -874,11 +874,12 @@ function LiveRiserLanding({ navigate, heroOnly }) {
             fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: FONTS.mono,
           }}>{item.grade}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{item.name}</span>
-              <span style={{ fontSize: 14, fontWeight: 800, color: '#DC2626', fontFamily: FONTS.mono }}>{item.pct}%</span>
-            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{item.name}</div>
             <div style={{ fontSize: 12, color: '#52525B', marginTop: 3, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.summary}</div>
+          </div>
+          <div style={{ flexShrink: 0, textAlign: 'right' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#DC2626', fontFamily: FONTS.mono }}>{item.pct}%</div>
+            <div style={{ fontSize: 11, color: '#A1A1AA', fontFamily: FONTS.mono, marginTop: 2 }}>{item.price}</div>
           </div>
         </div>
       ))}
@@ -914,10 +915,7 @@ function LiveRiserLanding({ navigate, heroOnly }) {
               fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: FONTS.mono,
             }}>{d.grade}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{d.corp_name}</span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: '#DC2626', fontFamily: FONTS.mono }}>+{d.changePct.toFixed(1)}%</span>
-              </div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#18181B' }}>{d.corp_name}</div>
               {d.ai_summary ? (
                 <div style={{ fontSize: 12, color: '#52525B', marginTop: 3, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {d.ai_summary.split('\n')[0].replace(/^\{(UP|DOWN|NEUTRAL|WARN)\}\s*/, '').replace(/^\[\w등급\]\s*/, '').replace(/\*+/g, '').trim()}
@@ -925,6 +923,10 @@ function LiveRiserLanding({ navigate, heroOnly }) {
               ) : (
                 <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.report_nm}</div>
               )}
+            </div>
+            <div style={{ flexShrink: 0, textAlign: 'right' }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#DC2626', fontFamily: FONTS.mono }}>+{d.changePct.toFixed(1)}%</div>
+              {d.price > 0 && <div style={{ fontSize: 11, color: '#A1A1AA', fontFamily: FONTS.mono, marginTop: 2 }}>{d.price.toLocaleString()}</div>}
             </div>
           </div>
         )
