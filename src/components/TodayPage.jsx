@@ -303,11 +303,10 @@ export default function TodayPage({ onViewCard }) {
               const pd = prices[d.stock_code]
               const currentPrice = pd?.price || 0
               const bp = d.base_price
-              // 공시 대비 변동률 — base_price 없으면 null (폴백 안 함)
-              const changePctRaw = (bp && bp > 0 && currentPrice > 0)
+              // 공시 대비 변동률 → 없으면 전일 대비 폴백
+              const changePct = (bp && bp > 0 && currentPrice > 0)
                 ? Math.round((currentPrice - bp) / bp * 1000) / 10
-                : null
-              const changePct = changePctRaw
+                : (pd?.change_pct ?? null)
               const price = currentPrice
               const hasPrice = price != null && price > 0
               const hasChange = changePct != null
