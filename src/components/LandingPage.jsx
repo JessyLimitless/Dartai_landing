@@ -203,7 +203,8 @@ export default function LandingPage() {
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 48px', letterSpacing: '-0.02em',
             }}>
-              공시 직후 급등한 종목을 실시간으로
+              공시 직후 급등한 종목,<br />
+              실시간으로 포착합니다
             </h2>
           </Reveal>
           <Reveal d={100}>
