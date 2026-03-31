@@ -236,64 +236,64 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
         )}
 
         {/* 원문 요약 */}
-        {data?.ai_summary && (
-          <div style={{
-            padding: '0 16px 12px',
-            maxHeight: 260, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-          }}>
+        {data?.ai_summary && (() => {
+          const lines = data.ai_summary.split('\n').filter(Boolean)
+          const firstLine = lines[0] || ''
+          const isPositive = firstLine.includes('긍정')
+          const isNegative = firstLine.includes('부정') || firstLine.includes('주의')
+          const signalColor = isPositive ? '#16A34A' : isNegative ? '#DC2626' : '#D97706'
+          const signalBg = isPositive
+            ? (dark ? 'rgba(22,163,74,0.08)' : 'rgba(22,163,74,0.04)')
+            : isNegative
+              ? (dark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.04)')
+              : (dark ? 'rgba(217,119,6,0.08)' : 'rgba(217,119,6,0.04)')
+          const signalBorder = isPositive
+            ? (dark ? 'rgba(22,163,74,0.15)' : 'rgba(22,163,74,0.1)')
+            : isNegative
+              ? (dark ? 'rgba(220,38,38,0.15)' : 'rgba(220,38,38,0.1)')
+              : (dark ? 'rgba(217,119,6,0.15)' : 'rgba(217,119,6,0.1)')
+
+          return (
             <div style={{
-              background: dark ? 'rgba(220,38,38,0.05)' : '#FFF8F8',
-              border: `1px solid ${dark ? 'rgba(220,38,38,0.1)' : 'rgba(220,38,38,0.08)'}`,
-              borderRadius: 12, padding: '14px 16px',
+              padding: '0 16px 12px',
+              maxHeight: 300, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
             }}>
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10,
+                background: signalBg,
+                border: `1px solid ${signalBorder}`,
+                borderRadius: 14, padding: '16px 18px',
               }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round">
-                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-                <span style={{
-                  fontSize: 10, fontWeight: 700, color: '#DC2626',
-                  letterSpacing: '0.08em', fontFamily: FONTS.mono,
-                }}>공시 원문 요약</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                {data.ai_summary.split('\n').filter(Boolean).slice(0, 8).map((line, i) => {
-                  const isKeyValue = line.includes(':') || line.includes('：')
-                  const parts = isKeyValue ? line.split(/[:：]/, 2) : null
-                  return (
-                    <div key={i} style={{
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
-                      padding: '6px 0',
-                      borderBottom: i < Math.min(data.ai_summary.split('\n').filter(Boolean).length, 8) - 1
-                        ? `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`
-                        : 'none',
-                    }}>
-                      {parts ? (
-                        <>
-                          <span style={{ fontSize: 12, color: colors.textMuted, flexShrink: 0 }}>
-                            {parts[0].trim()}
-                          </span>
-                          <span style={{
-                            fontSize: 13, fontWeight: 600, color: colors.textPrimary,
-                            fontFamily: FONTS.mono, textAlign: 'right', marginLeft: 12,
-                          }}>
-                            {parts[1].trim()}
-                          </span>
-                        </>
-                      ) : (
-                        <span style={{ fontSize: 12.5, color: colors.textSecondary, lineHeight: 1.6 }}>
-                          {line.replace(/^[-·]\s*/, '').trim()}
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
+                {/* 시그널 배지 + 제목 */}
+                <div style={{
+                  fontSize: 14, fontWeight: 700, color: colors.textPrimary,
+                  lineHeight: 1.5, marginBottom: 12,
+                }}>
+                  {firstLine}
+                </div>
+
+                {/* 본문 */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {lines.slice(1).map((line, i) => {
+                    const isSectionHeader = line.startsWith('▶')
+                    const isBullet = line.startsWith('•') || line.startsWith('-')
+                    return (
+                      <div key={i} style={{
+                        fontSize: isSectionHeader ? 13 : 12.5,
+                        fontWeight: isSectionHeader ? 700 : 400,
+                        color: isSectionHeader ? colors.textPrimary : colors.textSecondary,
+                        lineHeight: 1.7,
+                        paddingLeft: isBullet ? 8 : 0,
+                        marginTop: isSectionHeader && i > 0 ? 4 : 0,
+                      }}>
+                        {line}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* 푸터 액션 */}
         <div style={{
