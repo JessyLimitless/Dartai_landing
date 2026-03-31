@@ -235,6 +235,31 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
           </div>
         )}
 
+        {/* 원문 요약 */}
+        {data?.ai_summary && (
+          <div style={{
+            padding: '0 16px 12px',
+            maxHeight: 220, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+          }}>
+            <div style={{
+              background: dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)',
+              border: `1px solid ${dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.08)'}`,
+              borderRadius: 12, padding: '14px 16px',
+            }}>
+              <div style={{
+                fontSize: 10, fontWeight: 700, color: '#DC2626',
+                letterSpacing: '0.08em', marginBottom: 8, fontFamily: FONTS.mono,
+              }}>DISCLOSURE SUMMARY</div>
+              <div style={{
+                fontSize: 12.5, color: colors.textSecondary, lineHeight: 1.7,
+                whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+              }}>
+                {data.ai_summary.length > 800 ? data.ai_summary.slice(0, 800) + '...' : data.ai_summary}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 푸터 액션 */}
         <div style={{
           padding: '12px 16px',
