@@ -185,7 +185,7 @@ export default function LandingPage() {
 
           <Reveal d={400}>
             <div style={{ marginTop: 48, maxWidth: 480, marginLeft: 'auto', marginRight: 'auto' }}>
-              <LiveRiserLanding navigate={navigate} />
+              <LiveRiserLanding navigate={navigate} heroOnly />
             </div>
           </Reveal>
         </div>
@@ -806,7 +806,7 @@ function Reveal({ children, d = 0 }) {
   )
 }
 
-function LiveRiserLanding({ navigate }) {
+function LiveRiserLanding({ navigate, heroOnly }) {
   const [risers, setRisers] = useState([])
   const [riserLoading, setRiserLoading] = useState(true)
 
@@ -849,7 +849,7 @@ function LiveRiserLanding({ navigate }) {
       .finally(() => setRiserLoading(false))
   }, [])
 
-  if (riserLoading) return (
+  if (riserLoading) return heroOnly ? null : (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       {[1,2,3].map(i => (
         <div key={i} style={{ height: 64, background: '#F0F0F2', borderRadius: 8, animation: 'pulse 1.4s ease-in-out infinite' }} />
@@ -857,7 +857,7 @@ function LiveRiserLanding({ navigate }) {
     </div>
   )
 
-  if (risers.length === 0) return (
+  if (risers.length === 0) return heroOnly ? null : (
     <div style={{
       borderRadius: 16, overflow: 'hidden', border: '1px solid #F0F0F2', background: '#FFFFFF',
     }}>
