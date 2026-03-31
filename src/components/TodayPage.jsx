@@ -121,7 +121,7 @@ export default function TodayPage({ onViewCard }) {
         return { ...d, changePct: Math.round(impact * 10) / 10, price: currentPrice, basePrice: useBase ? bp : 0 }
       })
       .sort((a, b) => b.changePct - a.changePct)
-      .slice(0, 10)
+      .slice(0, 5)
   }, [todayDisclosures, prices])
 
   // DART Pick
