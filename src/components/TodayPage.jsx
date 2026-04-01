@@ -133,6 +133,15 @@ export default function TodayPage({ onViewCard }) {
       .catch(() => {})
   }, [])
 
+  // 거래소 감시 종목
+  const [watchlist, setWatchlist] = useState([])
+  useEffect(() => {
+    fetch(`${API}/api/watchlist`)
+      .then(r => r.json())
+      .then(d => setWatchlist(d.items || []))
+      .catch(() => {})
+  }, [])
+
   return (
     <div className="page-enter today-page" style={{
       maxWidth: 640, margin: '0 auto',
@@ -386,6 +395,12 @@ export default function TodayPage({ onViewCard }) {
           onOpenModal={setModalRceptNo} />
       )}
 
+      {/* ── 거래소 감시 종목 ── */}
+      {watchlist.length > 0 && (
+        <WatchlistWidget items={watchlist} dark={dark} colors={colors}
+          onOpenModal={setModalRceptNo} />
+      )}
+
       {modalRceptNo && (
         <DisclosureModal rcept_no={modalRceptNo} onClose={() => setModalRceptNo(null)} onViewCard={onViewCard} />
       )}
@@ -434,6 +449,18 @@ export default function TodayPage({ onViewCard }) {
         @media (max-width: 768px) {
           .riser-panel { display: none !important; }
           .riser-fab { display: flex !important; }
+        }
+        /* 감시 종목 패널 — 급등 패널 아래 */
+        .watch-panel {
+          top: 340px; right: max(12px, calc((100vw - 640px) / 2 - 220px));
+          width: 200px;
+        }
+        @media (max-width: 1024px) {
+          .watch-panel { right: 8px; width: 180px; }
+        }
+        @media (max-width: 768px) {
+          .watch-panel { display: none !important; }
+          .watch-fab { display: flex !important; }
         }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
         @keyframes fab-glow { 0%,100%{box-shadow:0 4px 20px rgba(220,38,38,0.35)} 50%{box-shadow:0 4px 28px rgba(220,38,38,0.5)} }
@@ -632,6 +659,150 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
             </div>
             <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <RiserList onItemClick={(rcept) => { onOpenModal(rcept); setMobileOpen(false) }} />
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  )
+}
+
+
+// ══ 거래소 감시 종목 — 급등 패널과 동일 구조 ══
+function WatchlistWidget({ items, dark, colors, onOpenModal }) {
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
+  const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
+
+  const levelColor = { '위험': '#DC2626', '경고': '#D97706', '주의': '#94A3B8' }
+
+  return (
+    <>
+      {/* 데스크톱: 우측 고정 패널 */}
+      <div className="watch-panel" style={{
+        position: 'fixed', zIndex: 89,
+        background: dark ? '#141416' : '#FFFFFF',
+        borderRadius: 12,
+        border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#EBEBED'}`,
+        boxShadow: dark ? '0 4px 16px rgba(0,0,0,0.3)' : '0 4px 16px rgba(0,0,0,0.06)',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          padding: '10px 12px',
+          borderBottom: collapsed ? 'none' : `1px solid ${lineSep}`,
+          display: 'flex', alignItems: 'center', gap: 8,
+          cursor: 'pointer',
+        }} onClick={() => setCollapsed(!collapsed)}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ fontSize: 10, color: '#D97706' }}>&#9888;</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: colors.textPrimary }}>거래소 감시</span>
+              <span style={{ fontSize: 9, fontWeight: 700, fontFamily: FONTS.mono, color: '#D97706' }}>{items.length}</span>
+            </div>
+          </div>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke={colors.textMuted} strokeWidth="2" strokeLinecap="round"
+            style={{ transition: 'transform 0.2s', transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>
+            <polyline points="18 15 12 9 6 15" />
+          </svg>
+        </div>
+        {!collapsed && (
+          <div style={{ padding: '4px 0' }}>
+            {items.slice(0, 5).map((d, i) => (
+              <div key={d.rcept_no} className="touch-press"
+                onClick={() => onOpenModal(d.rcept_no)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 12px', cursor: 'pointer',
+                }}>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
+                  background: `${levelColor[d.level] || '#94A3B8'}15`,
+                  color: levelColor[d.level] || '#94A3B8',
+                  flexShrink: 0,
+                }}>{d.level}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 12, fontWeight: 700, color: colors.textPrimary,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{d.corp_name}</div>
+                  <div style={{
+                    fontSize: 9, color: colors.textMuted, marginTop: 2,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{d.reason}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 모바일: FAB */}
+      <button className="watch-fab touch-press" onClick={() => setMobileOpen(true)} style={{
+        display: 'none', position: 'fixed', zIndex: 89,
+        right: 16, bottom: 'calc(116px + env(safe-area-inset-bottom, 0px))',
+        height: 36, borderRadius: 18, padding: '0 14px 0 10px',
+        background: '#D97706', color: '#fff', border: 'none',
+        cursor: 'pointer', gap: 5,
+        alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 2px 8px rgba(217,119,6,0.25)',
+      }}>
+        <span style={{ fontSize: 10 }}>&#9888;</span>
+        <span style={{ fontSize: 12, fontWeight: 800, fontFamily: FONTS.mono }}>{items.length}</span>
+      </button>
+
+      {/* 모바일: 바텀시트 */}
+      {mobileOpen && (
+        <>
+          <div onClick={() => setMobileOpen(false)} style={{
+            position: 'fixed', inset: 0, zIndex: 95, background: 'rgba(0,0,0,0.4)',
+          }} />
+          <div className="riser-sheet-enter" style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 96,
+            background: dark ? '#141416' : '#FFFFFF',
+            borderRadius: '16px 16px 0 0',
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.12)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            maxHeight: '80vh',
+            display: 'flex', flexDirection: 'column',
+          }}>
+            <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: dark ? '#333' : '#D4D4D8' }} />
+            </div>
+            <div style={{
+              padding: '10px 16px', borderBottom: `1px solid ${lineSep}`,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <span style={{ fontSize: 12 }}>&#9888;</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: colors.textPrimary }}>거래소 감시 종목</span>
+              <span style={{ fontSize: 10, color: colors.textMuted }}>소수계좌 집중매수</span>
+              <div style={{ flex: 1 }} />
+              <button onClick={() => setMobileOpen(false)} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: colors.textMuted, fontSize: 14, padding: '0 2px',
+              }}>&#10005;</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '4px 0' }}>
+              {items.map((d, i) => (
+                <div key={d.rcept_no} className="touch-press"
+                  onClick={() => { onOpenModal(d.rcept_no); setMobileOpen(false) }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '12px 16px', cursor: 'pointer',
+                    borderBottom: i < items.length - 1 ? `1px solid ${lineSep}` : 'none',
+                  }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                    background: `${levelColor[d.level] || '#94A3B8'}15`,
+                    color: levelColor[d.level] || '#94A3B8',
+                    flexShrink: 0,
+                  }}>{d.level}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{d.corp_name}</div>
+                    <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>{d.reason}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </>
