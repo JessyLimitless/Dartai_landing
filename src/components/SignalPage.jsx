@@ -5,44 +5,21 @@ import { FONTS, PREMIUM } from '../constants/theme'
 const API = import.meta.env.VITE_API_URL || ''
 
 const TYPE_META = {
-  '자사주취득': '자사주 매입 공시',
-  '투자경고': '거래소 투자경고',
+  '자사주취득': '자사주 매입',
+  '투자경고': '투자경고 지정',
   'CB발행': '전환사채 발행',
-  '유상증자': '유상증자 결정',
+  '유상증자': '유상증자',
   '배당결정': '배당 결정',
   '밸류업': '밸류업 계획',
   '공급계약': '공급계약 체결',
-  '실적공시': '실적 변동 공시',
+  '실적공시': '실적 변동',
   '투자주의': '투자주의 지정',
   '자사주처분': '자사주 처분',
-  '무상증자': '무상증자 결정',
+  '무상증자': '무상증자',
   '대량보유_신규': '신규 대량보유',
   '대량보유_변동': '대량보유 변동',
   '임원지분변동': '임원 지분 변동',
   '주식분할': '주식 분할',
-}
-
-// 승률 원형 게이지
-function WinGauge({ rate, size = 36 }) {
-  const r = (size - 4) / 2
-  const circ = 2 * Math.PI * r
-  const offset = circ - (rate / 100) * circ
-  const color = rate >= 60 ? '#DC2626' : rate >= 50 ? '#F59E0B' : '#3B82F6'
-  return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none"
-        stroke="currentColor" strokeWidth="3" opacity="0.06" />
-      <circle cx={size/2} cy={size/2} r={r} fill="none"
-        stroke={color} strokeWidth="3"
-        strokeDasharray={circ} strokeDashoffset={offset}
-        strokeLinecap="round"
-        style={{ transition: 'stroke-dashoffset 0.8s ease-out' }} />
-      <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central"
-        style={{ transform: 'rotate(90deg)', transformOrigin: 'center', fontSize: 9, fontWeight: 800, fontFamily: FONTS.mono, fill: color }}>
-        {rate.toFixed(0)}
-      </text>
-    </svg>
-  )
 }
 
 export default function SignalPage() {
@@ -58,101 +35,104 @@ export default function SignalPage() {
       .catch(() => setLoading(false))
   }, [])
 
-  const sep = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
   const totalSamples = items.reduce((a, i) => a + i.count, 0)
-
-  // 양수/음수 분리
   const positive = items.filter(i => (i.avg_excess_close || 0) >= 0)
   const negative = items.filter(i => (i.avg_excess_close || 0) < 0)
 
-  const RankCard = ({ item, rank, globalIdx }) => {
+  const cardBg = dark ? '#1C1C1E' : '#FFFFFF'
+  const cardBorder = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+  const subtleBg = dark ? 'rgba(255,255,255,0.03)' : '#F7F7F8'
+
+  const SignalRow = ({ item, rank, globalIdx, isPositive }) => {
     const excess = item.avg_excess_close || 0
-    const isPositive = excess >= 0
     const winRate = item.win_rate || 0
     const desc = TYPE_META[item.type] || ''
     const expanded = expandedIdx === globalIdx
-    const isTop3 = rank <= 3 && isPositive
 
     return (
       <div
         className="touch-press"
         onClick={() => setExpandedIdx(expanded ? null : globalIdx)}
         style={{
-          padding: '14px 16px', borderRadius: 14, cursor: 'pointer',
-          marginBottom: 8,
-          background: dark
-            ? (isTop3 ? 'rgba(220,38,38,0.04)' : 'rgba(255,255,255,0.02)')
-            : (isTop3 ? 'rgba(220,38,38,0.02)' : '#FAFAFA'),
-          border: `1px solid ${isTop3 ? (dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.08)') : sep}`,
-          transition: 'background 0.15s',
+          display: 'flex', flexDirection: 'column',
+          padding: '16px 18px', cursor: 'pointer',
+          borderBottom: `1px solid ${cardBorder}`,
         }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* 순위 뱃지 */}
-          <div style={{
-            width: 24, height: 24, borderRadius: 6,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: isTop3 ? PREMIUM.accent : (dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'),
-            flexShrink: 0,
-          }}>
-            <span style={{
-              fontSize: 12, fontWeight: 900, fontFamily: FONTS.mono,
-              color: isTop3 ? '#fff' : colors.textMuted,
-            }}>{rank}</span>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* 순위 */}
+          <span style={{
+            fontSize: 14, fontWeight: 800, fontFamily: FONTS.mono,
+            color: rank <= 3 && isPositive ? PREMIUM.accent : colors.textMuted,
+            width: 22, flexShrink: 0,
+          }}>{rank}</span>
 
-          {/* 유형명 */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontSize: 15, fontWeight: 800, color: colors.textPrimary,
+          {/* 유형 + 설명 */}
+          <div style={{ flex: 1, minWidth: 0, marginLeft: 8 }}>
+            <span style={{
+              fontSize: 15, fontWeight: 700, color: colors.textPrimary,
               letterSpacing: '-0.3px',
-            }}>{item.type}</div>
-            <div style={{
-              fontSize: 10, color: colors.textMuted, marginTop: 1,
-            }}>{desc} <span style={{ fontFamily: FONTS.mono }}>{item.count}건</span></div>
+            }}>{item.type}</span>
+            <span style={{
+              fontSize: 11, color: colors.textMuted, marginLeft: 6,
+            }}>{desc}</span>
           </div>
 
           {/* 초과수익률 */}
-          <div style={{ textAlign: 'right', marginRight: 4, flexShrink: 0 }}>
-            <div style={{
-              fontSize: 20, fontWeight: 900, fontFamily: FONTS.mono,
-              color: isPositive ? '#DC2626' : '#2563EB',
-              lineHeight: 1,
-            }}>{excess >= 0 ? '+' : ''}{excess.toFixed(2)}%</div>
+          <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
+            <span style={{
+              fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono,
+              color: isPositive ? '#F04452' : '#3182F6',
+              letterSpacing: '-0.5px',
+            }}>{excess >= 0 ? '+' : ''}{excess.toFixed(2)}%</span>
           </div>
-
-          {/* 승률 게이지 */}
-          <WinGauge rate={winRate} />
         </div>
 
-        {/* 확장: 주요 사례 */}
+        {/* 하단 바 + 승률 + 표본 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, marginLeft: 30 }}>
+          {/* 승률 바 */}
+          <div style={{
+            flex: 1, height: 4, borderRadius: 2,
+            background: dark ? 'rgba(255,255,255,0.06)' : '#EEEFF1',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%', borderRadius: 2,
+              width: `${Math.min(winRate, 100)}%`,
+              background: isPositive
+                ? (winRate >= 60 ? '#F04452' : winRate >= 50 ? '#FF8A3D' : '#B0B8C1')
+                : '#3182F6',
+              transition: 'width 0.6s ease-out',
+            }} />
+          </div>
+          <span style={{
+            fontSize: 11, fontWeight: 700, fontFamily: FONTS.mono, flexShrink: 0,
+            color: winRate >= 60 ? '#F04452' : winRate >= 50 ? '#FF8A3D' : colors.textMuted,
+          }}>{winRate.toFixed(0)}%</span>
+          <span style={{
+            fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0,
+          }}>{item.count}건</span>
+        </div>
+
+        {/* 확장: 사례 */}
         {expanded && item.top_samples && item.top_samples.length > 0 && (
           <div style={{
-            marginTop: 12, padding: '10px 14px', borderRadius: 10,
-            background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.7)',
+            marginTop: 12, marginLeft: 30, padding: '10px 14px', borderRadius: 10,
+            background: subtleBg,
           }}>
             {item.top_samples.map((s, si) => (
               <div key={si} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '6px 0',
-                borderBottom: si < item.top_samples.length - 1 ? `1px solid ${sep}` : 'none',
+                padding: '5px 0',
+                borderBottom: si < item.top_samples.length - 1 ? `1px solid ${cardBorder}` : 'none',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{
-                    fontSize: 12, fontWeight: 700, color: colors.textPrimary,
-                  }}>{s.corp_name}</span>
-                  <span style={{
-                    fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono,
-                  }}>{s.date.slice(5)}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{
-                    fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono,
-                  }}>시장{s.market_ret >= 0 ? '+' : ''}{s.market_ret}%</span>
-                  <span style={{
-                    fontSize: 13, fontWeight: 900, fontFamily: FONTS.mono,
-                    color: s.excess >= 0 ? '#DC2626' : '#2563EB',
-                  }}>{s.excess >= 0 ? '+' : ''}{s.excess}%</span>
-                </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>
+                  {s.corp_name}
+                  <span style={{ fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 4 }}>{s.date.slice(5)}</span>
+                </span>
+                <span style={{
+                  fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono,
+                  color: s.excess >= 0 ? '#F04452' : '#3182F6',
+                }}>{s.excess >= 0 ? '+' : ''}{s.excess}%</span>
               </div>
             ))}
           </div>
@@ -167,105 +147,115 @@ export default function SignalPage() {
       paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
       fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
     }}>
-      {/* 헤더 */}
-      <div style={{ padding: '28px 24px 0' }}>
+      {/* 헤더 — 토스 스타일 */}
+      <div style={{ padding: '32px 24px 20px' }}>
         <h1 style={{
-          fontSize: 24, fontWeight: 900, color: colors.textPrimary,
-          fontFamily: FONTS.serif, margin: 0, letterSpacing: '-0.5px',
+          fontSize: 22, fontWeight: 800, color: colors.textPrimary,
+          margin: 0, letterSpacing: '-0.5px',
         }}>공시 시그널</h1>
         <p style={{
-          fontSize: 13, color: colors.textMuted, marginTop: 4, margin: '4px 0 0',
-          lineHeight: 1.5,
-        }}>공시 유형별 초과수익률 순위 — 시장 수익률을 차감한 순수 공시 효과</p>
+          fontSize: 14, color: colors.textMuted, margin: '6px 0 0',
+          lineHeight: 1.5, letterSpacing: '-0.2px',
+        }}>공시 유형별 초과수익률을 분석했어요</p>
       </div>
 
-      {/* 요약 카드 */}
+      {/* 요약 3칸 */}
       {totalSamples > 0 && (
         <div style={{
-          margin: '16px 24px', padding: '14px 18px', borderRadius: 12,
-          background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)',
-          borderLeft: `3px solid ${PREMIUM.accent}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          margin: '0 20px 20px', padding: '18px 0', borderRadius: 16,
+          background: cardBg,
+          border: `1px solid ${cardBorder}`,
+          display: 'flex',
         }}>
-          <div>
-            <div style={{ fontSize: 11, color: colors.textMuted }}>분석 표본</div>
-            <div style={{ fontSize: 20, fontWeight: 900, fontFamily: FONTS.mono, color: PREMIUM.accent }}>
-              {totalSamples.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 600 }}>건</span>
+          {[
+            { label: '분석 표본', value: totalSamples.toLocaleString(), unit: '건', color: colors.textPrimary },
+            { label: '공시 유형', value: items.length, unit: '개', color: colors.textPrimary },
+            { label: '최고 승률', value: items.length > 0 ? Math.max(...items.map(i => i.win_rate || 0)).toFixed(0) : '0', unit: '%', color: '#F04452' },
+          ].map((s, i) => (
+            <div key={i} style={{
+              flex: 1, textAlign: 'center',
+              borderRight: i < 2 ? `1px solid ${cardBorder}` : 'none',
+            }}>
+              <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>{s.label}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FONTS.mono, color: s.color, letterSpacing: '-0.5px' }}>
+                {s.value}<span style={{ fontSize: 11, fontWeight: 500 }}>{s.unit}</span>
+              </div>
             </div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 11, color: colors.textMuted }}>공시 유형</div>
-            <div style={{ fontSize: 20, fontWeight: 900, fontFamily: FONTS.mono, color: colors.textPrimary }}>
-              {items.length}<span style={{ fontSize: 11, fontWeight: 600 }}>개</span>
-            </div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, color: colors.textMuted }}>최고 승률</div>
-            <div style={{ fontSize: 20, fontWeight: 900, fontFamily: FONTS.mono, color: '#DC2626' }}>
-              {items.length > 0 ? Math.max(...items.map(i => i.win_rate || 0)).toFixed(0) : 0}%
-            </div>
-          </div>
+          ))}
         </div>
       )}
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 80, color: colors.textMuted, fontSize: 13 }}>
+        <div style={{ textAlign: 'center', padding: 80, color: colors.textMuted, fontSize: 14 }}>
           분석 중...
         </div>
       ) : items.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 80, color: colors.textMuted, fontSize: 13 }}>
-          데이터 수집 중
+        <div style={{ textAlign: 'center', padding: 80, color: colors.textMuted, fontSize: 14 }}>
+          데이터를 수집하고 있어요
         </div>
       ) : (
         <>
           {/* 상승 시그널 */}
           {positive.length > 0 && (
-            <div style={{ padding: '0 24px' }}>
+            <div style={{
+              margin: '0 20px 12px', borderRadius: 16, overflow: 'hidden',
+              background: cardBg, border: `1px solid ${cardBorder}`,
+            }}>
               <div style={{
+                padding: '14px 18px',
+                borderBottom: `1px solid ${cardBorder}`,
                 display: 'flex', alignItems: 'center', gap: 6,
-                marginBottom: 10, marginTop: 8,
               }}>
-                <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1L10 7H2Z" fill="#DC2626"/></svg>
-                <span style={{
-                  fontSize: 12, fontWeight: 800, color: '#DC2626', letterSpacing: '-0.2px',
-                }}>상승 시그널</span>
-                <span style={{ fontSize: 10, color: colors.textMuted }}>공시 후 시장 대비 상승</span>
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#F04452' }}>상승 시그널</span>
+                <span style={{ fontSize: 11, color: colors.textMuted }}>시장 대비 초과 상승</span>
               </div>
               {positive.map((item, idx) => (
-                <RankCard key={item.type} item={item} rank={idx + 1}
-                  globalIdx={items.indexOf(item)} />
+                <SignalRow key={item.type} item={item} rank={idx + 1}
+                  globalIdx={items.indexOf(item)} isPositive={true} />
               ))}
             </div>
           )}
 
           {/* 하락 시그널 */}
           {negative.length > 0 && (
-            <div style={{ padding: '0 24px', marginTop: 16 }}>
+            <div style={{
+              margin: '0 20px 12px', borderRadius: 16, overflow: 'hidden',
+              background: cardBg, border: `1px solid ${cardBorder}`,
+            }}>
               <div style={{
+                padding: '14px 18px',
+                borderBottom: `1px solid ${cardBorder}`,
                 display: 'flex', alignItems: 'center', gap: 6,
-                marginBottom: 10,
               }}>
-                <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 11L10 5H2Z" fill="#2563EB"/></svg>
-                <span style={{
-                  fontSize: 12, fontWeight: 800, color: '#2563EB', letterSpacing: '-0.2px',
-                }}>하락 시그널</span>
-                <span style={{ fontSize: 10, color: colors.textMuted }}>공시 후 시장 대비 하락</span>
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#3182F6' }}>하락 시그널</span>
+                <span style={{ fontSize: 11, color: colors.textMuted }}>시장 대비 초과 하락</span>
               </div>
               {negative.map((item, idx) => (
-                <RankCard key={item.type} item={item} rank={idx + 1}
-                  globalIdx={items.indexOf(item)} />
+                <SignalRow key={item.type} item={item} rank={idx + 1}
+                  globalIdx={items.indexOf(item)} isPositive={false} />
               ))}
             </div>
           )}
 
+          {/* 안내 — 토스 스타일 */}
+          <div style={{
+            margin: '8px 20px 0', padding: '16px 18px', borderRadius: 16,
+            background: subtleBg,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: colors.textSecondary, marginBottom: 6 }}>
+              이렇게 분석했어요
+            </div>
+            <div style={{ fontSize: 11, color: colors.textMuted, lineHeight: 1.7 }}>
+              초과수익률은 공시 당일 종목 수익률에서 시장 전체 수익률을 뺀 값이에요. 시장이 올라도 공시 효과만 분리해서 측정해요.
+            </div>
+          </div>
+
           {/* 면책 */}
           <div style={{
-            padding: '20px 24px 16px', fontSize: 10, color: colors.textMuted,
+            padding: '16px 24px 20px', fontSize: 11, color: colors.textMuted,
             lineHeight: 1.6, textAlign: 'center',
           }}>
-            과거 실적 기반 통계이며 미래 수익을 보장하지 않습니다
-            <br />
-            초과수익률 = 종목 수익률 - 시장(전체종목 평균) 수익률
+            과거 실적 기반이며 미래 수익을 보장하지 않아요
           </div>
         </>
       )}
