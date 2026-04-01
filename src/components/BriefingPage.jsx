@@ -303,7 +303,9 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
   const briefingMap = {}
+  const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
   for (const b of briefings) {
+    if (!b.id?.startsWith(monthKey)) continue
     const d = parseInt(b.date_label?.slice(-2) || '0')
     if (d > 0) briefingMap[d] = b
   }
