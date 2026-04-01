@@ -10,6 +10,7 @@ const TABS = [
   { key: '/briefing', label: '브리핑', mobileLabel: '브리핑' },
   { key: '/today', label: '공시', mobileLabel: '공시' },
   { key: '/issues', label: '이슈', mobileLabel: '이슈' },
+  { key: '/signal', label: '시그널', mobileLabel: '시그널' },
   { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
   { key: '/dart-event', label: '일정', mobileLabel: '일정' },
   { key: '/deep-dive', label: '기업카드', mobileLabel: '기업카드', desktopOnly: true },
@@ -36,6 +37,11 @@ const TAB_ICONS = {
   '/issues': (color, size = 18) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  ),
+  '/signal': (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
     </svg>
   ),
   '/dart-view': (color, size = 18) => (
