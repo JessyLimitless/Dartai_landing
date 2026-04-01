@@ -333,7 +333,7 @@ export default function LandingPage() {
 
           <Reveal d={200}>
             <div style={{ textAlign: 'center', marginTop: 32 }}>
-              <button onClick={() => navigate('/issue')} style={{
+              <button onClick={() => navigate('/issues')} style={{
                 padding: '12px 32px', borderRadius: 10, border: 'none',
                 background: R, color: '#fff',
                 fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
