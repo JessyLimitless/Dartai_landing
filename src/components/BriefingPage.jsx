@@ -287,14 +287,26 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
   // 현재 월에 브리핑 없으면 가장 최신 브리핑이 있는 월로
   const currentMonthKey = `${todayYear}-${String(todayMonth + 1).padStart(2, '0')}`
   const hasCurrentMonth = briefings.some(b => b.id?.startsWith(currentMonthKey))
-  let year = todayYear, month = todayMonth
+  let initYear = todayYear, initMonth = todayMonth
   if (!hasCurrentMonth && briefings.length > 0) {
     const latest = briefings.find(b => /^\d{4}-\d{2}-\d{2}$/.test(b.id))
     if (latest) {
       const [y, m] = latest.id.split('-')
-      year = parseInt(y)
-      month = parseInt(m) - 1
+      initYear = parseInt(y)
+      initMonth = parseInt(m) - 1
     }
+  }
+  const [calYear, setCalYear] = useState(initYear)
+  const [calMonth, setCalMonth] = useState(initMonth)
+  const year = calYear, month = calMonth
+
+  const goPrev = () => {
+    if (calMonth === 0) { setCalYear(calYear - 1); setCalMonth(11) }
+    else setCalMonth(calMonth - 1)
+  }
+  const goNext = () => {
+    if (calMonth === 11) { setCalYear(calYear + 1); setCalMonth(0) }
+    else setCalMonth(calMonth + 1)
   }
 
   const firstDay = new Date(year, month, 1).getDay()
@@ -325,11 +337,15 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
       border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
       boxShadow: dark ? 'none' : '0 1px 4px rgba(0,0,0,0.03)',
     }}>
-      {/* 월 헤더 */}
+      {/* 월 헤더 + 이동 */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: 14,
       }}>
+        <button onClick={goPrev} style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
+          color: colors.textMuted, fontSize: 14,
+        }}>&#9664;</button>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
           <span style={{
             fontSize: 16, fontWeight: 800, color: colors.textPrimary,
@@ -338,11 +354,15 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
           <span style={{
             fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono,
           }}>{year}</span>
+          {briefingCount > 0 && <span style={{
+            fontSize: 11, color: '#DC2626', fontWeight: 600,
+            background: 'rgba(220,38,38,0.08)', padding: '2px 8px', borderRadius: 10,
+          }}>{briefingCount}</span>}
         </div>
-        <span style={{
-          fontSize: 11, color: '#DC2626', fontWeight: 600,
-          background: 'rgba(220,38,38,0.08)', padding: '2px 8px', borderRadius: 10,
-        }}>{briefingCount}건</span>
+        <button onClick={goNext} style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
+          color: colors.textMuted, fontSize: 14,
+        }}>&#9654;</button>
       </div>
 
       {/* 요일 헤더 */}
