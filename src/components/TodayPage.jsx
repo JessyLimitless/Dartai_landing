@@ -121,7 +121,7 @@ export default function TodayPage({ onViewCard }) {
         return { ...d, changePct: Math.round(impact * 10) / 10, price: currentPrice, basePrice: useBase ? bp : 0 }
       })
       .sort((a, b) => b.changePct - a.changePct)
-      .slice(0, 5)
+      .slice(0, 10)
   }, [todayDisclosures, prices])
 
   // DART Pick
@@ -588,6 +588,8 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
         border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#EBEBED'}`,
         boxShadow: dark ? '0 4px 16px rgba(0,0,0,0.3)' : '0 4px 16px rgba(0,0,0,0.06)',
         overflow: 'hidden',
+        maxHeight: 'calc(100vh - 80px)',
+        overflowY: 'auto',
       }}>
         <PanelHeader onToggle={() => setCollapsed(!collapsed)} isCollapsed={collapsed} />
         {!collapsed && <RiserList onItemClick={onOpenModal} />}
