@@ -38,101 +38,149 @@ export default function SignalPage() {
   const totalSamples = items.reduce((a, i) => a + i.count, 0)
   const positive = items.filter(i => (i.avg_excess_close || 0) >= 0)
   const negative = items.filter(i => (i.avg_excess_close || 0) < 0)
+  const topItem = positive[0]
 
-  const cardBg = dark ? '#1C1C1E' : '#FFFFFF'
-  const cardBorder = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
-  const subtleBg = dark ? 'rgba(255,255,255,0.03)' : '#F7F7F8'
+  // 토스 컬러 시스템
+  const toss = {
+    red: '#F04452',
+    redBg: dark ? 'rgba(240,68,82,0.08)' : 'rgba(240,68,82,0.04)',
+    blue: '#3182F6',
+    blueBg: dark ? 'rgba(49,130,246,0.08)' : 'rgba(49,130,246,0.04)',
+    orange: '#FF8A3D',
+    cardBg: dark ? '#1C1C1E' : '#FFFFFF',
+    cardBorder: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+    sectionBg: dark ? '#141416' : '#F4F5F7',
+    dimText: dark ? '#6B7280' : '#8B95A1',
+    subText: dark ? '#9CA3AF' : '#6B7684',
+  }
 
-  const SignalRow = ({ item, rank, globalIdx, isPositive }) => {
+  const SignalItem = ({ item, rank, globalIdx, isPositive }) => {
     const excess = item.avg_excess_close || 0
     const winRate = item.win_rate || 0
-    const desc = TYPE_META[item.type] || ''
     const expanded = expandedIdx === globalIdx
+    const accent = isPositive ? toss.red : toss.blue
 
     return (
       <div
         className="touch-press"
         onClick={() => setExpandedIdx(expanded ? null : globalIdx)}
-        style={{
-          display: 'flex', flexDirection: 'column',
-          padding: '16px 18px', cursor: 'pointer',
-          borderBottom: `1px solid ${cardBorder}`,
+        style={{ cursor: 'pointer' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center',
+          padding: '18px 20px',
         }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
           {/* 순위 */}
-          <span style={{
-            fontSize: 14, fontWeight: 800, fontFamily: FONTS.mono,
-            color: rank <= 3 && isPositive ? PREMIUM.accent : colors.textMuted,
-            width: 22, flexShrink: 0,
-          }}>{rank}</span>
-
-          {/* 유형 + 설명 */}
-          <div style={{ flex: 1, minWidth: 0, marginLeft: 8 }}>
-            <span style={{
-              fontSize: 15, fontWeight: 700, color: colors.textPrimary,
-              letterSpacing: '-0.3px',
-            }}>{item.type}</span>
-            <span style={{
-              fontSize: 11, color: colors.textMuted, marginLeft: 6,
-            }}>{desc}</span>
-          </div>
-
-          {/* 초과수익률 */}
-          <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
-            <span style={{
-              fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono,
-              color: isPositive ? '#F04452' : '#3182F6',
-              letterSpacing: '-0.5px',
-            }}>{excess >= 0 ? '+' : ''}{excess.toFixed(2)}%</span>
-          </div>
-        </div>
-
-        {/* 하단 바 + 승률 + 표본 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, marginLeft: 30 }}>
-          {/* 승률 바 */}
           <div style={{
-            flex: 1, height: 4, borderRadius: 2,
-            background: dark ? 'rgba(255,255,255,0.06)' : '#EEEFF1',
-            overflow: 'hidden',
+            width: 28, textAlign: 'center', flexShrink: 0,
+          }}>
+            <span style={{
+              fontSize: rank <= 3 && isPositive ? 16 : 14,
+              fontWeight: 900,
+              fontFamily: FONTS.mono,
+              color: rank <= 3 && isPositive ? toss.red : toss.dimText,
+            }}>{rank}</span>
+          </div>
+
+          {/* 중앙: 유형 + 승률 바 */}
+          <div style={{ flex: 1, marginLeft: 12, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{
+                fontSize: 15, fontWeight: 700, color: colors.textPrimary,
+                letterSpacing: '-0.3px',
+              }}>{item.type}</span>
+              <span style={{
+                fontSize: 10, color: toss.dimText,
+                fontFamily: FONTS.mono,
+              }}>{item.count}건</span>
+            </div>
+            {/* 승률 바 */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8, marginTop: 8,
+            }}>
+              <div style={{
+                flex: 1, height: 6, borderRadius: 3,
+                background: dark ? 'rgba(255,255,255,0.04)' : '#F2F3F5',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%', borderRadius: 3,
+                  width: `${Math.min(winRate, 100)}%`,
+                  background: winRate >= 60 ? toss.red
+                    : winRate >= 50 ? toss.orange
+                    : dark ? 'rgba(255,255,255,0.12)' : '#D1D5DB',
+                  transition: 'width 0.8s cubic-bezier(0.22, 1, 0.36, 1)',
+                }} />
+              </div>
+              <span style={{
+                fontSize: 12, fontWeight: 700, fontFamily: FONTS.mono,
+                color: winRate >= 60 ? toss.red : winRate >= 50 ? toss.orange : toss.dimText,
+                width: 32, textAlign: 'right', flexShrink: 0,
+              }}>
+                {winRate.toFixed(0)}%
+              </span>
+            </div>
+          </div>
+
+          {/* 우측: 초과수익률 */}
+          <div style={{
+            marginLeft: 16, flexShrink: 0, textAlign: 'right',
+            minWidth: 72,
           }}>
             <div style={{
-              height: '100%', borderRadius: 2,
-              width: `${Math.min(winRate, 100)}%`,
-              background: isPositive
-                ? (winRate >= 60 ? '#F04452' : winRate >= 50 ? '#FF8A3D' : '#B0B8C1')
-                : '#3182F6',
-              transition: 'width 0.6s ease-out',
-            }} />
+              fontSize: 20, fontWeight: 900,
+              fontFamily: FONTS.mono,
+              color: accent,
+              letterSpacing: '-0.8px',
+              lineHeight: 1,
+            }}>{excess >= 0 ? '+' : ''}{excess.toFixed(2)}<span style={{ fontSize: 13 }}>%</span></div>
+            <div style={{
+              fontSize: 10, color: toss.dimText, marginTop: 4,
+              letterSpacing: '-0.2px',
+            }}>초과수익</div>
           </div>
-          <span style={{
-            fontSize: 11, fontWeight: 700, fontFamily: FONTS.mono, flexShrink: 0,
-            color: winRate >= 60 ? '#F04452' : winRate >= 50 ? '#FF8A3D' : colors.textMuted,
-          }}>{winRate.toFixed(0)}%</span>
-          <span style={{
-            fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0,
-          }}>{item.count}건</span>
         </div>
+
+        {/* 구분선 */}
+        <div style={{
+          height: 1,
+          background: toss.cardBorder,
+          marginLeft: 60, marginRight: 20,
+        }} />
 
         {/* 확장: 사례 */}
         {expanded && item.top_samples && item.top_samples.length > 0 && (
           <div style={{
-            marginTop: 12, marginLeft: 30, padding: '10px 14px', borderRadius: 10,
-            background: subtleBg,
+            padding: '4px 20px 14px 60px',
+            background: toss.sectionBg,
           }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, color: toss.subText,
+              padding: '10px 0 6px',
+              letterSpacing: '-0.2px',
+            }}>대표 사례</div>
             {item.top_samples.map((s, si) => (
               <div key={si} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '5px 0',
-                borderBottom: si < item.top_samples.length - 1 ? `1px solid ${cardBorder}` : 'none',
+                padding: '8px 0',
+                borderBottom: si < item.top_samples.length - 1 ? `1px solid ${toss.cardBorder}` : 'none',
               }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>
-                  {s.corp_name}
-                  <span style={{ fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 4 }}>{s.date.slice(5)}</span>
-                </span>
-                <span style={{
-                  fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono,
-                  color: s.excess >= 0 ? '#F04452' : '#3182F6',
-                }}>{s.excess >= 0 ? '+' : ''}{s.excess}%</span>
+                <div>
+                  <span style={{
+                    fontSize: 13, fontWeight: 600, color: colors.textPrimary,
+                  }}>{s.corp_name}</span>
+                  <span style={{
+                    fontSize: 10, color: toss.dimText, fontFamily: FONTS.mono, marginLeft: 6,
+                  }}>{s.date.slice(2).replace('-', '.')}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{
+                    fontSize: 10, color: toss.dimText, fontFamily: FONTS.mono,
+                  }}>시장 {s.market_ret >= 0 ? '+' : ''}{s.market_ret}%</span>
+                  <span style={{
+                    fontSize: 14, fontWeight: 800, fontFamily: FONTS.mono,
+                    color: s.excess >= 0 ? toss.red : toss.blue,
+                  }}>{s.excess >= 0 ? '+' : ''}{s.excess}%</span>
+                </div>
               </div>
             ))}
           </div>
@@ -145,72 +193,115 @@ export default function SignalPage() {
     <div className="page-enter" style={{
       maxWidth: 640, margin: '0 auto',
       paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-      fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
+      fontFamily: FONTS.body,
+      backgroundColor: dark ? '#000000' : '#F4F5F7',
+      minHeight: '100vh',
     }}>
-      {/* 헤더 — 토스 스타일 */}
-      <div style={{ padding: '32px 24px 20px' }}>
+      {/* 헤더 */}
+      <div style={{ padding: '36px 24px 24px' }}>
         <h1 style={{
-          fontSize: 22, fontWeight: 800, color: colors.textPrimary,
-          margin: 0, letterSpacing: '-0.5px',
+          fontSize: 24, fontWeight: 800, color: colors.textPrimary,
+          margin: 0, letterSpacing: '-0.8px',
         }}>공시 시그널</h1>
         <p style={{
-          fontSize: 14, color: colors.textMuted, margin: '6px 0 0',
-          lineHeight: 1.5, letterSpacing: '-0.2px',
-        }}>공시 유형별 초과수익률을 분석했어요</p>
+          fontSize: 14, color: toss.subText, margin: '8px 0 0',
+          lineHeight: 1.5, letterSpacing: '-0.3px',
+        }}>어떤 공시가 나왔을 때 주가가 시장보다<br />더 올랐는지 데이터로 확인해 보세요</p>
       </div>
 
-      {/* 요약 3칸 */}
-      {totalSamples > 0 && (
-        <div style={{
-          margin: '0 20px 20px', padding: '18px 0', borderRadius: 16,
-          background: cardBg,
-          border: `1px solid ${cardBorder}`,
-          display: 'flex',
-        }}>
-          {[
-            { label: '분석 표본', value: totalSamples.toLocaleString(), unit: '건', color: colors.textPrimary },
-            { label: '공시 유형', value: items.length, unit: '개', color: colors.textPrimary },
-            { label: '최고 승률', value: items.length > 0 ? Math.max(...items.map(i => i.win_rate || 0)).toFixed(0) : '0', unit: '%', color: '#F04452' },
-          ].map((s, i) => (
-            <div key={i} style={{
-              flex: 1, textAlign: 'center',
-              borderRight: i < 2 ? `1px solid ${cardBorder}` : 'none',
-            }}>
-              <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>{s.label}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FONTS.mono, color: s.color, letterSpacing: '-0.5px' }}>
-                {s.value}<span style={{ fontSize: 11, fontWeight: 500 }}>{s.unit}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 80, color: colors.textMuted, fontSize: 14 }}>
-          분석 중...
+        <div style={{ textAlign: 'center', padding: 100, color: toss.dimText, fontSize: 14 }}>
+          <div style={{
+            width: 32, height: 32, border: `3px solid ${toss.cardBorder}`,
+            borderTopColor: toss.red, borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+            margin: '0 auto 12px',
+          }} />
+          분석하고 있어요
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       ) : items.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 80, color: colors.textMuted, fontSize: 14 }}>
-          데이터를 수집하고 있어요
+        <div style={{ textAlign: 'center', padding: 100, color: toss.dimText, fontSize: 14 }}>
+          데이터를 모으고 있어요
         </div>
       ) : (
         <>
+          {/* 하이라이트 카드 */}
+          {topItem && (
+            <div style={{
+              margin: '0 20px 16px', padding: '24px 22px', borderRadius: 20,
+              background: dark
+                ? 'linear-gradient(135deg, rgba(240,68,82,0.12) 0%, rgba(240,68,82,0.04) 100%)'
+                : 'linear-gradient(135deg, rgba(240,68,82,0.06) 0%, rgba(255,255,255,1) 100%)',
+              border: `1px solid ${dark ? 'rgba(240,68,82,0.15)' : 'rgba(240,68,82,0.1)'}`,
+            }}>
+              <div style={{ fontSize: 11, color: toss.subText, letterSpacing: '-0.2px' }}>
+                가장 높은 초과수익률
+              </div>
+              <div style={{
+                display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 8,
+              }}>
+                <span style={{
+                  fontSize: 32, fontWeight: 900, fontFamily: FONTS.mono,
+                  color: toss.red, letterSpacing: '-1.5px', lineHeight: 1,
+                }}>+{(topItem.avg_excess_close || 0).toFixed(2)}%</span>
+                <span style={{
+                  fontSize: 15, fontWeight: 700, color: colors.textPrimary,
+                }}>{topItem.type}</span>
+              </div>
+              <div style={{
+                display: 'flex', gap: 16, marginTop: 14,
+              }}>
+                <div>
+                  <span style={{ fontSize: 10, color: toss.dimText }}>승률</span>
+                  <span style={{
+                    fontSize: 14, fontWeight: 800, fontFamily: FONTS.mono,
+                    color: toss.red, marginLeft: 4,
+                  }}>{(topItem.win_rate || 0).toFixed(0)}%</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: 10, color: toss.dimText }}>표본</span>
+                  <span style={{
+                    fontSize: 14, fontWeight: 800, fontFamily: FONTS.mono,
+                    color: colors.textPrimary, marginLeft: 4,
+                  }}>{topItem.count}건</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: 10, color: toss.dimText }}>전체</span>
+                  <span style={{
+                    fontSize: 14, fontWeight: 800, fontFamily: FONTS.mono,
+                    color: colors.textPrimary, marginLeft: 4,
+                  }}>{totalSamples.toLocaleString()}건</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 상승 시그널 */}
           {positive.length > 0 && (
             <div style={{
-              margin: '0 20px 12px', borderRadius: 16, overflow: 'hidden',
-              background: cardBg, border: `1px solid ${cardBorder}`,
+              margin: '0 20px 12px', borderRadius: 20, overflow: 'hidden',
+              background: toss.cardBg,
+              border: `1px solid ${toss.cardBorder}`,
             }}>
               <div style={{
-                padding: '14px 18px',
-                borderBottom: `1px solid ${cardBorder}`,
+                padding: '16px 20px 12px',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
-                <span style={{ fontSize: 13, fontWeight: 800, color: '#F04452' }}>상승 시그널</span>
-                <span style={{ fontSize: 11, color: colors.textMuted }}>시장 대비 초과 상승</span>
+                <div style={{
+                  width: 6, height: 6, borderRadius: 3, background: toss.red,
+                }} />
+                <span style={{
+                  fontSize: 14, fontWeight: 800, color: colors.textPrimary,
+                  letterSpacing: '-0.3px',
+                }}>상승 시그널</span>
+                <span style={{ fontSize: 11, color: toss.dimText, marginLeft: 2 }}>
+                  공시 후 시장보다 올랐어요
+                </span>
               </div>
+              <div style={{ height: 1, background: toss.cardBorder }} />
               {positive.map((item, idx) => (
-                <SignalRow key={item.type} item={item} rank={idx + 1}
+                <SignalItem key={item.type} item={item} rank={idx + 1}
                   globalIdx={items.indexOf(item)} isPositive={true} />
               ))}
             </div>
@@ -219,43 +310,61 @@ export default function SignalPage() {
           {/* 하락 시그널 */}
           {negative.length > 0 && (
             <div style={{
-              margin: '0 20px 12px', borderRadius: 16, overflow: 'hidden',
-              background: cardBg, border: `1px solid ${cardBorder}`,
+              margin: '0 20px 12px', borderRadius: 20, overflow: 'hidden',
+              background: toss.cardBg,
+              border: `1px solid ${toss.cardBorder}`,
             }}>
               <div style={{
-                padding: '14px 18px',
-                borderBottom: `1px solid ${cardBorder}`,
+                padding: '16px 20px 12px',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
-                <span style={{ fontSize: 13, fontWeight: 800, color: '#3182F6' }}>하락 시그널</span>
-                <span style={{ fontSize: 11, color: colors.textMuted }}>시장 대비 초과 하락</span>
+                <div style={{
+                  width: 6, height: 6, borderRadius: 3, background: toss.blue,
+                }} />
+                <span style={{
+                  fontSize: 14, fontWeight: 800, color: colors.textPrimary,
+                  letterSpacing: '-0.3px',
+                }}>하락 시그널</span>
+                <span style={{ fontSize: 11, color: toss.dimText, marginLeft: 2 }}>
+                  공시 후 시장보다 내렸어요
+                </span>
               </div>
+              <div style={{ height: 1, background: toss.cardBorder }} />
               {negative.map((item, idx) => (
-                <SignalRow key={item.type} item={item} rank={idx + 1}
+                <SignalItem key={item.type} item={item} rank={idx + 1}
                   globalIdx={items.indexOf(item)} isPositive={false} />
               ))}
             </div>
           )}
 
-          {/* 안내 — 토스 스타일 */}
+          {/* 안내 */}
           <div style={{
-            margin: '8px 20px 0', padding: '16px 18px', borderRadius: 16,
-            background: subtleBg,
+            margin: '4px 20px', padding: '18px 20px', borderRadius: 16,
+            background: toss.cardBg,
+            border: `1px solid ${toss.cardBorder}`,
           }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: colors.textSecondary, marginBottom: 6 }}>
-              이렇게 분석했어요
-            </div>
-            <div style={{ fontSize: 11, color: colors.textMuted, lineHeight: 1.7 }}>
-              초과수익률은 공시 당일 종목 수익률에서 시장 전체 수익률을 뺀 값이에요. 시장이 올라도 공시 효과만 분리해서 측정해요.
+            <div style={{
+              fontSize: 13, fontWeight: 700, color: colors.textPrimary,
+              letterSpacing: '-0.3px', marginBottom: 8,
+            }}>이렇게 계산했어요</div>
+            <div style={{
+              fontSize: 12, color: toss.subText, lineHeight: 1.8,
+              letterSpacing: '-0.2px',
+            }}>
+              초과수익률 = 종목 수익률 - 시장 수익률
+              <br />
+              승률 = 초과수익률이 0보다 큰 비율
+              <br />
+              시장이 올라도 공시 효과만 분리해요
             </div>
           </div>
 
           {/* 면책 */}
           <div style={{
-            padding: '16px 24px 20px', fontSize: 11, color: colors.textMuted,
-            lineHeight: 1.6, textAlign: 'center',
+            padding: '16px 24px 24px', fontSize: 11, color: toss.dimText,
+            lineHeight: 1.6, textAlign: 'center', letterSpacing: '-0.2px',
           }}>
-            과거 실적 기반이며 미래 수익을 보장하지 않아요
+            과거 데이터 기반이며 미래 수익을 보장하지 않아요
           </div>
         </>
       )}
