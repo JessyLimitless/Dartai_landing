@@ -280,9 +280,22 @@ function MarkdownBody({ content, colors, dark }) {
 function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
   const now = new Date()
   const kstNow = new Date(now.getTime() + 9 * 3600000)
-  const year = kstNow.getUTCFullYear()
-  const month = kstNow.getUTCMonth()
+  const todayYear = kstNow.getUTCFullYear()
+  const todayMonth = kstNow.getUTCMonth()
   const today = kstNow.getUTCDate()
+
+  // 현재 월에 브리핑 없으면 가장 최신 브리핑이 있는 월로
+  const currentMonthKey = `${todayYear}-${String(todayMonth + 1).padStart(2, '0')}`
+  const hasCurrentMonth = briefings.some(b => b.id?.startsWith(currentMonthKey))
+  let year = todayYear, month = todayMonth
+  if (!hasCurrentMonth && briefings.length > 0) {
+    const latest = briefings.find(b => /^\d{4}-\d{2}-\d{2}$/.test(b.id))
+    if (latest) {
+      const [y, m] = latest.id.split('-')
+      year = parseInt(y)
+      month = parseInt(m) - 1
+    }
+  }
 
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -348,9 +361,10 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
 
           const hasBriefing = !!briefingMap[day]
           const isSelected = day === selectedDay
-          const isToday = day === today
+          const isCurrentMonth = year === todayYear && month === todayMonth
+          const isToday = isCurrentMonth && day === today
           const dayOfWeek = (firstDay + day - 1) % 7
-          const isPast = day < today
+          const isPast = isCurrentMonth ? day < today : true
 
           return (
             <div key={day} className={hasBriefing ? 'touch-press' : ''}
