@@ -12,7 +12,7 @@ const TABS = [
   { key: '/issues', label: '이슈', mobileLabel: '이슈' },
   { key: '/signal', label: '시그널', mobileLabel: '시그널' },
   { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
-  { key: '/dart-event', label: '일정', mobileLabel: '일정' },
+  { key: '/dart-event', label: '일정', mobileLabel: '일정', desktopOnly: true },
   { key: '/deep-dive', label: '기업카드', mobileLabel: '기업카드', desktopOnly: true },
 ]
 
