@@ -546,7 +546,7 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <svg width="10" height="10" viewBox="0 0 12 12"><path d="M6 1L10 7H2Z" fill="#DC2626"/></svg>
-            <span style={{ fontSize: 11, fontWeight: 800, color: colors.textPrimary, letterSpacing: '-0.2px' }}>급등</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: colors.textPrimary, letterSpacing: '-0.2px' }}>공시 후 실시간 급등</span>
             <span style={{
               fontSize: 9, fontWeight: 700, fontFamily: FONTS.mono,
               color: '#DC2626',
