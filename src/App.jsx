@@ -164,8 +164,8 @@ export default function App() {
           onSelectNotification={handleSelectNotification}
         />
 
-        {/* 버핏 챗 플로팅 패널 (프리미엄 + 기업카드 페이지) */}
-        {(location.pathname === '/premium' || location.pathname.startsWith('/deep-dive')) && <BuffettChatPanel />}
+        {/* 버핏 챗 플로팅 패널 (전체 페이지) */}
+        <BuffettChatPanel />
 
         {/* 이메일 수집 배너 (랜딩 제외) */}
         {!isLanding && <EmailCapture />}
