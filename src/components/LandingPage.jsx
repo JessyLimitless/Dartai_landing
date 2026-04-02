@@ -142,8 +142,8 @@ export default function LandingPage() {
               fontSize: 'clamp(15px, 2vw, 18px)', color: '#71717A',
               lineHeight: 1.6, margin: '0 0 40px', maxWidth: 480, marginLeft: 'auto', marginRight: 'auto',
             }}>
-              매일 800건의 공시 중 주가에 영향을 주는 핵심만 골라내고,<br />
-              공시 직후 움직이는 종목을 실시간으로 포착합니다.
+              매일 800건의 공시, 다 읽을 수 없잖아요.<br />
+              주가를 움직이는 핵심 5건만 골라서 알려드려요.
             </p>
           </Reveal>
 
@@ -528,14 +528,14 @@ export default function LandingPage() {
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 56px', letterSpacing: '-0.02em',
             }}>
-              3단계로 핵심만 잡아냅니다
+              이렇게 도와드려요
             </h2>
           </Reveal>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
             {[
-              { step: '01', title: '공시 실시간 수집', desc: 'DART + KRX KIND에서 매 분 수집합니다. 800건 중 주가에 영향을 주는 S/A등급만 필터링합니다.' },
-              { step: '02', title: '공시 임팩트 포착', desc: '공시 발표 후 주가가 움직이는 종목을 10분 간격으로 추적합니다. 소각 → 급등, 유상증자 → 급락을 실시간으로 보여줍니다.' },
-              { step: '03', title: 'AI 기업소개 + 딥분석', desc: '종목을 클릭하면 AI가 이 기업이 뭘 하는 곳인지, 재무가 어떤지, 차트가 어떤 흐름인지 즉시 설명합니다.' },
+              { step: '01', title: '하루 800건, 핵심 5건만', desc: '매일 쏟아지는 공시 중에서 주가를 움직이는 S/A등급만 골라드려요. 나머지 795건은 볼 필요 없어요.' },
+              { step: '02', title: '공시 나오면, 바로 포착', desc: '공시 직후 급등하는 종목을 실시간으로 추적해요. 어떤 공시에 시장이 반응하는지 한눈에 보여요.' },
+              { step: '03', title: 'AI가 기업을 설명해줘요', desc: '처음 보는 종목이어도 괜찮아요. AI가 이 회사가 뭘 하는 곳인지, 재무는 어떤지, 지금 왜 움직이는지 쉽게 설명해줘요.' },
             ].map((item, i) => (
               <Reveal key={i} d={i * 100}>
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
