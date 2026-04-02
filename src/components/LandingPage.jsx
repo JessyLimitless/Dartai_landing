@@ -625,22 +625,75 @@ export default function LandingPage() {
                       </div>
                     </div>
 
+                    {/* 기업카드 미니 모크업 */}
+                    <div style={{
+                      margin: '0 16px', padding: '14px 16px', borderRadius: 14,
+                      background: '#F8F8FA', border: '1px solid #EBEBEB',
+                    }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#A1A1AA', letterSpacing: '0.05em', marginBottom: 10 }}>
+                        기업카드 화면
+                      </div>
+                      {/* 카드 헤더 */}
+                      <div style={{
+                        padding: '12px 14px', borderRadius: 12,
+                        background: '#fff', border: '1px solid #F0F0F2',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ fontSize: 16, fontWeight: 800, color: '#18181B', fontFamily: FONTS.serif }}>삼성전자</span>
+                              <span style={{ fontSize: 10, color: '#A1A1AA', fontFamily: FONTS.mono }}>005930</span>
+                              <span style={{
+                                fontSize: 9, fontWeight: 600, padding: '1px 5px', borderRadius: 3,
+                                background: '#F0F0F2', color: '#71717A',
+                              }}>KOSPI</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
+                              <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono, color: '#18181B' }}>62,300</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: FONTS.mono, color: R }}>+13.4%</span>
+                            </div>
+                          </div>
+                          <div style={{
+                            width: 48, height: 28, borderRadius: 6,
+                            background: 'linear-gradient(90deg, #E4E4E7 0%, #E4E4E7 30%, #A1A1AA 45%, #D4D4D8 55%, #71717A 70%, #A1A1AA 100%)',
+                            opacity: 0.3,
+                          }} />
+                        </div>
+                        {/* AI 기업소개 버튼 */}
+                        <div style={{
+                          marginTop: 12, padding: '10px', borderRadius: 10,
+                          background: `linear-gradient(135deg, ${R} 0%, #E8364E 100%)`,
+                          color: '#fff', textAlign: 'center',
+                          fontSize: 13, fontWeight: 700,
+                          boxShadow: '0 2px 8px rgba(220,38,38,0.25)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                          AI 기업소개
+                        </div>
+                        <div style={{ fontSize: 10, color: '#A1A1AA', textAlign: 'center', marginTop: 6 }}>
+                          이 버튼을 누르면 위와 같은 AI 분석을 받을 수 있어요
+                        </div>
+                      </div>
+                    </div>
+
                     {/* 경로 안내 */}
                     <div style={{
                       padding: '14px 18px 18px',
-                      borderTop: '1px solid #F2F2F4',
                     }}>
                       <div style={{
                         display: 'flex', alignItems: 'center', gap: 6,
-                        fontSize: 12, color: '#71717A', letterSpacing: '-0.2px',
+                        fontSize: 11, color: '#A1A1AA', letterSpacing: '-0.2px',
                         justifyContent: 'center', flexWrap: 'wrap',
                       }}>
-                        <span style={{ fontWeight: 600, color: '#18181B' }}>공시 탭</span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-                        <span style={{ fontWeight: 600, color: '#18181B' }}>종목 클릭</span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-                        <span style={{ fontWeight: 600, color: '#18181B' }}>기업카드</span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        <span style={{ fontWeight: 600, color: '#71717A' }}>공시 탭</span>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#D4D4D8" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        <span style={{ fontWeight: 600, color: '#71717A' }}>종목 클릭</span>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#D4D4D8" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        <span style={{ fontWeight: 600, color: '#71717A' }}>기업카드</span>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#D4D4D8" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
                         <span style={{ fontWeight: 700, color: R }}>AI 기업소개</span>
                       </div>
                     </div>
