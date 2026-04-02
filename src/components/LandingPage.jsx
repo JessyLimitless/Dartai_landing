@@ -574,7 +574,7 @@ export default function LandingPage() {
                       </div>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: '#18181B', letterSpacing: '-0.3px' }}>AI 기업분석</div>
-                        <div style={{ fontSize: 10, color: '#A1A1AA', letterSpacing: '-0.1px' }}>실시간 DART 데이터 기반</div>
+                        <div style={{ fontSize: 10, color: '#A1A1AA' }}>DART + 키움 실시간 데이터 기반</div>
                       </div>
                     </div>
 
@@ -597,57 +597,52 @@ export default function LandingPage() {
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           marginTop: 2,
                         }}>
-                          <span style={{ fontSize: 12 }}>AI</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: R }}>AI</span>
                         </div>
                         <div style={{
                           flex: 1, padding: '14px 16px', borderRadius: '4px 16px 16px 16px',
                           background: '#F8F8FA', border: '1px solid #F0F0F2',
-                          fontSize: 13, color: '#3F3F46', lineHeight: 1.75,
+                          fontSize: 13, color: '#3F3F46', lineHeight: 1.8,
                           letterSpacing: '-0.2px',
                         }}>
-                          <strong style={{ color: '#18181B' }}>삼성전자</strong>는 글로벌 반도체 1위 기업이에요. DRAM과 NAND 메모리에서 세계 시장점유율 1위를 유지하고 있고, 파운드리와 시스템LSI 사업도 확대하고 있어요.
+                          <strong style={{ color: '#18181B' }}>삼성전자</strong>는 시가총액 1,056조원의 글로벌 반도체 1위 기업이에요. DRAM과 NAND 메모리에서 세계 1위를 유지하고 있고, 최근 AI 반도체 수요 폭증으로 HBM 시장에서도 빠르게 성장하고 있어요.
 
                           <div style={{ marginTop: 10 }}>
-                            최근 AI 반도체 수요 폭증으로 HBM(고대역폭메모리) 시장에서 SK하이닉스를 추격 중이에요.
+                            2024년 매출 300.9조원, 영업이익 32.7조원으로 전년 대비 크게 회복했어요. 외국인 보유비율 48.4%로 글로벌 투자자들의 신뢰가 높은 편이에요.
                           </div>
 
-                          {/* 재무 미니 카드 */}
                           <div style={{
-                            marginTop: 14, padding: '12px 14px', borderRadius: 12,
-                            background: '#fff', border: '1px solid #EBEBEB',
+                            marginTop: 10, padding: '6px 0',
+                            color: '#A1A1AA', fontSize: 12, fontStyle: 'italic',
                           }}>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: '#A1A1AA', marginBottom: 8, letterSpacing: '0.05em' }}>KEY FINANCIALS</div>
-                            {[
-                              { label: '시가총액', value: '1,056조', accent: false },
-                              { label: '매출액', value: '300.9조', accent: false },
-                              { label: '영업이익', value: '32.7조', accent: true },
-                              { label: '외국인 보유', value: '48.4%', accent: false },
-                            ].map((row, ri) => (
-                              <div key={ri} style={{
-                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                padding: '5px 0',
-                                borderBottom: ri < 3 ? '1px solid #F8F8FA' : 'none',
-                              }}>
-                                <span style={{ fontSize: 11, color: '#71717A' }}>{row.label}</span>
-                                <span style={{
-                                  fontSize: 12, fontWeight: 700, fontFamily: FONTS.mono,
-                                  color: row.accent ? R : '#18181B',
-                                }}>{row.value}</span>
-                              </div>
-                            ))}
+                            (...중략)
+                          </div>
+
+                          <div style={{ marginTop: 6 }}>
+                            다만 파운드리 수율 이슈와 중국 메모리 업체의 추격은 주의할 부분이에요. 현재 주가는 52주 최고가 대비 61% 수준에서 거래되고 있어요.
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* 하단 */}
+                    {/* 경로 안내 */}
                     <div style={{
-                      padding: '12px 16px 16px', textAlign: 'center',
+                      padding: '14px 18px 18px',
                       borderTop: '1px solid #F2F2F4',
                     }}>
-                      <span style={{ fontSize: 12, color: '#A1A1AA', letterSpacing: '-0.2px' }}>
-                        기업카드에서 <strong style={{ color: R }}>AI 기업소개</strong> 버튼을 눌러보세요
-                      </span>
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        fontSize: 12, color: '#71717A', letterSpacing: '-0.2px',
+                        justifyContent: 'center', flexWrap: 'wrap',
+                      }}>
+                        <span style={{ fontWeight: 600, color: '#18181B' }}>공시 탭</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        <span style={{ fontWeight: 600, color: '#18181B' }}>종목 클릭</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        <span style={{ fontWeight: 600, color: '#18181B' }}>기업카드</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        <span style={{ fontWeight: 700, color: R }}>AI 기업소개</span>
+                      </div>
                     </div>
                   </div>
                 )}
