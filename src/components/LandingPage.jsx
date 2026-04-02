@@ -535,7 +535,7 @@ export default function LandingPage() {
             {[
               { step: '01', title: '하루 800건, 핵심 5건만', desc: '매일 쏟아지는 공시 중에서 주가를 움직이는 S/A등급만 골라드려요. 나머지 795건은 볼 필요 없어요.' },
               { step: '02', title: '공시 나오면, 바로 포착', desc: '공시 직후 급등하는 종목을 실시간으로 추적해요. 어떤 공시에 시장이 반응하는지 한눈에 보여요.' },
-              { step: '03', title: 'AI가 기업을 설명해줘요', desc: '처음 보는 종목이어도 괜찮아요. AI가 이 회사가 뭘 하는 곳인지, 재무는 어떤지, 지금 왜 움직이는지 쉽게 설명해줘요.' },
+              { step: '03', title: 'AI가 기업을 설명해줘요', desc: '처음 보는 종목이어도 괜찮아요. 일반 AI와 달리 DART 공시와 실시간 시세 데이터를 직접 읽고 답해서 정확해요.' },
             ].map((item, i) => (
               <Reveal key={i} d={i * 100}>
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
@@ -578,6 +578,18 @@ export default function LandingPage() {
                       </div>
                     </div>
 
+                    {/* 강점 배지 */}
+                    <div style={{
+                      padding: '0 16px', display: 'flex', gap: 6, flexWrap: 'wrap',
+                    }}>
+                      {['실시간 DART 공시', '키움 시세 연동', '재무제표 검증'].map(tag => (
+                        <span key={tag} style={{
+                          fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 6,
+                          background: '#FEF2F2', color: R, letterSpacing: '-0.1px',
+                        }}>{tag}</span>
+                      ))}
+                    </div>
+
                     {/* 대화 영역 */}
                     <div style={{ padding: '18px 16px 14px' }}>
                       {/* 사용자 */}
@@ -605,10 +617,10 @@ export default function LandingPage() {
                           fontSize: 13, color: '#3F3F46', lineHeight: 1.8,
                           letterSpacing: '-0.2px',
                         }}>
-                          <strong style={{ color: '#18181B' }}>삼성전자</strong>는 시가총액 1,056조원의 글로벌 반도체 1위 기업이에요. DRAM과 NAND 메모리에서 세계 1위를 유지하고 있고, 최근 AI 반도체 수요 폭증으로 HBM 시장에서도 빠르게 성장하고 있어요.
+                          <strong style={{ color: '#18181B' }}>삼성전자</strong>는 시가총액 1,056조원의 글로벌 반도체 1위 기업이에요. DRAM과 NAND 메모리 세계 1위, 최근 AI 수요 폭증으로 HBM 시장에서도 빠르게 성장하고 있어요.
 
                           <div style={{ marginTop: 10 }}>
-                            2024년 매출 300.9조원, 영업이익 32.7조원으로 전년 대비 크게 회복했어요. 외국인 보유비율 48.4%로 글로벌 투자자들의 신뢰가 높은 편이에요.
+                            2024년 매출 300.9조원, 영업이익 32.7조원으로 전년 대비 크게 회복했고, 외국인 보유비율 48.4%로 글로벌 신뢰가 높아요. 현재가 180,000원이에요.
                           </div>
 
                           <div style={{
@@ -619,7 +631,7 @@ export default function LandingPage() {
                           </div>
 
                           <div style={{ marginTop: 6 }}>
-                            다만 파운드리 수율 이슈와 중국 메모리 업체의 추격은 주의할 부분이에요. 현재 주가는 52주 최고가 대비 61% 수준에서 거래되고 있어요.
+                            다만 파운드리 수율 이슈와 중국 메모리 업체의 추격은 주의 포인트에요. 52주 최고가 대비 61% 수준에서 거래 중이에요.
                           </div>
                         </div>
                       </div>
@@ -649,7 +661,7 @@ export default function LandingPage() {
                               }}>KOSPI</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-                              <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono, color: '#18181B' }}>62,300</span>
+                              <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono, color: '#18181B' }}>180,000</span>
                               <span style={{ fontSize: 12, fontWeight: 700, fontFamily: FONTS.mono, color: R }}>+13.4%</span>
                             </div>
                           </div>
@@ -673,8 +685,10 @@ export default function LandingPage() {
                           </svg>
                           AI 기업소개
                         </div>
-                        <div style={{ fontSize: 10, color: '#A1A1AA', textAlign: 'center', marginTop: 6 }}>
+                        <div style={{ fontSize: 10, color: '#71717A', textAlign: 'center', marginTop: 8, lineHeight: 1.6 }}>
                           이 버튼을 누르면 위와 같은 AI 분석을 받을 수 있어요
+                          <br />
+                          <span style={{ color: '#A1A1AA' }}>일반 ChatGPT와 달리 실제 DART 데이터로 답해요</span>
                         </div>
                       </div>
                     </div>
