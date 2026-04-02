@@ -292,41 +292,9 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
           )
         })()}
 
-        {/* AI 기업분석 버튼 */}
-        {(raw.corp_code || data?.corp_code) && (
-          <div style={{ padding: '0 16px 8px' }}>
-            <button
-              className="touch-press"
-              onClick={() => {
-                const cc = data?.corp_code || raw.corp_code
-                if (cc) {
-                  window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: cc }))
-                  handleClose()
-                }
-              }}
-              style={{
-                width: '100%', padding: '13px 16px', borderRadius: 12,
-                border: 'none', cursor: 'pointer',
-                background: 'linear-gradient(135deg, #F04452 0%, #E8364E 100%)',
-                color: '#fff',
-                fontSize: 13, fontWeight: 700, letterSpacing: '-0.2px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                minHeight: 48,
-                boxShadow: '0 2px 8px rgba(240,68,82,0.2)',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
-                <line x1="9" y1="21" x2="15" y2="21" />
-              </svg>
-              AI 기업분석
-            </button>
-          </div>
-        )}
-
         {/* 푸터 액션 */}
         <div style={{
-          padding: '8px 16px',
+          padding: '12px 16px',
           paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
           borderTop: `1px solid ${border}`,
           display: 'flex', gap: 8,
@@ -344,11 +312,15 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
                 border: `1px solid ${border}`,
                 background: 'transparent',
                 color: colors.textSecondary,
-                fontSize: 13, fontWeight: 600,
+                fontSize: 14, fontWeight: 600,
                 textDecoration: 'none',
-                minHeight: 44,
+                minHeight: 48,
               }}
             >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
               DART 원문
             </a>
           ) : (
@@ -358,8 +330,8 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
               border: `1px solid ${border}`,
               background: 'transparent',
               color: colors.textMuted,
-              fontSize: 11, fontWeight: 500,
-              minHeight: 44,
+              fontSize: 12, fontWeight: 500,
+              minHeight: 48,
             }}>
               DART 원문 등록 대기 중
             </div>
@@ -369,6 +341,7 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
             <button
               className="touch-press"
               onClick={() => {
+                // corp_code 우선, 없으면 stock_code
                 const cc = data?.corp_code || raw.corp_code || data?.stock_code || raw.stock_code
                 if (cc) {
                   onViewCard?.(cc)
@@ -381,13 +354,13 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
                 border: 'none',
                 background: dark ? '#FAFAFA' : '#18181B',
                 color: dark ? '#18181B' : '#FAFAFA',
-                fontSize: 13, fontWeight: 700,
+                fontSize: 14, fontWeight: 700,
                 cursor: 'pointer',
-                minHeight: 44,
+                minHeight: 48,
               }}
             >
-              기업 카드
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              기업 카드 보기
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
