@@ -548,83 +548,106 @@ export default function LandingPage() {
                     <div style={{ fontSize: 15, color: '#71717A', lineHeight: 1.7 }}>{item.desc}</div>
                   </div>
                 </div>
-                {/* 03번: AI 챗봇 미리보기 */}
+                {/* 03번: AI 챗봇 실제 화면 미리보기 */}
                 {i === 2 && (
                   <div style={{
-                    marginTop: 24, marginLeft: 68, borderRadius: 16, overflow: 'hidden',
-                    background: '#FAFAFA', border: '1px solid #EBEBEB',
-                    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-                    maxWidth: 380,
+                    marginTop: 24, marginLeft: 68, borderRadius: 20, overflow: 'hidden',
+                    background: '#fff', border: '1px solid #E8E8EC',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                    maxWidth: 360,
                   }}>
                     {/* 챗봇 헤더 */}
                     <div style={{
-                      padding: '12px 16px', borderBottom: '1px solid #F0F0F0',
-                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '14px 18px', borderBottom: '1px solid #F2F2F4',
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      background: '#FAFAFA',
                     }}>
                       <div style={{
-                        width: 28, height: 28, borderRadius: 8,
-                        background: R, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: 32, height: 32, borderRadius: 10,
+                        background: `linear-gradient(135deg, ${R} 0%, #E8364E 100%)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 2px 6px rgba(220,38,38,0.2)',
                       }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
-                          <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                         </svg>
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>AI 기업분석</div>
-                        <div style={{ fontSize: 10, color: '#A1A1AA' }}>DART Insight</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#18181B', letterSpacing: '-0.3px' }}>AI 기업분석</div>
+                        <div style={{ fontSize: 10, color: '#A1A1AA', letterSpacing: '-0.1px' }}>실시간 DART 데이터 기반</div>
                       </div>
                     </div>
-                    {/* 대화 내용 */}
-                    <div style={{ padding: '16px' }}>
-                      {/* 사용자 질문 */}
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+
+                    {/* 대화 영역 */}
+                    <div style={{ padding: '18px 16px 14px' }}>
+                      {/* 사용자 */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
                         <div style={{
-                          padding: '10px 14px', borderRadius: '14px 14px 4px 14px',
-                          background: R, color: '#fff',
-                          fontSize: 13, fontWeight: 600, maxWidth: '75%',
-                        }}>한화에어로스페이스 소개해줘</div>
+                          padding: '10px 14px', borderRadius: '16px 16px 4px 16px',
+                          background: '#18181B', color: '#fff',
+                          fontSize: 13, fontWeight: 600,
+                        }}>삼성전자 소개해줘</div>
                       </div>
+
                       {/* AI 응답 */}
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                         <div style={{
-                          width: 24, height: 24, borderRadius: 6, flexShrink: 0,
-                          background: '#F4F4F5', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+                          background: 'linear-gradient(135deg, #FEE2E2, #FFF)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
                           marginTop: 2,
                         }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={R} strokeWidth="2" strokeLinecap="round">
-                            <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
-                          </svg>
+                          <span style={{ fontSize: 12 }}>AI</span>
                         </div>
                         <div style={{
-                          padding: '12px 14px', borderRadius: '4px 14px 14px 14px',
-                          background: '#fff', border: '1px solid #F0F0F0',
-                          fontSize: 12.5, color: '#3F3F46', lineHeight: 1.7,
-                          maxWidth: '85%',
+                          flex: 1, padding: '14px 16px', borderRadius: '4px 16px 16px 16px',
+                          background: '#F8F8FA', border: '1px solid #F0F0F2',
+                          fontSize: 13, color: '#3F3F46', lineHeight: 1.75,
+                          letterSpacing: '-0.2px',
                         }}>
-                          <strong style={{ color: '#18181B' }}>한화에어로스페이스</strong>는 K-방산의 핵심 기업이에요.
-                          항공엔진, 자주포, 장갑차를 만들고 있고, 최근 폴란드에 <strong style={{ color: R }}>2조원 규모의 부품공급 계약</strong>을 체결했어요.
+                          <strong style={{ color: '#18181B' }}>삼성전자</strong>는 글로벌 반도체 1위 기업이에요. DRAM과 NAND 메모리에서 세계 시장점유율 1위를 유지하고 있고, 파운드리와 시스템LSI 사업도 확대하고 있어요.
+
+                          <div style={{ marginTop: 10 }}>
+                            최근 AI 반도체 수요 폭증으로 HBM(고대역폭메모리) 시장에서 SK하이닉스를 추격 중이에요.
+                          </div>
+
+                          {/* 재무 미니 카드 */}
                           <div style={{
-                            marginTop: 10, padding: '8px 10px', borderRadius: 8,
-                            background: '#FAFAFA', fontSize: 11, color: '#71717A',
+                            marginTop: 14, padding: '12px 14px', borderRadius: 12,
+                            background: '#fff', border: '1px solid #EBEBEB',
                           }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <span>매출</span><span style={{ fontFamily: FONTS.mono, color: '#18181B', fontWeight: 700 }}>11.2조</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                              <span>영업이익률</span><span style={{ fontFamily: FONTS.mono, color: R, fontWeight: 700 }}>12.3%</span>
-                            </div>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#A1A1AA', marginBottom: 8, letterSpacing: '0.05em' }}>KEY FINANCIALS</div>
+                            {[
+                              { label: '시가총액', value: '1,056조', accent: false },
+                              { label: '매출액', value: '300.9조', accent: false },
+                              { label: '영업이익', value: '32.7조', accent: true },
+                              { label: '외국인 보유', value: '48.4%', accent: false },
+                            ].map((row, ri) => (
+                              <div key={ri} style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                padding: '5px 0',
+                                borderBottom: ri < 3 ? '1px solid #F8F8FA' : 'none',
+                              }}>
+                                <span style={{ fontSize: 11, color: '#71717A' }}>{row.label}</span>
+                                <span style={{
+                                  fontSize: 12, fontWeight: 700, fontFamily: FONTS.mono,
+                                  color: row.accent ? R : '#18181B',
+                                }}>{row.value}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
                     </div>
-                    {/* 하단 CTA */}
+
+                    {/* 하단 */}
                     <div style={{
-                      padding: '10px 16px 14px', borderTop: '1px solid #F0F0F0',
-                      textAlign: 'center',
+                      padding: '12px 16px 16px', textAlign: 'center',
+                      borderTop: '1px solid #F2F2F4',
                     }}>
-                      <span style={{
-                        fontSize: 11, color: '#A1A1AA',
-                      }}>기업카드에서 <strong style={{ color: R }}>AI 기업소개</strong> 버튼을 눌러보세요</span>
+                      <span style={{ fontSize: 12, color: '#A1A1AA', letterSpacing: '-0.2px' }}>
+                        기업카드에서 <strong style={{ color: R }}>AI 기업소개</strong> 버튼을 눌러보세요
+                      </span>
                     </div>
                   </div>
                 )}
