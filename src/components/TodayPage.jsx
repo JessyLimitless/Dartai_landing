@@ -74,55 +74,37 @@ export default function TodayPage({ onViewCard }) {
   const visibleItems = showAll ? filtered : filtered.slice(0, 20)
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
-  // 공시 후 상승 종목
-  // 장중: base_price(공시 시점) 대비 현재가 변동률
-  // 장외: base_price 없거나 변동 0이면 전일 대비(change_pct)로 폴백
-  const risers = useMemo(() => {
-    const seen = new Set()
-    return todayDisclosures
-      .filter(d => {
-        // 투자주의/경고/위험 필터 — KIND 인코딩 깨짐 대응
-        const rn = d.report_nm || ''
-        const rno = d.rcept_no || ''
-        if (rno.startsWith('KIND_') || d.source === 'KIND') {
-          if (d.grade === 'D') return false
-        } else if (rno.startsWith('NAVER_')) {
-          if (/소수계좌|소수지점/.test(rn)) { /* 포함 */ }
-          else return false
-        } else {
-          if (/투자주의|투자경고|투자위험/.test(rn)) return false
-        }
-        const bp = d.base_price
-        const pd = prices[d.stock_code]
-        if (!pd?.price || pd.price <= 0) return false
-        // base_price 기준 변동률
-        if (bp && bp > 0) {
-          const impact = (pd.price - bp) / bp * 100
-          if (impact > 0.5) return !seen.has(d.stock_code) && seen.add(d.stock_code)
-        }
-        // 폴백: 전일 대비 변동률 (장외 또는 base_price 변동 미미할 때)
-        if (pd.change_pct > 0.5) return !seen.has(d.stock_code) && seen.add(d.stock_code)
-        return false
+  // 공시 후 상승 종목 — 서버 API 사용 (장중 실시간 / 장외 종가 고정)
+  const [risers, setRisers] = useState([])
+  useEffect(() => {
+    fetch(`${API}/api/risers/top5`)
+      .then(r => r.json())
+      .then(d => {
+        const list = (d.risers || []).map(r => ({
+          ...r,
+          changePct: r.change_pct || 0,
+        }))
+        setRisers(list)
       })
-      .map(d => {
-        const pd = prices[d.stock_code]
-        const bp = d.base_price
-        const currentPrice = pd.price
-        // base_price 기준 우선, 변동 미미하면 전일 대비 사용
-        let impact = 0
-        let useBase = false
-        if (bp && bp > 0) {
-          impact = (currentPrice - bp) / bp * 100
-          useBase = Math.abs(impact) > 0.5
-        }
-        if (!useBase) {
-          impact = pd.change_pct || 0
-        }
-        return { ...d, changePct: Math.round(impact * 10) / 10, price: currentPrice, basePrice: useBase ? bp : 0 }
-      })
-      .sort((a, b) => b.changePct - a.changePct)
-      .slice(0, 10)
-  }, [todayDisclosures, prices])
+      .catch(() => {})
+    // 장중 30초마다 갱신
+    const id = setInterval(() => {
+      const h = new Date(Date.now() + 9 * 3600000).getUTCHours()
+      if (h >= 9 && h < 16) {
+        fetch(`${API}/api/risers/top5`)
+          .then(r => r.json())
+          .then(d => {
+            const list = (d.risers || []).map(r => ({
+              ...r,
+              changePct: r.change_pct || 0,
+            }))
+            setRisers(list)
+          })
+          .catch(() => {})
+      }
+    }, 30000)
+    return () => clearInterval(id)
+  }, [])
 
   // DART Pick
   const [pick, setPick] = useState(null)
