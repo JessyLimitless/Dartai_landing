@@ -33,7 +33,7 @@ export default function AdminPage() {
 
     Promise.all([
       fetch(`${API}/api/admin/market-cap-ranking?limit=300`).then(r => r.json()),
-      fetch(`${API}/api/admin/disclosures?limit=200`).then(r => r.json()),
+      fetch(`${API}/api/admin/disclosures?limit=500`).then(r => r.json()),
       fetch(`${API}/api/admin/inquiries?limit=100`).then(r => r.json()),
       fetch(`${API}/api/admin/users`).then(r => r.json()),
     ]).then(([rankData, discData, inqData, userData]) => {
