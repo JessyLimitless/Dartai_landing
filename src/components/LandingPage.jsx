@@ -541,13 +541,93 @@ export default function LandingPage() {
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <span style={{
                     fontSize: 32, fontWeight: 800, fontFamily: FONTS.mono,
-                    color: i === 1 ? R : '#E4E4E7', lineHeight: 1, flexShrink: 0, width: 48,
+                    color: i === 1 ? R : (i === 2 ? R : '#E4E4E7'), lineHeight: 1, flexShrink: 0, width: 48,
                   }}>{item.step}</span>
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 18, fontWeight: 700, color: '#18181B', marginBottom: 8 }}>{item.title}</div>
                     <div style={{ fontSize: 15, color: '#71717A', lineHeight: 1.7 }}>{item.desc}</div>
                   </div>
                 </div>
+                {/* 03번: AI 챗봇 미리보기 */}
+                {i === 2 && (
+                  <div style={{
+                    marginTop: 24, marginLeft: 68, borderRadius: 16, overflow: 'hidden',
+                    background: '#FAFAFA', border: '1px solid #EBEBEB',
+                    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+                    maxWidth: 380,
+                  }}>
+                    {/* 챗봇 헤더 */}
+                    <div style={{
+                      padding: '12px 16px', borderBottom: '1px solid #F0F0F0',
+                      display: 'flex', alignItems: 'center', gap: 8,
+                    }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: 8,
+                        background: R, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+                          <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#18181B' }}>AI 기업분석</div>
+                        <div style={{ fontSize: 10, color: '#A1A1AA' }}>DART Insight</div>
+                      </div>
+                    </div>
+                    {/* 대화 내용 */}
+                    <div style={{ padding: '16px' }}>
+                      {/* 사용자 질문 */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                        <div style={{
+                          padding: '10px 14px', borderRadius: '14px 14px 4px 14px',
+                          background: R, color: '#fff',
+                          fontSize: 13, fontWeight: 600, maxWidth: '75%',
+                        }}>한화에어로스페이스 소개해줘</div>
+                      </div>
+                      {/* AI 응답 */}
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <div style={{
+                          width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+                          background: '#F4F4F5', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          marginTop: 2,
+                        }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={R} strokeWidth="2" strokeLinecap="round">
+                            <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
+                          </svg>
+                        </div>
+                        <div style={{
+                          padding: '12px 14px', borderRadius: '4px 14px 14px 14px',
+                          background: '#fff', border: '1px solid #F0F0F0',
+                          fontSize: 12.5, color: '#3F3F46', lineHeight: 1.7,
+                          maxWidth: '85%',
+                        }}>
+                          <strong style={{ color: '#18181B' }}>한화에어로스페이스</strong>는 K-방산의 핵심 기업이에요.
+                          항공엔진, 자주포, 장갑차를 만들고 있고, 최근 폴란드에 <strong style={{ color: R }}>2조원 규모의 부품공급 계약</strong>을 체결했어요.
+                          <div style={{
+                            marginTop: 10, padding: '8px 10px', borderRadius: 8,
+                            background: '#FAFAFA', fontSize: 11, color: '#71717A',
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span>매출</span><span style={{ fontFamily: FONTS.mono, color: '#18181B', fontWeight: 700 }}>11.2조</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                              <span>영업이익률</span><span style={{ fontFamily: FONTS.mono, color: R, fontWeight: 700 }}>12.3%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* 하단 CTA */}
+                    <div style={{
+                      padding: '10px 16px 14px', borderTop: '1px solid #F0F0F0',
+                      textAlign: 'center',
+                    }}>
+                      <span style={{
+                        fontSize: 11, color: '#A1A1AA',
+                      }}>기업카드에서 <strong style={{ color: R }}>AI 기업소개</strong> 버튼을 눌러보세요</span>
+                    </div>
+                  </div>
+                )}
               </Reveal>
             ))}
           </div>
