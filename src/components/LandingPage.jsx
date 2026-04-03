@@ -848,12 +848,12 @@ export default function LandingPage() {
                 fontSize: 22, fontWeight: 800, color: '#18181B', margin: '0 0 8px',
                 letterSpacing: '-0.5px', lineHeight: 1.3,
               }}>
-                실시간 공시 데이터,<br />귀사 시스템에 바로 연결
+                실시간 공시 데이터,<br />당신의 시스템에 바로 연결
               </h3>
               <p style={{
                 fontSize: 14, color: '#71717A', margin: '0 0 24px', lineHeight: 1.6,
               }}>
-                DART 공시 수집부터 등급 분류, AI 분석까지 — 별도 개발 없이 API 하나로 연동할 수 있어요
+                공시 수집부터 등급 분류, AI 분석까지 — 별도 개발 없이 API 하나로 연동할 수 있어요
               </p>
               <div style={{
                 display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap',
