@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
-import { FONTS, PREMIUM } from '../constants/theme'
+import { FONTS } from '../constants/theme'
 
 const API = import.meta.env.VITE_API_URL || ''
-
-const GRADE_META = {
-  S: { label: '핵심', color: '#F04452' },
-  A: { label: '주요', color: '#3182F6' },
-  D: { label: '주의', color: '#FF8A3D' },
-}
 
 export default function SignalPage() {
   const { dark, colors } = useTheme()
@@ -29,20 +23,15 @@ export default function SignalPage() {
   }, [])
 
   const t = {
-    red: '#F04452', blue: '#3182F6', orange: '#FF8A3D',
-    dim: dark ? '#6B7280' : '#ADB5BD',
-    sub: dark ? '#9CA3AF' : '#6B7684',
+    red: '#F04452', blue: '#3182F6',
+    dim: dark ? '#555' : '#ADB5BD',
     bg: dark ? '#000' : '#F4F5F7',
     card: dark ? '#1C1C1E' : '#FFF',
     border: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-    subtle: dark ? 'rgba(255,255,255,0.03)' : '#F8F8F9',
   }
 
   const total = items.reduce((a, i) => a + i.count, 0)
-
-  // 히트맵 데이터 정리
   const hmTypes = [...new Set(heatmap.map(c => c.type))]
-  const hmGrades = ['S', 'A', 'D']
   const hmMap = {}
   heatmap.forEach(c => { hmMap[`${c.type}_${c.grade}`] = c })
 
@@ -52,179 +41,76 @@ export default function SignalPage() {
       paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
       fontFamily: FONTS.body, backgroundColor: t.bg,
     }}>
-      {/* 헤더 */}
       <div style={{ padding: '32px 20px 0' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, margin: 0, letterSpacing: '-0.5px' }}>
+        <h1 style={{ fontSize: 21, fontWeight: 800, color: colors.textPrimary, margin: 0, letterSpacing: '-0.5px' }}>
           공시 시그널
         </h1>
-        <p style={{ fontSize: 13, color: t.sub, margin: '4px 0 0', letterSpacing: '-0.2px' }}>
-          공시가 주가에 미치는 영향을 데이터로 확인해 보세요
+        <p style={{ fontSize: 13, color: t.dim, margin: '4px 0 0' }}>
+          {total.toLocaleString()}건 분석
         </p>
       </div>
 
       {/* 탭 */}
-      <div style={{
-        display: 'flex', margin: '16px 16px 0', padding: 3, borderRadius: 10,
-        background: dark ? 'rgba(255,255,255,0.04)' : '#ECEEF0',
-      }}>
-        {[
-          { key: 'rank', label: '초과수익률' },
-          { key: 'heatmap', label: '등급별 승률' },
-        ].map(({ key, label }) => (
+      <div style={{ display: 'flex', gap: 0, margin: '14px 16px 0', borderBottom: `1px solid ${t.border}` }}>
+        {[{ key: 'rank', label: '초과수익률' }, { key: 'heatmap', label: '등급별 승률' }].map(({ key, label }) => (
           <button key={key} onClick={() => setTab(key)} style={{
-            flex: 1, padding: '9px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
-            fontSize: 13, fontWeight: 700, letterSpacing: '-0.2px',
-            background: tab === key ? t.card : 'transparent',
+            padding: '10px 16px', border: 'none', cursor: 'pointer', background: 'none',
+            fontSize: 14, fontWeight: tab === key ? 800 : 500,
             color: tab === key ? colors.textPrimary : t.dim,
-            boxShadow: tab === key ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
-            transition: 'all 0.15s',
+            borderBottom: tab === key ? `2px solid ${colors.textPrimary}` : '2px solid transparent',
+            marginBottom: -1,
           }}>{label}</button>
         ))}
-      </div>
-
-      {/* 표본 요약 */}
-      <div style={{
-        margin: '12px 16px 0', padding: '12px 16px', borderRadius: 12,
-        background: t.card, border: `1px solid ${t.border}`,
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      }}>
-        <span style={{ fontSize: 12, color: t.sub }}>분석 표본</span>
-        <span style={{ fontSize: 15, fontWeight: 800, fontFamily: FONTS.mono, color: colors.textPrimary }}>
-          {total.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 500, color: t.dim }}>건</span>
-        </span>
       </div>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 80, color: t.dim, fontSize: 13 }}>분석 중...</div>
       ) : tab === 'rank' ? (
-        /* ── 초과수익률 순위 ── */
-        <div style={{
-          margin: '8px 16px', borderRadius: 16, overflow: 'hidden',
-          background: t.card, border: `1px solid ${t.border}`,
-        }}>
+        <div style={{ margin: '8px 16px', borderRadius: 14, overflow: 'hidden', background: t.card, border: `1px solid ${t.border}` }}>
           {items.map((item, idx) => {
             const ex = item.avg_excess_close || 0
             const up = ex >= 0
             const wr = item.win_rate || 0
-            const last = idx === items.length - 1
-
             return (
               <div key={item.type} style={{
-                display: 'flex', alignItems: 'center',
-                padding: '14px 16px',
-                borderBottom: last ? 'none' : `1px solid ${t.border}`,
+                display: 'flex', alignItems: 'center', padding: '13px 16px',
+                borderBottom: idx < items.length - 1 ? `1px solid ${t.border}` : 'none',
               }}>
-                <span style={{
-                  width: 22, fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono,
-                  color: idx < 3 && up ? t.red : t.dim,
-                  textAlign: 'center', flexShrink: 0,
-                }}>{idx + 1}</span>
-
-                <div style={{ flex: 1, margin: '0 14px', minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{item.type}</span>
-                    <span style={{ fontSize: 10, color: t.dim, fontFamily: FONTS.mono }}>{item.count}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
-                    <div style={{
-                      flex: 1, height: 4, borderRadius: 2,
-                      background: dark ? 'rgba(255,255,255,0.04)' : '#ECEEF0',
-                    }}>
-                      <div style={{
-                        height: '100%', borderRadius: 2,
-                        width: `${Math.min(wr, 100)}%`,
-                        background: wr >= 60 ? t.red : wr >= 50 ? t.orange : (dark ? 'rgba(255,255,255,0.1)' : '#D1D5DB'),
-                        transition: 'width 0.6s ease',
-                      }} />
-                    </div>
-                    <span style={{
-                      fontSize: 10, fontWeight: 700, fontFamily: FONTS.mono,
-                      color: wr >= 60 ? t.red : wr >= 50 ? t.orange : t.dim,
-                      width: 28, textAlign: 'right', flexShrink: 0,
-                    }}>{wr.toFixed(0)}%</span>
-                  </div>
+                <span style={{ width: 20, fontSize: 13, fontWeight: 800, fontFamily: FONTS.mono, color: idx < 3 && up ? t.red : t.dim, textAlign: 'center', flexShrink: 0 }}>{idx + 1}</span>
+                <div style={{ flex: 1, margin: '0 12px', minWidth: 0 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{item.type}</span>
+                  <span style={{ fontSize: 10, color: t.dim, fontFamily: FONTS.mono, marginLeft: 6 }}>{item.count}건 · 승률 {wr.toFixed(0)}%</span>
                 </div>
-
-                <span style={{
-                  fontSize: 16, fontWeight: 900, fontFamily: FONTS.mono,
-                  color: up ? t.red : t.blue, letterSpacing: '-0.5px', flexShrink: 0,
-                }}>{up ? '+' : ''}{ex.toFixed(2)}%</span>
+                <span style={{ fontSize: 16, fontWeight: 900, fontFamily: FONTS.mono, color: up ? t.red : t.blue, flexShrink: 0 }}>{up ? '+' : ''}{ex.toFixed(2)}%</span>
               </div>
             )
           })}
         </div>
       ) : (
-        /* ── 등급별 승률 히트맵 ── */
-        <div style={{ margin: '8px 16px' }}>
-          {/* 컬럼 헤더 */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: '1fr 72px 72px 72px',
-            gap: 6, marginBottom: 6, padding: '0 4px',
-          }}>
-            <div style={{ fontSize: 11, color: t.dim, padding: '8px 4px', fontWeight: 600 }}>공시 유형</div>
-            {hmGrades.map(g => (
-              <div key={g} style={{
-                textAlign: 'center', padding: '8px 0',
-              }}>
-                <span style={{
-                  fontSize: 12, fontWeight: 800, color: GRADE_META[g].color,
-                }}>{g}</span>
-                <span style={{
-                  fontSize: 9, color: t.dim, marginLeft: 3,
-                }}>{GRADE_META[g].label}</span>
-              </div>
+        <div style={{ margin: '8px 16px', borderRadius: 14, overflow: 'hidden', background: t.card, border: `1px solid ${t.border}` }}>
+          {/* 헤더 */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 60px 60px', borderBottom: `1px solid ${t.border}`, padding: '10px 14px' }}>
+            <span style={{ fontSize: 11, color: t.dim }}>유형</span>
+            {['S', 'A', 'D'].map(g => (
+              <span key={g} style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, color: { S: t.red, A: t.blue, D: '#FF8A3D' }[g] }}>{g}</span>
             ))}
           </div>
-
-          {/* 데이터 행 */}
+          {/* 행 */}
           {hmTypes.map((type, ti) => (
             <div key={type} style={{
-              display: 'grid', gridTemplateColumns: '1fr 72px 72px 72px',
-              gap: 6, marginBottom: 6,
+              display: 'grid', gridTemplateColumns: '1fr 60px 60px 60px', padding: '11px 14px',
+              borderBottom: ti < hmTypes.length - 1 ? `1px solid ${t.border}` : 'none',
             }}>
-              <div style={{
-                display: 'flex', alignItems: 'center',
-                fontSize: 13, fontWeight: 700, color: colors.textPrimary,
-                padding: '0 4px', letterSpacing: '-0.3px',
-              }}>{type}</div>
-
-              {hmGrades.map(g => {
+              <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{type}</span>
+              {['S', 'A', 'D'].map(g => {
                 const cell = hmMap[`${type}_${g}`]
-                if (!cell) {
-                  return (
-                    <div key={g} style={{
-                      borderRadius: 12, padding: '12px 4px', textAlign: 'center',
-                      background: t.subtle,
-                    }}>
-                      <span style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,0.08)' : '#D4D4D8' }}>-</span>
-                    </div>
-                  )
-                }
-
+                if (!cell) return <span key={g} style={{ textAlign: 'center', fontSize: 12, color: dark ? 'rgba(255,255,255,0.06)' : '#E4E4E7' }}>-</span>
                 const wr = cell.win_rate
-                const ex = cell.avg_excess
-                const isGood = wr >= 50
-
-                // 배경 색상: 승률에 따라 강도 조절
-                const alpha = Math.min(Math.max((Math.abs(wr - 50)) / 50, 0), 1) * 0.12 + 0.02
-                const bgColor = isGood
-                  ? `rgba(240,68,82,${alpha})`
-                  : `rgba(49,130,246,${alpha})`
-
                 return (
-                  <div key={g} style={{
-                    borderRadius: 12, padding: '10px 4px', textAlign: 'center',
-                    background: bgColor,
-                  }}>
-                    <div style={{
-                      fontSize: 16, fontWeight: 900, fontFamily: FONTS.mono,
-                      color: isGood ? t.red : t.blue,
-                      lineHeight: 1,
-                    }}>{wr.toFixed(0)}<span style={{ fontSize: 10 }}>%</span></div>
-                    <div style={{
-                      fontSize: 9, color: t.dim, marginTop: 4, fontFamily: FONTS.mono,
-                    }}>{ex >= 0 ? '+' : ''}{ex.toFixed(1)}% · {cell.count}건</div>
-                  </div>
+                  <span key={g} style={{
+                    textAlign: 'center', fontSize: 14, fontWeight: 800, fontFamily: FONTS.mono,
+                    color: wr >= 50 ? t.red : t.blue,
+                  }}>{wr.toFixed(0)}%</span>
                 )
               })}
             </div>
@@ -232,18 +118,8 @@ export default function SignalPage() {
         </div>
       )}
 
-      {/* 안내 */}
-      <div style={{
-        margin: '8px 16px', padding: '12px 16px', borderRadius: 12,
-        background: t.card, border: `1px solid ${t.border}`,
-        fontSize: 11, color: t.dim, lineHeight: 1.7, letterSpacing: '-0.2px',
-      }}>
-        {tab === 'rank' ? (
-          <>초과수익률 = 종목 수익률 - 시장 수익률<br />승률 = 초과수익률 {'>'} 0인 비율</>
-        ) : (
-          <>승률 = 해당 유형+등급 공시 후 시장 대비 상승한 비율<br />
-          <span style={{ color: t.red }}>빨강</span> 50%+ · <span style={{ color: t.blue }}>파랑</span> 50% 미만 · 3건 미만은 제외</>
-        )}
+      <div style={{ margin: '6px 16px', padding: '10px 14px', borderRadius: 10, fontSize: 11, color: t.dim, lineHeight: 1.6 }}>
+        {tab === 'rank' ? '초과수익률 = 종목 - 시장 수익률' : '승률 = 공시 후 시장 대비 상승 비율 · 3건 미만 제외'}
       </div>
     </div>
   )
