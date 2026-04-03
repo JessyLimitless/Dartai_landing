@@ -175,7 +175,7 @@ export default function InquiryPage() {
         {/* 제출 */}
         <button onClick={handleSubmit} disabled={loading || !message.trim()} style={{
           width: '100%', padding: '14px', borderRadius: 10, border: 'none',
-          background: message.trim() ? '#18181B' : (dark ? '#1A1A1E' : '#E4E4E7'),
+          background: message.trim() ? '#DC2626' : (dark ? '#1A1A1E' : '#E4E4E7'),
           color: message.trim() ? '#fff' : colors.textMuted,
           fontSize: 15, fontWeight: 700, cursor: message.trim() ? 'pointer' : 'default',
         }}>
