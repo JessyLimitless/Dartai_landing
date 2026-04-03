@@ -828,6 +828,51 @@ export default function LandingPage() {
       )}
 
       {/* 푸터 */}
+      {/* ━━━ B2B 솔루션 ━━━ */}
+      <section style={{ borderTop: '1px solid #F4F4F5', background: '#fff' }}>
+        <div style={{
+          maxWidth: 560, margin: '0 auto',
+          padding: 'clamp(60px, 8vh, 80px) clamp(20px, 5vw, 40px)',
+        }}>
+          <Reveal>
+            <p style={{ fontSize: 12, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 10 }}>FOR BUSINESS</p>
+            <h2 style={{
+              fontSize: 'clamp(22px, 3.5vw, 30px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#18181B', textAlign: 'center', margin: '0 0 12px', letterSpacing: '-0.02em',
+            }}>
+              귀사의 시스템에 공시 데이터를 연결하세요
+            </h2>
+            <p style={{ fontSize: 14, color: '#71717A', textAlign: 'center', margin: '0 0 36px', lineHeight: 1.6 }}>
+              별도 개발 없이, DART Insight의 실시간 공시 데이터를 귀사 AI·분석 시스템에 바로 연동할 수 있습니다
+            </p>
+          </Reveal>
+          <Reveal d={100}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 32 }}>
+              {[
+                { label: '자동매매 솔루션', desc: '공시 기반 실시간 매매 시스템', icon: '⚡' },
+                { label: '공시 데이터 연동', desc: 'AI·챗봇·분석 시스템에 API 연결', icon: '🔗' },
+              ].map((item, i) => (
+                <div key={i} onClick={() => navigate('/inquiry' + (i === 1 ? '?type=api' : ''))}
+                  className="touch-press"
+                  style={{
+                    flex: '1 1 220px', padding: '20px', borderRadius: 14, cursor: 'pointer',
+                    border: '1px solid #E4E4E7', background: '#FAFAFA',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.background = '#FEF2F2' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#E4E4E7'; e.currentTarget.style.background = '#FAFAFA' }}
+                >
+                  <div style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B', marginBottom: 4 }}>{item.label}</div>
+                  <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.5 }}>{item.desc}</div>
+                  <div style={{ fontSize: 12, color: R, fontWeight: 600, marginTop: 10 }}>문의하기 →</div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       <footer style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px clamp(24px, 5vw, 48px) 40px' }}>
           <div style={{ marginBottom: 24 }}>
@@ -846,7 +891,11 @@ export default function LandingPage() {
             <span onClick={() => navigate('/inquiry')} style={{
               fontSize: 11, fontWeight: 600, color: '#fff', cursor: 'pointer',
               padding: '4px 12px', borderRadius: 6, background: '#DC2626',
-            }}>자동매매 프로그램 문의</span>
+            }}>자동매매 솔루션</span>
+            <span onClick={() => navigate('/inquiry?type=api')} style={{
+              fontSize: 11, fontWeight: 600, color: '#fff', cursor: 'pointer',
+              padding: '4px 12px', borderRadius: 6, background: '#18181B',
+            }}>공시 데이터 연동</span>
           </div>
           <div style={{ fontSize: 12, color: '#D4D4D8', lineHeight: 1.6, borderTop: '1px solid #E4E4E7', paddingTop: 20 }}>
             © 2026 MuseAI Inc. All rights reserved.
