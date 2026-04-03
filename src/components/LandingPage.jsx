@@ -872,12 +872,12 @@ export default function LandingPage() {
                 className="touch-press"
                 style={{
                   width: '100%', padding: '14px', borderRadius: 12,
-                  border: '1px solid #18181B', background: '#18181B', color: '#fff',
+                  border: '1px solid #D4D4D8', background: '#fff', color: '#18181B',
                   fontSize: 14, fontWeight: 700, cursor: 'pointer',
                   transition: 'all 0.15s', letterSpacing: '-0.2px',
                 }}
-                onMouseEnter={e => { e.target.style.background = R; e.target.style.borderColor = R }}
-                onMouseLeave={e => { e.target.style.background = '#18181B'; e.target.style.borderColor = '#18181B' }}
+                onMouseEnter={e => { e.target.style.background = R; e.target.style.color = '#fff'; e.target.style.borderColor = R }}
+                onMouseLeave={e => { e.target.style.background = '#fff'; e.target.style.color = '#18181B'; e.target.style.borderColor = '#D4D4D8' }}
               >
                 도입 문의하기
               </button>
@@ -906,8 +906,8 @@ export default function LandingPage() {
               padding: '4px 12px', borderRadius: 6, background: '#DC2626',
             }}>자동매매 솔루션</span>
             <span onClick={() => navigate('/inquiry?type=api')} style={{
-              fontSize: 11, fontWeight: 600, color: '#fff', cursor: 'pointer',
-              padding: '4px 12px', borderRadius: 6, background: '#18181B',
+              fontSize: 11, fontWeight: 600, color: '#71717A', cursor: 'pointer',
+              padding: '4px 12px', borderRadius: 6, border: '1px solid #D4D4D8', background: '#fff',
             }}>공시 데이터 연동</span>
           </div>
           <div style={{ fontSize: 12, color: '#D4D4D8', lineHeight: 1.6, borderTop: '1px solid #E4E4E7', paddingTop: 20 }}>
