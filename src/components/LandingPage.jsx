@@ -828,46 +828,59 @@ export default function LandingPage() {
       )}
 
       {/* 푸터 */}
-      {/* ━━━ B2B 솔루션 ━━━ */}
-      <section style={{ borderTop: '1px solid #F4F4F5', background: '#fff' }}>
+      {/* ━━━ B2B ━━━ */}
+      <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{
-          maxWidth: 560, margin: '0 auto',
-          padding: 'clamp(60px, 8vh, 80px) clamp(20px, 5vw, 40px)',
+          maxWidth: 480, margin: '0 auto',
+          padding: 'clamp(56px, 8vh, 72px) clamp(20px, 5vw, 40px)',
         }}>
           <Reveal>
-            <p style={{ fontSize: 12, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 10 }}>FOR BUSINESS</p>
-            <h2 style={{
-              fontSize: 'clamp(22px, 3.5vw, 30px)', fontWeight: 700, fontFamily: FONTS.serif,
-              color: '#18181B', textAlign: 'center', margin: '0 0 12px', letterSpacing: '-0.02em',
+            <div style={{
+              padding: '32px 28px', borderRadius: 20,
+              background: '#fff', border: '1px solid #E8E8EC',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
             }}>
-              귀사의 시스템에 공시 데이터를 연결하세요
-            </h2>
-            <p style={{ fontSize: 14, color: '#71717A', textAlign: 'center', margin: '0 0 36px', lineHeight: 1.6 }}>
-              별도 개발 없이, DART Insight의 실시간 공시 데이터를 귀사 AI·분석 시스템에 바로 연동할 수 있습니다
-            </p>
-          </Reveal>
-          <Reveal d={100}>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 32 }}>
-              {[
-                { label: '자동매매 솔루션', desc: '공시 기반 실시간 매매 시스템', icon: '⚡' },
-                { label: '공시 데이터 연동', desc: 'AI·챗봇·분석 시스템에 API 연결', icon: '🔗' },
-              ].map((item, i) => (
-                <div key={i} onClick={() => navigate('/inquiry' + (i === 1 ? '?type=api' : ''))}
-                  className="touch-press"
-                  style={{
-                    flex: '1 1 220px', padding: '20px', borderRadius: 14, cursor: 'pointer',
-                    border: '1px solid #E4E4E7', background: '#FAFAFA',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.background = '#FEF2F2' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#E4E4E7'; e.currentTarget.style.background = '#FAFAFA' }}
-                >
-                  <div style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#18181B', marginBottom: 4 }}>{item.label}</div>
-                  <div style={{ fontSize: 13, color: '#71717A', lineHeight: 1.5 }}>{item.desc}</div>
-                  <div style={{ fontSize: 12, color: R, fontWeight: 600, marginTop: 10 }}>문의하기 →</div>
-                </div>
-              ))}
+              <div style={{
+                fontSize: 10, fontWeight: 700, color: '#A1A1AA', letterSpacing: '0.12em',
+                marginBottom: 16,
+              }}>DATA INTEGRATION</div>
+              <h3 style={{
+                fontSize: 22, fontWeight: 800, color: '#18181B', margin: '0 0 8px',
+                letterSpacing: '-0.5px', lineHeight: 1.3,
+              }}>
+                실시간 공시 데이터,<br />귀사 시스템에 바로 연결
+              </h3>
+              <p style={{
+                fontSize: 14, color: '#71717A', margin: '0 0 24px', lineHeight: 1.6,
+              }}>
+                DART 공시 수집부터 등급 분류, AI 분석까지 — 별도 개발 없이 API 하나로 연동할 수 있어요
+              </p>
+              <div style={{
+                display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap',
+              }}>
+                {['실시간 공시 API', 'AI 기업분석', '공시 시그널'].map(tag => (
+                  <span key={tag} style={{
+                    fontSize: 12, color: '#52525B', fontWeight: 600,
+                    display: 'flex', alignItems: 'center', gap: 5,
+                  }}>
+                    <span style={{ width: 4, height: 4, borderRadius: 2, background: R }} />
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <button onClick={() => navigate('/inquiry?type=api')}
+                className="touch-press"
+                style={{
+                  width: '100%', padding: '14px', borderRadius: 12,
+                  border: '1px solid #18181B', background: '#18181B', color: '#fff',
+                  fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                  transition: 'all 0.15s', letterSpacing: '-0.2px',
+                }}
+                onMouseEnter={e => { e.target.style.background = R; e.target.style.borderColor = R }}
+                onMouseLeave={e => { e.target.style.background = '#18181B'; e.target.style.borderColor = '#18181B' }}
+              >
+                도입 문의하기
+              </button>
             </div>
           </Reveal>
         </div>
