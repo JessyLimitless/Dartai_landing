@@ -222,7 +222,7 @@ export default function LandingPage() {
               fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
               color: '#18181B', textAlign: 'center', margin: '0 0 16px', letterSpacing: '-0.02em',
             }}>
-              급등한 이유, AI가 즉시 해석합니다
+              급등한 이유,<br />AI가 즉시 해석합니다
             </h2>
             <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.6 }}>
               공시 원문을 AI가 직접 읽고 핵심을 요약합니다.<br />
@@ -898,19 +898,21 @@ export default function LandingPage() {
             <div>사업자등록번호 : 764-88-03375</div>
             <div>서울특별시 은평구 통일로62길 7, 3층</div>
           </div>
-          <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center' }}>
-            <span onClick={() => setShowTerms('terms')} style={{ fontSize: 13, color: '#A1A1AA', cursor: 'pointer', borderBottom: '1px solid #E4E4E7', paddingBottom: 1 }}>이용약관</span>
-            <span onClick={() => setShowTerms('privacy')} style={{ fontSize: 13, color: '#A1A1AA', cursor: 'pointer', borderBottom: '1px solid #E4E4E7', paddingBottom: 1 }}>개인정보 처리방침</span>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span onClick={() => setShowTerms('terms')} style={{ fontSize: 12, color: '#A1A1AA', cursor: 'pointer', borderBottom: '1px solid #E4E4E7', paddingBottom: 1 }}>이용약관</span>
+            <span onClick={() => setShowTerms('privacy')} style={{ fontSize: 12, color: '#A1A1AA', cursor: 'pointer', borderBottom: '1px solid #E4E4E7', paddingBottom: 1 }}>개인정보 처리방침</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
             <span onClick={() => navigate('/inquiry')} style={{
               fontSize: 11, fontWeight: 600, color: '#fff', cursor: 'pointer',
-              padding: '4px 12px', borderRadius: 6, background: '#DC2626',
+              padding: '5px 14px', borderRadius: 6, background: '#DC2626',
             }}>자동매매 솔루션</span>
             <span onClick={() => navigate('/inquiry?type=api')} style={{
               fontSize: 11, fontWeight: 600, color: '#71717A', cursor: 'pointer',
-              padding: '4px 12px', borderRadius: 6, border: '1px solid #D4D4D8', background: '#fff',
+              padding: '5px 14px', borderRadius: 6, border: '1px solid #D4D4D8', background: '#fff',
             }}>공시 데이터 연동</span>
           </div>
-          <div style={{ fontSize: 12, color: '#D4D4D8', lineHeight: 1.6, borderTop: '1px solid #E4E4E7', paddingTop: 20 }}>
+          <div style={{ fontSize: 11, color: '#D4D4D8', lineHeight: 1.6, borderTop: '1px solid #E4E4E7', paddingTop: 16 }}>
             © 2026 MuseAI Inc. All rights reserved.
           </div>
         </div>
