@@ -75,7 +75,7 @@ export default function InquiryPage() {
   }
 
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 20px 80px', fontFamily: FONTS.body }}>
+    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px calc(80px + env(safe-area-inset-bottom, 0px))', fontFamily: FONTS.body }}>
 
       {/* 헤더 */}
       <div style={{ marginBottom: 20 }}>
@@ -173,12 +173,17 @@ export default function InquiryPage() {
         </div>
 
         {/* 제출 */}
-        <button onClick={handleSubmit} disabled={loading || !message.trim()} style={{
-          width: '100%', padding: '14px', borderRadius: 10, border: 'none',
-          background: message.trim() ? '#DC2626' : (dark ? '#1A1A1E' : '#E4E4E7'),
-          color: message.trim() ? '#fff' : colors.textMuted,
-          fontSize: 15, fontWeight: 700, cursor: message.trim() ? 'pointer' : 'default',
-        }}>
+        <button onClick={handleSubmit} disabled={loading || !message.trim()}
+          onMouseEnter={e => { if (message.trim()) { e.target.style.background = '#DC2626'; e.target.style.color = '#fff'; e.target.style.borderColor = '#DC2626' } }}
+          onMouseLeave={e => { if (message.trim()) { e.target.style.background = '#fff'; e.target.style.color = '#18181B'; e.target.style.borderColor = '#18181B' } }}
+          style={{
+            width: '100%', padding: '14px', borderRadius: 10,
+            border: message.trim() ? '1px solid #18181B' : `1px solid ${sep}`,
+            background: message.trim() ? '#fff' : (dark ? '#1A1A1E' : '#E4E4E7'),
+            color: message.trim() ? '#18181B' : colors.textMuted,
+            fontSize: 15, fontWeight: 700, cursor: message.trim() ? 'pointer' : 'default',
+            transition: 'all 0.15s',
+          }}>
           {loading ? '접수 중...' : '문의 접수'}
         </button>
       </div>
