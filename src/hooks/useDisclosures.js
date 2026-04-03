@@ -18,7 +18,7 @@ export function useDisclosures() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/api/disclosures?limit=200`)
+      const res = await fetch(`${API}/api/disclosures?limit=500`)
       if (!res.ok) throw new Error('fetch failed')
       const data = await res.json()
       const items = data.disclosures || []
