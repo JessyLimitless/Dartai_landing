@@ -325,7 +325,7 @@ export default function TodayPage({ onViewCard }) {
                       padding: '2px 5px', borderRadius: 4, flexShrink: 0,
                       background: isKey ? 'rgba(49,130,246,0.08)' : (dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5'),
                       color: isKey ? '#3182F6' : colors.textMuted,
-                    }}>{f.form}</span>
+                    }}>{{ '8-K': '주요경영', '10-Q': '분기보고', '10-K': '연간보고', '4': '내부자', 'SC 13D': '대량보유' }[f.form] || f.form}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{f.company}</span>
