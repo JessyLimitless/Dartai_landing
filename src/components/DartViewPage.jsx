@@ -18,7 +18,7 @@ export default function DartViewPage() {
   // if (!user) return <LoginGate dark={dark} colors={colors} label="딥분석" />
 
   useEffect(() => {
-    fetch(`${API}/api/dart-view/ranking`)
+    fetch(`${API}/api/dart-view/ranking?limit=950`)
       .then(r => r.json())
       .then(d => setStocks(d.ranking || []))
       .catch(() => {})
