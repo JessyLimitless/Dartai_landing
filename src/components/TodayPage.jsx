@@ -36,7 +36,7 @@ export default function TodayPage({ onViewCard }) {
   useEffect(() => {
     if (gradeFilter === 'GLOBAL' && globalFilings.length === 0) {
       setGlobalLoading(true)
-      fetch(`${API}/api/global/signals?days=7`)
+      fetch(`${API}/api/global/signals?days=3`)
         .then(r => r.json())
         .then(d => { setGlobalFilings(d.filings || []); setGlobalLoading(false) })
         .catch(() => setGlobalLoading(false))
@@ -312,8 +312,6 @@ export default function TodayPage({ onViewCard }) {
               )}
               {globalFilings.map((f, idx) => {
                 const isKey = f.form === '8-K' || f.form === '10-Q' || f.form === '10-K'
-                const formMap = { '8-K': '주요경영사항', '10-Q': '분기보고서', '10-K': '연간보고서', '4': '내부자거래', 'SC 13D': '대량보유' }
-                const krNames = f.kr_impact?.slice(0, 3).map(k => k.corp_name).join(' · ')
                 return (
                   <div key={idx} className="touch-press"
                     onClick={() => setGlobalPopup(f)}
@@ -333,11 +331,7 @@ export default function TodayPage({ onViewCard }) {
                         <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{f.company}</span>
                         <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono }}>{f.ticker}</span>
                       </div>
-                      {krNames && (
-                        <div style={{ fontSize: 11, color: '#3182F6', marginTop: 2 }}>
-                          {krNames}
-                        </div>
-                      )}
+                      <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>{f.sector}</div>
                     </div>
                     <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0 }}>{f.date?.slice(5)}</span>
                   </div>
@@ -371,33 +365,34 @@ export default function TodayPage({ onViewCard }) {
               }}>x</button>
             </div>
 
-            <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.7, marginBottom: 16 }}>
-              {globalPopup.description || '상세 내용은 SEC 원문을 확인하세요.'}
+            {/* 공시 요약 */}
+            <div style={{
+              padding: '14px 16px', borderRadius: 10, marginBottom: 16,
+              background: dark ? 'rgba(255,255,255,0.03)' : '#F8F8FA',
+              border: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, marginBottom: 6 }}>공시 요약</div>
+              <div style={{ fontSize: 13, color: colors.textPrimary, lineHeight: 1.7 }}>
+                {globalPopup.ai_summary || globalPopup.description || 'AI 요약이 아직 준비되지 않았습니다. SEC 원문을 확인해주세요.'}
+              </div>
             </div>
 
-            {globalPopup.kr_impact?.length > 0 && (
-              <div style={{
-                padding: '12px 14px', borderRadius: 10,
-                background: dark ? 'rgba(49,130,246,0.06)' : 'rgba(49,130,246,0.03)',
-                marginBottom: 16,
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#3182F6', marginBottom: 8 }}>한국 영향 종목</div>
-                {globalPopup.kr_impact.map((kr, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0',
-                    borderBottom: i < globalPopup.kr_impact.length - 1 ? `1px solid ${lineSep}` : 'none',
-                  }}>
-                    <span style={{
-                      fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3,
-                      color: kr.impact === '직접' ? '#F04452' : kr.impact === '간접' ? '#FF8A3D' : '#3182F6',
-                      background: `${kr.impact === '직접' ? '#F04452' : kr.impact === '간접' ? '#FF8A3D' : '#3182F6'}10`,
-                    }}>{kr.impact}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{kr.corp_name}</span>
-                    <span style={{ fontSize: 10, color: colors.textMuted }}>{kr.relation}</span>
-                  </div>
-                ))}
+            {/* 영향 섹터 */}
+            <div style={{
+              padding: '12px 14px', borderRadius: 10,
+              background: dark ? 'rgba(49,130,246,0.06)' : 'rgba(49,130,246,0.03)',
+              marginBottom: 16,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#3182F6' }}>영향 섹터</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{globalPopup.sector}</span>
               </div>
-            )}
+              {globalPopup.kr_impact?.length > 0 && (
+                <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 6 }}>
+                  관련: {globalPopup.kr_impact.map(k => k.corp_name).join(', ')}
+                </div>
+              )}
+            </div>
 
             {globalPopup.url && (
               <a href={globalPopup.url} target="_blank" rel="noopener noreferrer" style={{
