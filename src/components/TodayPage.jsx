@@ -14,6 +14,9 @@ export default function TodayPage({ onViewCard }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchOpen, setSearchOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const [globalFilings, setGlobalFilings] = useState([])
+  const [globalLoading, setGlobalLoading] = useState(false)
+  const [globalPopup, setGlobalPopup] = useState(null)
   const {
     disclosures, counts, loading,
     gradeFilter, setGradeFilter,
@@ -28,6 +31,17 @@ export default function TodayPage({ onViewCard }) {
       setSearchParams({}, { replace: true })
     }
   }, [])
+
+  // Global 탭 선택 시 SEC 데이터 fetch
+  useEffect(() => {
+    if (gradeFilter === 'GLOBAL' && globalFilings.length === 0) {
+      setGlobalLoading(true)
+      fetch(`${API}/api/global/signals?days=7`)
+        .then(r => r.json())
+        .then(d => { setGlobalFilings(d.filings || []); setGlobalLoading(false) })
+        .catch(() => setGlobalLoading(false))
+    }
+  }, [gradeFilter])
 
   const now = new Date()
   const dayNames = ['일', '월', '화', '수', '목', '금', '토']
@@ -255,7 +269,8 @@ export default function TodayPage({ onViewCard }) {
             { key: 'S', label: 'S등급', count: todayCounts.S, color: GRADE_COLORS.S.bg },
             { key: 'A', label: 'A등급', count: todayCounts.A, color: GRADE_COLORS.A.bg },
             { key: 'D', label: 'D등급', count: todayCounts.D, color: GRADE_COLORS.D.bg },
-          ].filter(t => t.key === null || t.count > 0).map(t => {
+            { key: 'GLOBAL', label: 'Global', count: 0, color: '#3182F6' },
+          ].filter(t => t.key === null || t.key === 'GLOBAL' || t.count > 0).map(t => {
             const active = gradeFilter === t.key
             return (
               <button key={t.label} className="touch-press"
@@ -281,7 +296,124 @@ export default function TodayPage({ onViewCard }) {
         </div>
       )}
 
+      {/* ── Global 리스트 ── */}
+      {gradeFilter === 'GLOBAL' && (
+        <div className="today-pad" style={{ paddingTop: 8 }}>
+          {globalLoading ? (
+            <div style={{ padding: '20px 0' }}><FeedSkeleton /></div>
+          ) : globalFilings.length === 0 ? (
+            <EmptyState icon="calendar" title="최근 미국 공시가 없어요" />
+          ) : (
+            <>
+              {globalFilings.filter(f => f.form === '8-K' || f.form === '10-Q' || f.form === '10-K' || f.form === 'SC 13D').length === 0 && globalFilings.length > 0 && (
+                <div style={{ fontSize: 12, color: colors.textMuted, padding: '8px 0', textAlign: 'center' }}>
+                  주요 공시(8-K/10-Q) 없음 · 내부자거래만 표시
+                </div>
+              )}
+              {globalFilings.map((f, idx) => {
+                const isKey = f.form === '8-K' || f.form === '10-Q' || f.form === '10-K'
+                const formMap = { '8-K': '주요경영사항', '10-Q': '분기보고서', '10-K': '연간보고서', '4': '내부자거래', 'SC 13D': '대량보유' }
+                const krNames = f.kr_impact?.slice(0, 3).map(k => k.corp_name).join(' · ')
+                return (
+                  <div key={idx} className="touch-press"
+                    onClick={() => setGlobalPopup(f)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '13px 0', cursor: 'pointer',
+                      borderBottom: `1px solid ${lineSep}`,
+                    }}>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, fontFamily: FONTS.mono,
+                      padding: '2px 5px', borderRadius: 4, flexShrink: 0,
+                      background: isKey ? 'rgba(49,130,246,0.08)' : (dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5'),
+                      color: isKey ? '#3182F6' : colors.textMuted,
+                    }}>{f.form}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{f.company}</span>
+                        <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono }}>{f.ticker}</span>
+                      </div>
+                      {krNames && (
+                        <div style={{ fontSize: 11, color: '#3182F6', marginTop: 2 }}>
+                          {krNames}
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0 }}>{f.date?.slice(5)}</span>
+                  </div>
+                )
+              })}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Global 팝업 */}
+      {globalPopup && (
+        <>
+          <div onClick={() => setGlobalPopup(null)} style={{
+            position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.4)',
+          }} />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            zIndex: 1001, background: dark ? '#1C1C1E' : '#fff', borderRadius: 16,
+            width: 'min(90%, 420px)', maxHeight: '80vh', overflow: 'auto',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.25)', padding: '20px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: colors.textPrimary }}>{globalPopup.company}</div>
+                <div style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>{globalPopup.ticker} · {globalPopup.form} · {globalPopup.date}</div>
+              </div>
+              <button onClick={() => setGlobalPopup(null)} style={{
+                background: dark ? '#333' : '#F4F4F5', border: 'none', borderRadius: 8,
+                width: 32, height: 32, cursor: 'pointer', color: colors.textMuted, fontSize: 14,
+              }}>x</button>
+            </div>
+
+            <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.7, marginBottom: 16 }}>
+              {globalPopup.description || '상세 내용은 SEC 원문을 확인하세요.'}
+            </div>
+
+            {globalPopup.kr_impact?.length > 0 && (
+              <div style={{
+                padding: '12px 14px', borderRadius: 10,
+                background: dark ? 'rgba(49,130,246,0.06)' : 'rgba(49,130,246,0.03)',
+                marginBottom: 16,
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#3182F6', marginBottom: 8 }}>한국 영향 종목</div>
+                {globalPopup.kr_impact.map((kr, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0',
+                    borderBottom: i < globalPopup.kr_impact.length - 1 ? `1px solid ${lineSep}` : 'none',
+                  }}>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3,
+                      color: kr.impact === '직접' ? '#F04452' : kr.impact === '간접' ? '#FF8A3D' : '#3182F6',
+                      background: `${kr.impact === '직접' ? '#F04452' : kr.impact === '간접' ? '#FF8A3D' : '#3182F6'}10`,
+                    }}>{kr.impact}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{kr.corp_name}</span>
+                    <span style={{ fontSize: 10, color: colors.textMuted }}>{kr.relation}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {globalPopup.url && (
+              <a href={globalPopup.url} target="_blank" rel="noopener noreferrer" style={{
+                display: 'block', textAlign: 'center', padding: '12px', borderRadius: 10,
+                border: `1px solid ${dark ? '#333' : '#E4E4E7'}`,
+                color: '#3182F6', fontSize: 13, fontWeight: 600, textDecoration: 'none',
+              }}>
+                SEC 원문 보기 →
+              </a>
+            )}
+          </div>
+        </>
+      )}
+
       {/* ── 리스트 ── */}
+      {gradeFilter !== 'GLOBAL' && (
       <div className="today-pad" style={{ paddingTop: 4 }}>
         {loading ? (
           <div style={{ padding: '20px 0' }}><FeedSkeleton /></div>
@@ -380,6 +512,7 @@ export default function TodayPage({ onViewCard }) {
           </>
         )}
       </div>
+      )}
 
       {/* ── 실시간 급등 플로팅 위젯 (우측 사이드) ── */}
       {risers.length > 0 && (
