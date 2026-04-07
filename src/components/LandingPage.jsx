@@ -548,168 +548,32 @@ export default function LandingPage() {
                     <div style={{ fontSize: 15, color: '#71717A', lineHeight: 1.7 }}>{item.desc}</div>
                   </div>
                 </div>
-                {/* 03번: AI 챗봇 실제 화면 미리보기 */}
+                {/* 03번: AI 챗봇 미리보기 — 간결 버전 */}
                 {i === 2 && (
                   <div style={{
-                    marginTop: 24, marginLeft: 68, borderRadius: 20, overflow: 'hidden',
+                    marginTop: 20, marginLeft: 68, borderRadius: 16, overflow: 'hidden',
                     background: '#fff', border: '1px solid #E8E8EC',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-                    maxWidth: 360,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    maxWidth: 340,
                   }}>
-                    {/* 챗봇 헤더 */}
-                    <div style={{
-                      padding: '14px 18px', borderBottom: '1px solid #F2F2F4',
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      background: '#FAFAFA',
-                    }}>
-                      <div style={{
-                        width: 32, height: 32, borderRadius: 10,
-                        background: `linear-gradient(135deg, ${R} 0%, #E8364E 100%)`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 2px 6px rgba(220,38,38,0.2)',
-                      }}>
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                        </svg>
+                    {/* 대화 한 턴 */}
+                    <div style={{ padding: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                        <div style={{ padding: '8px 12px', borderRadius: '14px 14px 4px 14px', background: '#18181B', color: '#fff', fontSize: 13, fontWeight: 600 }}>삼성전자 분석해줘</div>
                       </div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: '#18181B', letterSpacing: '-0.3px' }}>AI 기업분석</div>
-                        <div style={{ fontSize: 10, color: '#A1A1AA' }}>DART + 키움 실시간 데이터 기반</div>
-                      </div>
-                    </div>
-
-                    {/* 강점 배지 */}
-                    <div style={{
-                      padding: '0 16px', display: 'flex', gap: 6, flexWrap: 'wrap',
-                    }}>
-                      {['실시간 DART 공시', '키움 시세 연동', '재무제표 검증'].map(tag => (
-                        <span key={tag} style={{
-                          fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 6,
-                          background: '#FEF2F2', color: R, letterSpacing: '-0.1px',
-                        }}>{tag}</span>
-                      ))}
-                    </div>
-
-                    {/* 대화 영역 */}
-                    <div style={{ padding: '18px 16px 14px' }}>
-                      {/* 사용자 */}
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
-                        <div style={{
-                          padding: '10px 14px', borderRadius: '16px 16px 4px 16px',
-                          background: '#18181B', color: '#fff',
-                          fontSize: 13, fontWeight: 600,
-                        }}>삼성전자 소개해줘</div>
-                      </div>
-
-                      {/* AI 응답 */}
-                      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                        <div style={{
-                          width: 26, height: 26, borderRadius: 8, flexShrink: 0,
-                          background: 'linear-gradient(135deg, #FEE2E2, #FFF)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          marginTop: 2,
-                        }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: R }}>AI</span>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <div style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: `linear-gradient(135deg, ${R}, #E8364E)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ fontSize: 9, fontWeight: 800, color: '#fff' }}>AI</span>
                         </div>
-                        <div style={{
-                          flex: 1, padding: '14px 16px', borderRadius: '4px 16px 16px 16px',
-                          background: '#F8F8FA', border: '1px solid #F0F0F2',
-                          fontSize: 13, color: '#3F3F46', lineHeight: 1.8,
-                          letterSpacing: '-0.2px',
-                        }}>
-                          <strong style={{ color: '#18181B' }}>삼성전자</strong>는 시가총액 1,056조원의 글로벌 반도체 1위 기업이에요. DRAM과 NAND 메모리 세계 1위, 최근 AI 수요 폭증으로 HBM 시장에서도 빠르게 성장하고 있어요.
-
-                          <div style={{ marginTop: 10 }}>
-                            2024년 매출 300.9조원, 영업이익 32.7조원으로 전년 대비 크게 회복했고, 외국인 보유비율 48.4%로 글로벌 신뢰가 높아요. 현재가 180,000원이에요.
-                          </div>
-
-                          <div style={{
-                            marginTop: 10, padding: '6px 0',
-                            color: '#A1A1AA', fontSize: 12, fontStyle: 'italic',
-                          }}>
-                            (...중략)
-                          </div>
-
-                          <div style={{ marginTop: 6 }}>
-                            다만 파운드리 수율 이슈와 중국 메모리 업체의 추격은 주의 포인트에요. 52주 최고가 대비 61% 수준에서 거래 중이에요.
-                          </div>
+                        <div style={{ flex: 1, padding: '10px 14px', borderRadius: '4px 14px 14px 14px', background: '#F8F8FA', fontSize: 13, color: '#3F3F46', lineHeight: 1.7 }}>
+                          <strong style={{ color: '#18181B' }}>삼성전자</strong> 시총 1,056조, 매출 300.9조, 영업이익 32.7조. 외국인 48.4%. HBM 성장 가속 중이에요.
+                          <div style={{ marginTop: 8, color: '#A1A1AA', fontSize: 12 }}>···</div>
+                          <div style={{ marginTop: 4, fontSize: 12, color: '#71717A' }}>파운드리 수율, 중국 추격 등 리스크 포인트까지 분석해드려요</div>
                         </div>
                       </div>
                     </div>
-
-                    {/* 기업카드 미니 모크업 */}
-                    <div style={{
-                      margin: '0 16px', padding: '14px 16px', borderRadius: 14,
-                      background: '#F8F8FA', border: '1px solid #EBEBEB',
-                    }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#A1A1AA', letterSpacing: '0.05em', marginBottom: 10 }}>
-                        기업카드 화면
-                      </div>
-                      {/* 카드 헤더 */}
-                      <div style={{
-                        padding: '12px 14px', borderRadius: 12,
-                        background: '#fff', border: '1px solid #F0F0F2',
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span style={{ fontSize: 16, fontWeight: 800, color: '#18181B', fontFamily: FONTS.serif }}>삼성전자</span>
-                              <span style={{ fontSize: 10, color: '#A1A1AA', fontFamily: FONTS.mono }}>005930</span>
-                              <span style={{
-                                fontSize: 9, fontWeight: 600, padding: '1px 5px', borderRadius: 3,
-                                background: '#F0F0F2', color: '#71717A',
-                              }}>KOSPI</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-                              <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FONTS.mono, color: '#18181B' }}>180,000</span>
-                              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: FONTS.mono, color: R }}>+13.4%</span>
-                            </div>
-                          </div>
-                          <div style={{
-                            width: 48, height: 28, borderRadius: 6,
-                            background: 'linear-gradient(90deg, #E4E4E7 0%, #E4E4E7 30%, #A1A1AA 45%, #D4D4D8 55%, #71717A 70%, #A1A1AA 100%)',
-                            opacity: 0.3,
-                          }} />
-                        </div>
-                        {/* AI 기업소개 버튼 */}
-                        <div style={{
-                          marginTop: 12, padding: '10px', borderRadius: 10,
-                          background: `linear-gradient(135deg, ${R} 0%, #E8364E 100%)`,
-                          color: '#fff', textAlign: 'center',
-                          fontSize: 13, fontWeight: 700,
-                          boxShadow: '0 2px 8px rgba(220,38,38,0.25)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                        }}>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                          </svg>
-                          AI 기업소개
-                        </div>
-                        <div style={{ fontSize: 10, color: '#71717A', textAlign: 'center', marginTop: 8, lineHeight: 1.6 }}>
-                          이 버튼을 누르면 위와 같은 AI 분석을 받을 수 있어요
-                          <br />
-                          <span style={{ color: '#A1A1AA' }}>일반 ChatGPT와 달리 실제 DART 데이터로 답해요</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 경로 안내 */}
-                    <div style={{
-                      padding: '14px 18px 18px',
-                    }}>
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        fontSize: 11, color: '#A1A1AA', letterSpacing: '-0.2px',
-                        justifyContent: 'center', flexWrap: 'wrap',
-                      }}>
-                        <span style={{ fontWeight: 600, color: '#71717A' }}>공시 탭</span>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#D4D4D8" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-                        <span style={{ fontWeight: 600, color: '#71717A' }}>종목 클릭</span>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#D4D4D8" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-                        <span style={{ fontWeight: 600, color: '#71717A' }}>기업카드</span>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#D4D4D8" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-                        <span style={{ fontWeight: 700, color: R }}>AI 기업소개</span>
-                      </div>
+                    <div style={{ padding: '0 16px 14px', fontSize: 11, color: '#A1A1AA', textAlign: 'center' }}>
+                      실제 DART + 키움 데이터 기반 · 일반 ChatGPT와 달라요
                     </div>
                   </div>
                 )}

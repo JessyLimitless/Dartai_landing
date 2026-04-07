@@ -17,6 +17,7 @@ export default function TodayPage({ onViewCard }) {
   const [globalFilings, setGlobalFilings] = useState([])
   const [globalLoading, setGlobalLoading] = useState(false)
   const [globalPopup, setGlobalPopup] = useState(null)
+  const [watchData, setWatchData] = useState(null)
   const {
     disclosures, counts, loading,
     gradeFilter, setGradeFilter,
@@ -30,6 +31,14 @@ export default function TodayPage({ onViewCard }) {
       setGradeFilter(urlGrade)
       setSearchParams({}, { replace: true })
     }
+  }, [])
+
+  // 소수계좌 집중매수 감시 데이터 fetch
+  useEffect(() => {
+    fetch(`${API}/api/watch/concentrated`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d && (d.total_active > 0 || d.total_halted > 0)) setWatchData(d) })
+      .catch(() => {})
   }, [])
 
   // Global 탭 선택 시 SEC 데이터 fetch
@@ -138,25 +147,17 @@ export default function TodayPage({ onViewCard }) {
       .slice(0, 10)
   }, [todayDisclosures, prices])
 
-  // DART Pick
-  const [pick, setPick] = useState(null)
-  useEffect(() => {
-    fetch(`${API}/api/pick/today`)
-      .then(r => r.json())
-      .then(d => { if (d?.corp_name) setPick(d) })
-      .catch(() => {})
-  }, [])
 
 
   return (
     <div className="page-enter today-page" style={{
-      maxWidth: 640, margin: '0 auto',
+      maxWidth: 480, margin: '0 auto',
       paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-      fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
+      fontFamily: FONTS.body, backgroundColor: dark ? '#000' : '#F4F5F7',
     }}>
 
       {/* ── 헤더 ── */}
-      <div className="today-pad" style={{ paddingTop: 24 }}>
+      <div className="today-pad" style={{ paddingTop: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div className="today-title" style={{ fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
@@ -201,94 +202,43 @@ export default function TodayPage({ onViewCard }) {
         )}
       </div>
 
-      {/* ── 오늘의 DART Pick ── */}
-      {pick && (
-        <div className="today-pad" style={{ paddingTop: 20 }}>
-          <div className="touch-press" onClick={() => {
-            if (pick.stock_code) {
-              const cc = pick.corp_code || pick.stock_code
-              window.location.href = `/deep-dive/${cc}`
-            }
-          }} style={{
-            padding: '16px 18px', borderRadius: 14, cursor: 'pointer',
-            background: dark
-              ? 'linear-gradient(135deg, rgba(220,38,38,0.08), rgba(220,38,38,0.02))'
-              : 'linear-gradient(135deg, rgba(220,38,38,0.06), rgba(220,38,38,0.02))',
-            border: `1px solid ${dark ? 'rgba(220,38,38,0.15)' : 'rgba(220,38,38,0.12)'}`,
-            transition: 'all 0.2s',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <span style={{
-                fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 4,
-                background: PREMIUM.accent, color: '#fff', letterSpacing: '0.05em',
-              }}>DART PICK</span>
-              <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>
-                {pick.date}
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{
-                  fontSize: 18, fontWeight: 800, color: colors.textPrimary,
-                  fontFamily: FONTS.serif, marginBottom: 3,
-                }}>{pick.corp_name}</div>
-                <div style={{ fontSize: 13, color: colors.textMuted }}>
-                  {pick.reason}
-                </div>
-              </div>
-              <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-                <div style={{
-                  fontSize: 16, fontWeight: 700, fontFamily: FONTS.mono,
-                  color: colors.textPrimary,
-                }}>{pick.price}</div>
-                <div style={{
-                  fontSize: 11, color: colors.textMuted, marginTop: 2,
-                }}>PBR {pick.pbr}</div>
-              </div>
-            </div>
-            {pick.detail && (
-              <div style={{
-                fontSize: 12, color: colors.textMuted, marginTop: 10,
-                paddingTop: 10, borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
-                lineHeight: 1.5,
-              }}>{pick.detail}</div>
-            )}
-          </div>
-        </div>
+      {/* ── 소수계좌 집중매수 감시 ── */}
+      {watchData && (watchData.total_active > 0 || watchData.total_halted > 0) && (
+        <ConcentratedWatch data={watchData} dark={dark} colors={colors} />
+      )}
+
+      {/* ── 히어로 픽 ── */}
+      {risers.length > 0 && gradeFilter !== 'GLOBAL' && (
+        <RiserCarousel risers={risers} dark={dark} colors={colors} onTap={setModalRceptNo} />
       )}
 
       {/* ── 등급 탭 ── */}
       {!loading && todayCounts.total > 0 && (
         <div style={{
           display: 'flex', overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-          borderBottom: `1px solid ${lineSep}`, marginTop: 16,
+          marginTop: 12,
         }}>
           <div style={{ width: 24, flexShrink: 0 }} />
           {[
             { key: null, label: '전체', count: todayCounts.total },
-            { key: 'S', label: 'S등급', count: todayCounts.S, color: GRADE_COLORS.S.bg },
-            { key: 'A', label: 'A등급', count: todayCounts.A, color: GRADE_COLORS.A.bg },
-            { key: 'D', label: 'D등급', count: todayCounts.D, color: GRADE_COLORS.D.bg },
-            { key: 'GLOBAL', label: 'Global', count: 0, color: '#3182F6' },
+            { key: 'S', label: 'S', count: todayCounts.S, color: GRADE_COLORS.S.bg },
+            { key: 'A', label: 'A', count: todayCounts.A, color: GRADE_COLORS.A.bg },
+            { key: 'D', label: 'D', count: todayCounts.D, color: GRADE_COLORS.D.bg },
+            // { key: 'GLOBAL', label: 'Global', count: 0, color: '#3182F6' },
           ].filter(t => t.key === null || t.key === 'GLOBAL' || t.count > 0).map(t => {
             const active = gradeFilter === t.key
             return (
               <button key={t.label} className="touch-press"
                 onClick={() => { setGradeFilter(active && t.key !== null ? null : t.key); setShowAll(false) }}
                 style={{
-                  padding: '10px 14px 14px', border: 'none', cursor: 'pointer',
-                  background: 'transparent', position: 'relative', whiteSpace: 'nowrap',
-                  fontSize: 14, fontWeight: active ? 700 : 400, minHeight: 44,
-                  color: active ? (t.color || colors.textPrimary) : colors.textMuted,
+                  padding: '7px 14px', border: 'none', cursor: 'pointer',
+                  borderRadius: 20, whiteSpace: 'nowrap', marginRight: 6,
+                  fontSize: 13, fontWeight: active ? 700 : 500,
+                  color: active ? (dark ? '#000' : '#FFF') : (dark ? '#4E5968' : '#8B95A1'),
+                  background: active ? (t.color || colors.textPrimary) : (dark ? 'rgba(255,255,255,0.06)' : '#E8E8ED'),
+                  transition: 'all 0.15s',
                 }}>
-                {t.label}
-                {active && (
-                  <div style={{
-                    position: 'absolute', bottom: -1, left: 10, right: 10,
-                    height: 3, borderRadius: 1.5,
-                    background: t.color || colors.textPrimary,
-                  }} />
-                )}
+                {t.label}{t.count > 0 ? ` ${t.count}` : ''}
               </button>
             )
           })}
@@ -471,8 +421,32 @@ export default function TodayPage({ onViewCard }) {
                     <div className="today-sub" style={{
                       color: colors.textMuted, marginTop: 3,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      display: 'flex', alignItems: 'center', gap: 4,
                     }}>
-                      {d.report_nm}
+                      {/소수계좌|소수지점/.test(d.report_nm) && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
+                          background: 'rgba(220,38,38,0.1)', color: '#DC2626', flexShrink: 0,
+                          letterSpacing: -0.3,
+                        }}>소수계좌</span>
+                      )}
+                      {/투자경고/.test(d.report_nm) && !/소수/.test(d.report_nm) && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
+                          background: 'rgba(234,88,12,0.1)', color: '#EA580C', flexShrink: 0,
+                          letterSpacing: -0.3,
+                        }}>투자경고</span>
+                      )}
+                      {/투자위험|매매거래정지/.test(d.report_nm) && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
+                          background: 'rgba(127,29,29,0.1)', color: '#991B1B', flexShrink: 0,
+                          letterSpacing: -0.3,
+                        }}>거래정지</span>
+                      )}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {d.report_nm}
+                      </span>
                     </div>
                   </div>
                   <div style={{ flexShrink: 0, textAlign: 'right' }}>
@@ -541,6 +515,7 @@ export default function TodayPage({ onViewCard }) {
           .today-corp { font-size: 15px; }
           .today-sub { font-size: 13px; }
           .today-right-num { font-size: 15px; }
+          .watch-cards { gap: 6px; }
         }
         @media (max-width: 360px) {
           .today-pad { padding-left: 12px; padding-right: 12px; }
@@ -575,6 +550,176 @@ export default function TodayPage({ onViewCard }) {
   )
 }
 
+
+// ══ 소수계좌 집중매수 감시 ══
+function ConcentratedWatch({ data, dark, colors }) {
+  const STAGE_STYLE = {
+    1: { label: '투자주의', bg: '#FBBF24', color: '#92400E' },
+    2: { label: '투자경고', bg: '#F97316', color: '#FFF' },
+    3: { label: '투자위험', bg: '#DC2626', color: '#FFF' },
+    4: { label: '거래정지', bg: '#6B7280', color: '#FFF' },
+  }
+
+  const allItems = [
+    ...(data.active || []).map(s => ({ ...s, halted: false })),
+    ...(data.halted || []).map(s => ({ ...s, halted: true })),
+  ]
+
+  if (allItems.length === 0) return null
+
+  return (
+    <div className="today-pad" style={{ paddingTop: 16 }}>
+      {/* 섹션 헤더 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span style={{
+          fontSize: 15, fontWeight: 800, color: colors.textPrimary, letterSpacing: '-0.3px',
+        }}>소수계좌 집중매수</span>
+        <span style={{
+          fontSize: 11, fontWeight: 700, fontFamily: FONTS.mono,
+          background: 'rgba(220,38,38,0.1)', color: '#DC2626',
+          padding: '2px 7px', borderRadius: 8, lineHeight: 1.4,
+        }}>{data.total_active}</span>
+      </div>
+
+      {/* 카드 목록 */}
+      <div className="watch-cards" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {allItems.map((item) => {
+          const stage = STAGE_STYLE[item.stage_level] || STAGE_STYLE[1]
+          const isHalted = item.halted || item.stage_level === 4
+          const pbr = item.pbr
+          const hasPbrSafe = pbr != null && pbr > 0 && pbr < 1
+          const hasPbrHot = pbr != null && pbr >= 5
+          const daysSince = item.first_detected
+            ? Math.floor((Date.now() - new Date(item.first_detected + 'T00:00:00+09:00').getTime()) / 86400000)
+            : null
+
+          return (
+            <div key={item.stock_code} style={{
+              padding: '14px 16px', borderRadius: 12,
+              background: dark ? 'rgba(255,255,255,0.03)' : '#FFF',
+              border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+              opacity: isHalted ? 0.5 : 1,
+            }}>
+              {/* 상단: 종목명 + 단계 뱃지 */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <span style={{
+                    fontSize: 15, fontWeight: 700, color: colors.textPrimary,
+                    fontFamily: FONTS.serif, letterSpacing: '-0.3px',
+                    textDecoration: isHalted ? 'line-through' : 'none',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{item.corp_name}</span>
+                  <span style={{
+                    fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0,
+                  }}>{item.stock_code}</span>
+                </div>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
+                  background: stage.bg, color: stage.color, flexShrink: 0,
+                  whiteSpace: 'nowrap',
+                }}>{stage.label}</span>
+              </div>
+
+              {/* 하단: 메타 정보 */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6, marginTop: 8,
+                flexWrap: 'wrap',
+              }}>
+                {/* 최초 감지 */}
+                {item.first_detected && (
+                  <span style={{
+                    fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono,
+                  }}>
+                    {item.first_detected.slice(5)} 감지{daysSince != null && daysSince > 0 ? ` (D+${daysSince})` : ''}
+                  </span>
+                )}
+
+                {/* PBR 태그 */}
+                {hasPbrSafe && (
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                    background: 'rgba(22,163,74,0.08)', color: '#16A34A',
+                  }}>안전마진 PBR {pbr.toFixed(1)}</span>
+                )}
+                {hasPbrHot && (
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                    background: 'rgba(220,38,38,0.08)', color: '#DC2626',
+                  }}>과열 PBR {pbr.toFixed(1)}</span>
+                )}
+
+                {/* 현재가 + 변동률 */}
+                {item.current_price != null && item.current_price > 0 && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, fontFamily: FONTS.mono,
+                    color: item.change_pct > 0 ? '#DC2626' : item.change_pct < 0 ? '#2563EB' : colors.textMuted,
+                    marginLeft: 'auto',
+                  }}>
+                    {item.current_price.toLocaleString()}
+                    {item.change_pct != null && (
+                      <> {item.change_pct > 0 ? '+' : ''}{item.change_pct.toFixed(1)}%</>
+                    )}
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+
+// ══ 히어로 픽 ══
+function RiserCarousel({ risers, dark, colors, onTap }) {
+  if (!risers.length) return null
+  const hero = risers[0]
+  const dim = dark ? '#4E5968' : '#8B95A1'
+
+  const heroLabel = (() => {
+    const rn = hero.report_nm || ''
+    if (rn.includes('투자경고')) return '투자경고 지정'
+    if (rn.includes('소수계좌')) return '소수계좌 집중매수'
+    if (rn.includes('투자주의')) return '투자주의 지정'
+    if (rn.includes('전환사채')) return 'CB 발행 결정'
+    if (rn.includes('대량보유')) return '대량보유 신고'
+    if (rn.includes('공급계약')) return '공급계약 체결'
+    if (rn.includes('풍문')) return '풍문 해명'
+    if (rn.includes('영업실적') || rn.includes('매출액')) return '실적 공시'
+    if (rn.includes('자기주식취득')) return '자사주 취득'
+    if (rn.includes('임원')) return '내부자 지분변동'
+    if (rn.includes('최대주주')) return '최대주주 변동'
+    return rn.slice(0, 12)
+  })()
+
+  return (
+    <div style={{ marginTop: 12, padding: '0 20px' }}>
+      <div className="touch-press" onClick={() => onTap(hero.rcept_no)} style={{
+        padding: '18px 20px', borderRadius: 16, cursor: 'pointer',
+        background: dark
+          ? 'linear-gradient(135deg, rgba(240,68,82,0.15), rgba(240,68,82,0.04))'
+          : 'linear-gradient(135deg, rgba(240,68,82,0.1), rgba(240,68,82,0.02))',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#F04452', marginBottom: 4 }}>{heroLabel}</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: colors.textPrimary, letterSpacing: '-0.3px' }}>{hero.corp_name}</div>
+          </div>
+          <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 16 }}>
+            <div style={{ fontSize: 26, fontWeight: 900, fontFamily: FONTS.mono, color: '#F04452', letterSpacing: '-1px' }}>
+              +{hero.changePct}%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ══ 공시 후 급등 — 데스크톱: 우측 고정 패널, 모바일: FAB + 바텀시트 ══
 function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
@@ -711,7 +856,7 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
       {/* 데스크톱: 우측 고정 패널 (접기/펼치기) */}
       <div className="riser-panel" style={{
         position: 'fixed', zIndex: 90,
-        background: dark ? '#141416' : '#FFFFFF',
+        background: dark ? '#1C1C1E' : '#FFF',
         borderRadius: 12,
         border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : '#EBEBED'}`,
         boxShadow: dark ? '0 4px 16px rgba(0,0,0,0.3)' : '0 4px 16px rgba(0,0,0,0.06)',
@@ -749,7 +894,7 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
           }} />
           <div className="riser-sheet-enter" style={{
             position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 96,
-            background: dark ? '#141416' : '#FFFFFF',
+            background: dark ? '#1C1C1E' : '#FFF',
             borderRadius: '16px 16px 0 0',
             boxShadow: '0 -4px 20px rgba(0,0,0,0.12)',
             paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
