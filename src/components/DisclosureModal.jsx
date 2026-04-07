@@ -59,6 +59,7 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [visible, setVisible] = useState(false)
+  const [signalStat, setSignalStat] = useState(null)
   const sheetRef = useRef(null)
 
   useEffect(() => {
@@ -69,6 +70,19 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
   }, [rcept_no])
+
+  // 공시 유형별 승률 조회
+  useEffect(() => {
+    if (!data?.report_nm) return
+    fetch(`${API}/api/signal-stats?min_samples=5`)
+      .then(r => r.json())
+      .then(res => {
+        const nm = (data.report_nm || '').trim()
+        const match = (res.type_stats || []).find(s => nm.startsWith(s.report_nm) || s.report_nm.startsWith(nm))
+        if (match) setSignalStat(match)
+      })
+      .catch(() => {})
+  }, [data?.report_nm])
 
   // 진입 애니메이션
   useEffect(() => {
@@ -183,8 +197,8 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
             >x</button>
           </div>
 
-          {/* 접수일 + 종목코드 */}
-          <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+          {/* 접수일 + 종목코드 + 승률 배지 */}
+          <div style={{ display: 'flex', gap: 12, marginTop: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             {raw.rcept_dt && (
               <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>
                 {fmtRceptDt(raw.rcept_dt)}
@@ -193,6 +207,19 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
             {raw.stock_code && (
               <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: FONTS.mono }}>
                 {raw.stock_code}
+              </span>
+            )}
+            {signalStat && (
+              <span style={{
+                fontSize: 10, fontWeight: 700, fontFamily: FONTS.mono,
+                padding: '2px 8px', borderRadius: 4,
+                background: signalStat.win_rate_1d >= 65 ? '#0D9488'
+                  : signalStat.win_rate_1d >= 50 ? '#D97706'
+                  : '#DC2626',
+                color: '#fff',
+              }}>
+                승률 {signalStat.win_rate_1d}% ({signalStat.samples}건)
+                {signalStat.avg_return_1d >= 0 ? ` +${signalStat.avg_return_1d}%` : ` ${signalStat.avg_return_1d}%`}
               </span>
             )}
           </div>

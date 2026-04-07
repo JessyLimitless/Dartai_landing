@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [userTotal, setUserTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [selectedDisc, setSelectedDisc] = useState(null)
+  const [ssItems, setSsItems] = useState([])
 
   useEffect(() => {
     if (!isAdmin()) { navigate('/'); return }
@@ -36,13 +37,15 @@ export default function AdminPage() {
       fetch(`${API}/api/admin/disclosures?limit=500`).then(r => r.json()),
       fetch(`${API}/api/admin/inquiries?limit=100`).then(r => r.json()),
       fetch(`${API}/api/admin/users`).then(r => r.json()),
-    ]).then(([rankData, discData, inqData, userData]) => {
+      fetch(`${API}/api/admin/ss-screen`).then(r => r.json()),
+    ]).then(([rankData, discData, inqData, userData, ssData]) => {
       setRanking(rankData.ranking || [])
       setRankingStats({ total: rankData.total || 0, done: rankData.done || 0, kospi: rankData.kospi_count || 0, kosdaq: rankData.kosdaq_count || 0 })
       setDisclosures(discData.disclosures || [])
       setInquiries(inqData.inquiries || [])
       setUsers(userData.users || [])
       setUserTotal(userData.total || 0)
+      setSsItems(ssData.items || [])
     }).catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -62,6 +65,7 @@ export default function AdminPage() {
       {/* 탭 */}
       <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderRadius: 8, overflow: 'hidden', border: `1px solid ${sep}` }}>
         {[
+          { key: 'ss', label: `SS급 (${ssItems.length})` },
           { key: 'users', label: `유저 (${userTotal})` },
           { key: 'ranking', label: `시총 순위 (${rankingStats.done}/${rankingStats.total})` },
           { key: 'disclosures', label: `공시 (${disclosures.length})` },
@@ -78,6 +82,53 @@ export default function AdminPage() {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+      ) : tab === 'ss' ? (
+        ssItems.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted, fontSize: 13 }}>SS급 종목 없음</div>
+        ) : (
+          <div>
+            <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 12 }}>
+              소수계좌 3회+ & 경고 미도달 & 복합 시그널 교차
+            </div>
+            {ssItems.map((item, i) => (
+              <div key={i} style={{
+                padding: '14px 16px', borderRadius: 12, marginBottom: 8,
+                background: item.grade === 'SS' ? (dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)') : (dark ? '#141416' : '#fff'),
+                border: `1px solid ${item.grade === 'SS' ? 'rgba(220,38,38,0.15)' : sep}`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      fontSize: 11, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
+                      background: item.grade === 'SS' ? '#DC2626' : '#F59E0B',
+                      color: '#fff',
+                    }}>{item.grade}</span>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: colors.textPrimary }}>{item.corp_name}</span>
+                    <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>{item.stock_code}</span>
+                  </div>
+                  <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+                    {item.market_cap ? item.market_cap.toLocaleString() + '억' : ''}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, color: '#DC2626', fontWeight: 700 }}>주의 {item.caution_count}회</span>
+                  {item.pbr != null && item.pbr > 0 && (
+                    <span style={{ fontSize: 11, color: item.pbr < 1 ? '#DC2626' : colors.textMuted, fontWeight: 600 }}>PBR {item.pbr}</span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {item.signals.map((s, si) => (
+                    <span key={si} style={{
+                      fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4,
+                      background: dark ? 'rgba(255,255,255,0.04)' : '#F4F4F5',
+                      color: colors.textSecondary,
+                    }}>{s.type}{s.count ? ' ' + s.count + '건' : ''}{s.value ? ' ' + s.value : ''}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       ) : tab === 'users' ? (
         <>
           {/* 유저 요약 */}
