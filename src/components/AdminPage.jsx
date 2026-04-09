@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
@@ -77,6 +77,7 @@ export default function AdminPage() {
           { key: 'strategy', label: '전략' },
           { key: 'architecture', label: '설계' },
           { key: 'guide', label: '가이드' },
+          { key: 'signal', label: '시그널' },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
@@ -393,6 +394,8 @@ export default function AdminPage() {
         <ArchitectureBlog colors={colors} dark={dark} sep={sep} />
       ) : tab === 'guide' ? (
         <GuideBlog colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'signal' ? (
+        <SignalDashboard colors={colors} dark={dark} sep={sep} />
       ) : null}
 
       {/* ── 공시 상세 팝업 모달 ── */}
@@ -1872,6 +1875,295 @@ function GuideBlog({ colors, dark, sep }) {
         2026-04-09<br/>
         이 가이드라인은 살아있는 문서다. 데이터가 쌓이면 기준도 진화한다.
       </div>
+    </div>
+  )
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   시그널 대시보드 — 시각화
+   ═══════════════════════════════════════════════════════════ */
+
+function SignalDashboard({ colors, dark, sep }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`${API}/api/admin/signal-dashboard`).then(r => r.json()),
+    ]).then(([d]) => setData(d))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+  if (!data) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>데이터 없음</div>
+
+  const { decay_curves = [], quadrant = [], monthly_stats = [], snapshot_quality = {}, intensity_stats = [] } = data
+  const cardBox = { padding: '18px 20px', borderRadius: 12, border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff', marginBottom: 16 }
+  const h2 = { fontSize: 19, fontWeight: 800, color: colors.textPrimary, margin: '32px 0 14px', fontFamily: FONTS.serif }
+
+  return (
+    <div style={{ maxWidth: 720 }}>
+
+      <h1 style={{ fontSize: 24, fontWeight: 900, color: colors.textPrimary, fontFamily: FONTS.serif, margin: '0 0 4px' }}>시그널 대시보드</h1>
+      <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 24 }}>실증 데이터 기반 시그널 분석</div>
+
+      {/* ══ 축적 현황 ══ */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
+        {[
+          { label: '총 추적', value: snapshot_quality.total?.toLocaleString() || '0', color: '#DC2626' },
+          { label: '스냅샷 채움률', value: `${snapshot_quality.snap_pbr || 0}%`, color: '#D97706' },
+          { label: '판정 완료', value: `${intensity_stats.reduce((s, x) => s + x.total, 0)}건`, color: '#16A34A' },
+        ].map((item, i) => (
+          <div key={i} style={{ ...cardBox, textAlign: 'center', marginBottom: 0 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: item.color, fontFamily: FONTS.mono }}>{item.value}</div>
+            <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>{item.label}</div>
+          </div>
+        ))}
+      </div>
+
+
+      {/* ══ 1. 시그널 수익 곡선 (Decay Curve) ══ */}
+      <h2 style={h2}>시그널 수익 곡선</h2>
+      <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 12 }}>유형별 종가/5일 초과수익률 비교 — 매매 타이밍 판단용</div>
+      <div style={cardBox}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {decay_curves.map((item, i) => {
+            const maxAbs = Math.max(...decay_curves.map(d => Math.max(Math.abs(d.avg_close), Math.abs(d.avg_5d || 0))), 1)
+            const closeW = Math.min(Math.abs(item.avg_close) / maxAbs * 100, 100)
+            const fiveW = Math.min(Math.abs(item.avg_5d || 0) / maxAbs * 100, 100)
+            const tierColor = item.tier === 1 ? '#DC2626' : item.tier === 2 ? '#D97706' : '#6B7280'
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: i < decay_curves.length - 1 ? `1px solid ${sep}` : 'none' }}>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3, background: tierColor, color: '#fff', flexShrink: 0 }}>T{item.tier}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary, width: 70, flexShrink: 0 }}>{item.type}</span>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {/* 종가 바 */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 9, color: colors.textMuted, width: 24 }}>종가</span>
+                    <div style={{ flex: 1, height: 10, background: dark ? '#1E1E22' : '#F0F0F2', borderRadius: 5, position: 'relative', overflow: 'hidden' }}>
+                      <div style={{
+                        position: 'absolute', left: '50%', top: 0, height: '100%', width: 1, background: dark ? '#333' : '#ccc',
+                      }} />
+                      <div style={{
+                        position: 'absolute',
+                        left: item.avg_close >= 0 ? '50%' : `${50 - closeW / 2}%`,
+                        width: `${closeW / 2}%`,
+                        height: '100%', borderRadius: 5,
+                        background: item.avg_close >= 0 ? '#DC2626' : '#2563EB',
+                      }} />
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 700, fontFamily: FONTS.mono, width: 46, textAlign: 'right', color: item.avg_close >= 0 ? '#DC2626' : '#2563EB' }}>
+                      {item.avg_close > 0 ? '+' : ''}{item.avg_close}%
+                    </span>
+                  </div>
+                  {/* 5일 바 */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 9, color: colors.textMuted, width: 24 }}>5일</span>
+                    <div style={{ flex: 1, height: 10, background: dark ? '#1E1E22' : '#F0F0F2', borderRadius: 5, position: 'relative', overflow: 'hidden' }}>
+                      <div style={{
+                        position: 'absolute', left: '50%', top: 0, height: '100%', width: 1, background: dark ? '#333' : '#ccc',
+                      }} />
+                      <div style={{
+                        position: 'absolute',
+                        left: (item.avg_5d || 0) >= 0 ? '50%' : `${50 - fiveW / 2}%`,
+                        width: `${fiveW / 2}%`,
+                        height: '100%', borderRadius: 5,
+                        background: (item.avg_5d || 0) >= 0 ? '#DC2626' : '#2563EB',
+                      }} />
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 700, fontFamily: FONTS.mono, width: 46, textAlign: 'right', color: (item.avg_5d || 0) >= 0 ? '#DC2626' : '#2563EB' }}>
+                      {(item.avg_5d || 0) > 0 ? '+' : ''}{item.avg_5d || 0}%
+                    </span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0, width: 50 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.mono }}>{item.win_rate}%</div>
+                  <div style={{ fontSize: 9, color: colors.textMuted }}>{item.samples}건</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+
+      {/* ══ 2. 시그널 4사분면 ══ */}
+      <h2 style={h2}>시그널 4사분면</h2>
+      <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 12 }}>X = 종가 초과수익, Y = 5일 초과수익 — 각 점 = 하나의 공시</div>
+      <div style={cardBox}>
+        {(() => {
+          const pts = quadrant.filter(q => q.change_close != null && q.change_5d != null)
+          if (pts.length === 0) return <div style={{ textAlign: 'center', padding: 40, color: colors.textMuted, fontSize: 13 }}>5일 수익 데이터 축적 중... (change_5d 필요)</div>
+
+          const W = 320, H = 280, PAD = 40
+          const maxX = Math.max(...pts.map(p => Math.abs(p.change_close)), 10)
+          const maxY = Math.max(...pts.map(p => Math.abs(p.change_5d)), 10)
+          const scaleX = v => PAD + (v + maxX) / (maxX * 2) * (W - PAD * 2)
+          const scaleY = v => PAD + (maxY - v) / (maxY * 2) * (H - PAD * 2)
+          const gradeColor = g => g === 'S' ? '#DC2626' : g === 'A' ? '#0D9488' : g === 'D' ? '#7C3AED' : '#6B7280'
+
+          // 사분면 카운트
+          const q1 = pts.filter(p => p.change_close > 0 && p.change_5d > 0).length
+          const q2 = pts.filter(p => p.change_close <= 0 && p.change_5d > 0).length
+          const q3 = pts.filter(p => p.change_close <= 0 && p.change_5d <= 0).length
+          const q4 = pts.filter(p => p.change_close > 0 && p.change_5d <= 0).length
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <svg width={W} height={H} style={{ overflow: 'visible' }}>
+                {/* 배경 사분면 */}
+                <rect x={scaleX(0)} y={PAD} width={W - PAD - scaleX(0)} height={scaleY(0) - PAD} fill={dark ? 'rgba(22,163,74,0.04)' : 'rgba(22,163,74,0.03)'} />
+                <rect x={PAD} y={PAD} width={scaleX(0) - PAD} height={scaleY(0) - PAD} fill={dark ? 'rgba(37,99,235,0.04)' : 'rgba(37,99,235,0.03)'} />
+                <rect x={PAD} y={scaleY(0)} width={scaleX(0) - PAD} height={H - PAD - scaleY(0)} fill={dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.03)'} />
+                <rect x={scaleX(0)} y={scaleY(0)} width={W - PAD - scaleX(0)} height={H - PAD - scaleY(0)} fill={dark ? 'rgba(217,119,6,0.04)' : 'rgba(217,119,6,0.03)'} />
+                {/* 축 */}
+                <line x1={PAD} y1={scaleY(0)} x2={W - PAD} y2={scaleY(0)} stroke={dark ? '#333' : '#D4D4D8'} strokeWidth={1} />
+                <line x1={scaleX(0)} y1={PAD} x2={scaleX(0)} y2={H - PAD} stroke={dark ? '#333' : '#D4D4D8'} strokeWidth={1} />
+                {/* 라벨 */}
+                <text x={W - PAD + 4} y={scaleY(0) + 4} fontSize={9} fill={colors.textMuted}>종가 →</text>
+                <text x={scaleX(0) + 4} y={PAD - 8} fontSize={9} fill={colors.textMuted}>5일 ↑</text>
+                {/* 사분면 라벨 */}
+                <text x={scaleX(maxX * 0.5)} y={scaleY(maxY * 0.7)} fontSize={10} fill="#16A34A" textAnchor="middle" fontWeight={700}>진짜 시그널</text>
+                <text x={scaleX(-maxX * 0.5)} y={scaleY(maxY * 0.7)} fontSize={10} fill="#2563EB" textAnchor="middle" fontWeight={700}>반등형</text>
+                <text x={scaleX(-maxX * 0.5)} y={scaleY(-maxY * 0.7)} fontSize={10} fill="#DC2626" textAnchor="middle" fontWeight={700}>진짜 악재</text>
+                <text x={scaleX(maxX * 0.5)} y={scaleY(-maxY * 0.7)} fontSize={10} fill="#D97706" textAnchor="middle" fontWeight={700}>함정</text>
+                {/* 데이터 포인트 */}
+                {pts.slice(0, 500).map((p, i) => (
+                  <circle key={i} cx={scaleX(p.change_close)} cy={scaleY(p.change_5d)} r={3}
+                    fill={gradeColor(p.grade)} opacity={0.6} />
+                ))}
+              </svg>
+              <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 11, color: colors.textMuted }}>
+                <span>진짜 시그널 <b style={{ color: '#16A34A' }}>{q1}</b></span>
+                <span>반등형 <b style={{ color: '#2563EB' }}>{q2}</b></span>
+                <span>함정 <b style={{ color: '#D97706' }}>{q4}</b></span>
+                <span>악재 <b style={{ color: '#DC2626' }}>{q3}</b></span>
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 10, color: colors.textMuted }}>
+                <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: '#DC2626', marginRight: 3 }} />S</span>
+                <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: '#0D9488', marginRight: 3 }} />A</span>
+                <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: '#7C3AED', marginRight: 3 }} />D</span>
+              </div>
+            </div>
+          )
+        })()}
+      </div>
+
+
+      {/* ══ 3. 승률 진화 곡선 ══ */}
+      <h2 style={h2}>승률 진화 곡선</h2>
+      <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 12 }}>월별 승률 추이 — 축적의 가치를 증명</div>
+      <div style={cardBox}>
+        {monthly_stats.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 40, color: colors.textMuted, fontSize: 13 }}>월별 데이터 축적 중...</div>
+        ) : (() => {
+          const W = 360, H = 160, PAD = 40
+          const maxWr = Math.max(...monthly_stats.map(m => m.win_rate), 60)
+          const minWr = Math.min(...monthly_stats.map(m => m.win_rate), 20)
+          const range = maxWr - minWr || 1
+          const stepX = (W - PAD * 2) / Math.max(monthly_stats.length - 1, 1)
+          const scaleY = v => PAD + (maxWr - v) / range * (H - PAD * 2)
+
+          const pathD = monthly_stats.map((m, i) => {
+            const x = PAD + i * stepX
+            const y = scaleY(m.win_rate)
+            return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
+          }).join(' ')
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <svg width={W} height={H + 30} style={{ overflow: 'visible' }}>
+                {/* 50% 기준선 */}
+                {minWr < 50 && maxWr > 50 && (
+                  <line x1={PAD} y1={scaleY(50)} x2={W - PAD} y2={scaleY(50)} stroke={dark ? '#333' : '#E4E4E7'} strokeDasharray="4" />
+                )}
+                <text x={PAD - 4} y={scaleY(50) + 4} fontSize={9} fill={colors.textMuted} textAnchor="end">50%</text>
+                {/* 라인 */}
+                <path d={pathD} fill="none" stroke="#DC2626" strokeWidth={2} />
+                {/* 포인트 + 라벨 */}
+                {monthly_stats.map((m, i) => {
+                  const x = PAD + i * stepX
+                  const y = scaleY(m.win_rate)
+                  return (
+                    <g key={i}>
+                      <circle cx={x} cy={y} r={4} fill="#DC2626" />
+                      <text x={x} y={y - 10} fontSize={10} fill={colors.textPrimary} textAnchor="middle" fontWeight={700} fontFamily={FONTS.mono}>{m.win_rate}%</text>
+                      <text x={x} y={H + 15} fontSize={9} fill={colors.textMuted} textAnchor="middle">{m.month.slice(5)}</text>
+                      <text x={x} y={H + 26} fontSize={8} fill={colors.textMuted} textAnchor="middle">{m.total}건</text>
+                    </g>
+                  )
+                })}
+              </svg>
+            </div>
+          )
+        })()}
+      </div>
+
+
+      {/* ══ 4. 시그널 강도 성적 ══ */}
+      {intensity_stats.length > 0 && (
+        <>
+          <h2 style={h2}>시그널 강도 성적</h2>
+          <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 12 }}>Claude 판정별 실제 수익 — 판정이 맞고 있는가?</div>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
+            {['strong', 'medium', 'weak'].map(level => {
+              const stat = intensity_stats.find(s => s.intensity === level) || { total: 0, wins: 0, win_rate: 0, avg_return: 0, avg_5d: 0 }
+              const color = level === 'strong' ? '#16A34A' : level === 'weak' ? '#DC2626' : '#D97706'
+              return (
+                <div key={level} style={{ ...cardBox, flex: 1, textAlign: 'center', borderTop: `3px solid ${color}`, marginBottom: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color, marginBottom: 8, textTransform: 'uppercase' }}>{level}</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: colors.textPrimary, fontFamily: FONTS.mono }}>{stat.win_rate}%</div>
+                  <div style={{ fontSize: 10, color: colors.textMuted, marginBottom: 8 }}>승률 ({stat.total}건)</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: 12, fontSize: 11 }}>
+                    <span style={{ color: stat.avg_return > 0 ? '#DC2626' : '#2563EB', fontFamily: FONTS.mono, fontWeight: 700 }}>
+                      종가 {stat.avg_return > 0 ? '+' : ''}{stat.avg_return || 0}%
+                    </span>
+                    <span style={{ color: (stat.avg_5d || 0) > 0 ? '#DC2626' : '#2563EB', fontFamily: FONTS.mono, fontWeight: 700 }}>
+                      5일 {(stat.avg_5d || 0) > 0 ? '+' : ''}{stat.avg_5d || 0}%
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
+
+
+      {/* ══ 5. 데이터 품질 ══ */}
+      <h2 style={h2}>스냅샷 품질</h2>
+      <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 12 }}>필드별 채워진 비율 — null이 많으면 수집 파이프라인 점검 필요</div>
+      <div style={cardBox}>
+        {[
+          { key: 'snap_pbr', label: 'PBR' },
+          { key: 'snap_per', label: 'PER' },
+          { key: 'snap_foreign_ratio', label: '외국인비율' },
+          { key: 'snap_market_cap', label: '시총' },
+          { key: 'snap_debt_ratio', label: '부채비율' },
+          { key: 'snap_volume_ratio', label: '거래량비율' },
+          { key: 'snap_foreign_consec_buy', label: '외국인연속매수' },
+          { key: 'snap_disclosure_type', label: '공시유형' },
+          { key: 'snap_v2_score', label: 'V2스코어' },
+          { key: 'snap_signal_intensity', label: '시그널강도' },
+          { key: 'change_5d', label: '5일수익' },
+          { key: 'excess_return_close', label: '초과수익률' },
+        ].map((item, i) => {
+          const pct = snapshot_quality[item.key] || 0
+          const barColor = pct >= 80 ? '#16A34A' : pct >= 50 ? '#D97706' : '#DC2626'
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: i < 11 ? `1px solid ${sep}` : 'none' }}>
+              <span style={{ fontSize: 12, color: colors.textMuted, width: 90, flexShrink: 0 }}>{item.label}</span>
+              <div style={{ flex: 1, height: 8, background: dark ? '#1E1E22' : '#F0F0F2', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: `${pct}%`, height: '100%', borderRadius: 4, background: barColor, transition: 'width 0.5s' }} />
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, fontFamily: FONTS.mono, width: 40, textAlign: 'right', color: barColor }}>{pct}%</span>
+            </div>
+          )
+        })}
+      </div>
+
     </div>
   )
 }
