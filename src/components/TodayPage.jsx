@@ -17,7 +17,7 @@ export default function TodayPage({ onViewCard }) {
   const [globalFilings, setGlobalFilings] = useState([])
   const [globalLoading, setGlobalLoading] = useState(false)
   const [globalPopup, setGlobalPopup] = useState(null)
-  const [watchData, setWatchData] = useState(null)
+  // watchData removed — moved to AdminPage
   const {
     disclosures, counts, loading,
     gradeFilter, setGradeFilter,
@@ -31,14 +31,6 @@ export default function TodayPage({ onViewCard }) {
       setGradeFilter(urlGrade)
       setSearchParams({}, { replace: true })
     }
-  }, [])
-
-  // 소수계좌 집중매수 감시 데이터 fetch
-  useEffect(() => {
-    fetch(`${API}/api/watch/concentrated`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d && (d.total_active > 0 || d.total_halted > 0)) setWatchData(d) })
-      .catch(() => {})
   }, [])
 
   // Global 탭 선택 시 SEC 데이터 fetch
@@ -201,11 +193,6 @@ export default function TodayPage({ onViewCard }) {
             onClose={() => { setSearchOpen(false); setSearch('') }} />
         )}
       </div>
-
-      {/* ── 소수계좌 집중매수 감시 ── */}
-      {watchData && (watchData.total_active > 0 || watchData.total_halted > 0) && (
-        <ConcentratedWatch data={watchData} dark={dark} colors={colors} />
-      )}
 
       {/* ── 히어로 픽 ── */}
       {risers.length > 0 && gradeFilter !== 'GLOBAL' && (
@@ -409,7 +396,15 @@ export default function TodayPage({ onViewCard }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span className="today-corp" style={{
                         fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif,
-                      }}>{d.corp_name}</span>
+                        textDecoration: 'underline', textDecorationColor: 'transparent',
+                        transition: 'text-decoration-color 0.15s',
+                      }} onClick={(e) => {
+                        e.stopPropagation()
+                        const cc = d.corp_code || d.stock_code
+                        if (cc) onViewCard(cc)
+                      }} onMouseEnter={(e) => e.target.style.textDecorationColor = colors.textPrimary}
+                         onMouseLeave={(e) => e.target.style.textDecorationColor = 'transparent'}
+                      >{d.corp_name}</span>
                       {(() => {
                         if (!d.created_at) return null
                         const dt = new Date(d.created_at)
@@ -546,130 +541,6 @@ export default function TodayPage({ onViewCard }) {
         .riser-sheet-enter { animation: sheet-up 0.3s cubic-bezier(0.32,0.72,0,1); }
         .riser-item:hover { background: ${dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'} !important; }
       `}</style>
-    </div>
-  )
-}
-
-
-// ══ 소수계좌 집중매수 감시 ══
-function ConcentratedWatch({ data, dark, colors }) {
-  const STAGE_STYLE = {
-    1: { label: '투자주의', bg: '#FBBF24', color: '#92400E' },
-    2: { label: '투자경고', bg: '#F97316', color: '#FFF' },
-    3: { label: '투자위험', bg: '#DC2626', color: '#FFF' },
-    4: { label: '거래정지', bg: '#6B7280', color: '#FFF' },
-  }
-
-  const allItems = [
-    ...(data.active || []).map(s => ({ ...s, halted: false })),
-    ...(data.halted || []).map(s => ({ ...s, halted: true })),
-  ]
-
-  if (allItems.length === 0) return null
-
-  return (
-    <div className="today-pad" style={{ paddingTop: 16 }}>
-      {/* 섹션 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-        <span style={{
-          fontSize: 15, fontWeight: 800, color: colors.textPrimary, letterSpacing: '-0.3px',
-        }}>소수계좌 집중매수</span>
-        <span style={{
-          fontSize: 11, fontWeight: 700, fontFamily: FONTS.mono,
-          background: 'rgba(220,38,38,0.1)', color: '#DC2626',
-          padding: '2px 7px', borderRadius: 8, lineHeight: 1.4,
-        }}>{data.total_active}</span>
-      </div>
-
-      {/* 카드 목록 */}
-      <div className="watch-cards" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {allItems.map((item) => {
-          const stage = STAGE_STYLE[item.stage_level] || STAGE_STYLE[1]
-          const isHalted = item.halted || item.stage_level === 4
-          const pbr = item.pbr
-          const hasPbrSafe = pbr != null && pbr > 0 && pbr < 1
-          const hasPbrHot = pbr != null && pbr >= 5
-          const daysSince = item.first_detected
-            ? Math.floor((Date.now() - new Date(item.first_detected + 'T00:00:00+09:00').getTime()) / 86400000)
-            : null
-
-          return (
-            <div key={item.stock_code} style={{
-              padding: '14px 16px', borderRadius: 12,
-              background: dark ? 'rgba(255,255,255,0.03)' : '#FFF',
-              border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-              opacity: isHalted ? 0.5 : 1,
-            }}>
-              {/* 상단: 종목명 + 단계 뱃지 */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <span style={{
-                    fontSize: 15, fontWeight: 700, color: colors.textPrimary,
-                    fontFamily: FONTS.serif, letterSpacing: '-0.3px',
-                    textDecoration: isHalted ? 'line-through' : 'none',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>{item.corp_name}</span>
-                  <span style={{
-                    fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, flexShrink: 0,
-                  }}>{item.stock_code}</span>
-                </div>
-                <span style={{
-                  fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
-                  background: stage.bg, color: stage.color, flexShrink: 0,
-                  whiteSpace: 'nowrap',
-                }}>{stage.label}</span>
-              </div>
-
-              {/* 하단: 메타 정보 */}
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 6, marginTop: 8,
-                flexWrap: 'wrap',
-              }}>
-                {/* 최초 감지 */}
-                {item.first_detected && (
-                  <span style={{
-                    fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono,
-                  }}>
-                    {item.first_detected.slice(5)} 감지{daysSince != null && daysSince > 0 ? ` (D+${daysSince})` : ''}
-                  </span>
-                )}
-
-                {/* PBR 태그 */}
-                {hasPbrSafe && (
-                  <span style={{
-                    fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
-                    background: 'rgba(22,163,74,0.08)', color: '#16A34A',
-                  }}>안전마진 PBR {pbr.toFixed(1)}</span>
-                )}
-                {hasPbrHot && (
-                  <span style={{
-                    fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
-                    background: 'rgba(220,38,38,0.08)', color: '#DC2626',
-                  }}>과열 PBR {pbr.toFixed(1)}</span>
-                )}
-
-                {/* 현재가 + 변동률 */}
-                {item.current_price != null && item.current_price > 0 && (
-                  <span style={{
-                    fontSize: 10, fontWeight: 600, fontFamily: FONTS.mono,
-                    color: item.change_pct > 0 ? '#DC2626' : item.change_pct < 0 ? '#2563EB' : colors.textMuted,
-                    marginLeft: 'auto',
-                  }}>
-                    {item.current_price.toLocaleString()}
-                    {item.change_pct != null && (
-                      <> {item.change_pct > 0 ? '+' : ''}{item.change_pct.toFixed(1)}%</>
-                    )}
-                  </span>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
     </div>
   )
 }
