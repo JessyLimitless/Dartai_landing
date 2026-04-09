@@ -1493,7 +1493,7 @@ excess_return_5d REAL            5일 초과수익률`}
         ].map((item, i) => (
           <div key={i} style={{
             padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            borderBottom: i < 3 ? `1px solid ${sep}` : 'none',
+            borderBottom: `1px solid ${sep}`,
           }}>
             <span style={{ fontSize: 13, color: colors.textSecondary }}>{item.text}</span>
             <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{item.when}</span>
@@ -1501,11 +1501,69 @@ excess_return_5d REAL            5일 초과수익률`}
         ))}
       </div>
 
+      {/* ══ 9. 미래 과제: 온톨로지 ══ */}
+      <h2 style={h2}>미래 과제 — 온톨로지 기반 데이터 레이어</h2>
+      <p style={p}>
+        팔란티어가 군사/정보 분야에서 온톨로지로 의사결정을 혁신한 것처럼,
+        한국 공시 시장에서 동일한 구조를 구현하는 것이 최종 목표다.
+        팔란티어의 AIP가 온톨로지 위에서 추론하듯,
+        <b style={{ color: colors.textPrimary }}>Claude Code Opus가 공시 온톨로지 위에서 추론한다.</b>
+      </p>
+
+      <h3 style={h3}>왜 지금이 아닌가</h3>
+      <p style={p}>
+        50,000건 규모에서는 SQLite + JSON으로 동일한 예측 정확도와 성능을 낸다.
+        온톨로지가 차이를 만드는 건 "블랙록이 투자한 회사들 중 CB를 발행한 건 중
+        발행 대상이 같은 계열 펀드인 경우의 승률" 같은 3단계 이상 관계 탐색부터다.
+        그건 데이터가 수십만 건이고, 관계 패턴이 복잡해진 이후의 이야기다.
+      </p>
+
+      <h3 style={h3}>전환 시점의 신호</h3>
+      <div style={{ borderRadius: 10, border: `1px solid ${sep}`, overflow: 'hidden', margin: '14px 0 20px' }}>
+        {[
+          'SQL JOIN이 3단계 이상으로 복잡해질 때',
+          '"이 펀드가 투자한 다른 회사도 보여줘" 같은 질문이 반복될 때',
+          '엔티티 간 숨겨진 패턴을 발견해야 할 때',
+          '데이터가 100,000건을 넘어갈 때',
+        ].map((text, i) => (
+          <div key={i} style={{
+            padding: '10px 16px', fontSize: 13, color: colors.textSecondary, lineHeight: 1.5,
+            borderBottom: i < 3 ? `1px solid ${sep}` : 'none',
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+          }}>
+            <span style={{ color: '#2563EB', fontWeight: 700, flexShrink: 0 }}>→</span>
+            {text}
+          </div>
+        ))}
+      </div>
+
+      <h3 style={h3}>온톨로지 객체 (예비 설계)</h3>
+      <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: colors.textPrimary, background: dark ? '#1A1A1E' : '#F4F4F5', padding: '16px 18px', borderRadius: 10, margin: '14px 0 18px', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+{`[객체]
+  Company     — corp_code, 재무, 시총, 업종
+  Disclosure  — rcept_no, 유형, 강도, 피처, 결과
+  Investor    — 펀드/기관/개인, 유형, 국적
+  Insider     — 이름, 직책, 소속
+  Signal      — 강도, 수급, 위험, 확률
+  Outcome     — 기준가, 종가, 5일, 초과수익률
+
+[관계]
+  Company  ←발행→   Disclosure
+  Investor ←투자→   Company
+  Insider  ←매매→   Company
+  Disclosure ←영향→ Outcome
+  Company  ←공급→   Company`}
+      </div>
+      <p style={p}>
+        현재 설계의 entities + relationships 테이블이 온톨로지의 초기 형태다.
+        지금은 이 테이블로 시작하고, 전환 신호가 보이면 온톨로지로 확장한다.
+      </p>
+
       <div style={divider} />
       <div style={{ fontSize: 11, color: colors.textMuted, textAlign: 'center', lineHeight: 1.8, padding: '0 0 20px' }}>
         DART Insight — System Architecture v1<br/>
         2026-04-09<br/>
-        "이미 있는 데이터의 동선만 바꾸면 된다."
+        "이미 있는 데이터의 동선만 바꾸면 된다. 그리고 언젠가 온톨로지가 된다."
       </div>
     </div>
   )
