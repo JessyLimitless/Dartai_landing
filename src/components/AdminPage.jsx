@@ -75,6 +75,7 @@ export default function AdminPage() {
           { key: 'disclosures', label: `공시 (${disclosures.length})` },
           { key: 'inquiries', label: `문의 (${inquiries.length})` },
           { key: 'strategy', label: '전략' },
+          { key: 'architecture', label: '설계' },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
@@ -387,6 +388,8 @@ export default function AdminPage() {
         )
       ) : tab === 'strategy' ? (
         <StrategyBlog colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'architecture' ? (
+        <ArchitectureBlog colors={colors} dark={dark} sep={sep} />
       ) : null}
 
       {/* ── 공시 상세 팝업 모달 ── */}
@@ -1057,6 +1060,352 @@ function StrategyBlog({ colors, dark, sep }) {
         DART Insight — Signal Architecture v1<br/>
         2026-04-09 아키텍처 회의 기반<br/>
         "800건에서 5건을 찾는다. 그리고 그 5건이 왜 오르는지 증명한다."
+      </div>
+    </div>
+  )
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   설계 블로그 — 시스템 아키텍처
+   ═══════════════════════════════════════════════════════════ */
+
+function ArchitectureBlog({ colors, dark, sep }) {
+  const h1 = { fontSize: 26, fontWeight: 900, color: colors.textPrimary, margin: 0, fontFamily: FONTS.serif, lineHeight: 1.3 }
+  const h2 = { fontSize: 19, fontWeight: 800, color: colors.textPrimary, margin: '48px 0 14px', fontFamily: FONTS.serif }
+  const h3 = { fontSize: 15, fontWeight: 700, color: colors.textPrimary, margin: '28px 0 10px' }
+  const p = { fontSize: 14, color: colors.textSecondary, lineHeight: 1.85, margin: '0 0 16px' }
+  const mono = { fontFamily: FONTS.mono, fontSize: 12, color: colors.textPrimary, background: dark ? '#1A1A1E' : '#F4F4F5', padding: '16px 18px', borderRadius: 10, margin: '14px 0 18px', lineHeight: 1.7, overflowX: 'auto', whiteSpace: 'pre-wrap' }
+  const quote = { borderLeft: '3px solid #2563EB', paddingLeft: 16, margin: '20px 0', fontSize: 14, color: colors.textSecondary, lineHeight: 1.8 }
+  const badge = (text, bg) => ({ display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 5, background: bg, color: '#fff', marginRight: 6 })
+  const tbl = { width: '100%', fontSize: 12.5, borderCollapse: 'collapse', margin: '14px 0 22px' }
+  const th = { textAlign: 'left', padding: '8px 10px', fontWeight: 700, color: colors.textPrimary, borderBottom: `2px solid ${dark ? '#333' : '#D4D4D8'}`, fontSize: 11 }
+  const td = { padding: '8px 10px', borderBottom: `1px solid ${sep}`, color: colors.textSecondary, fontSize: 12.5, lineHeight: 1.5 }
+  const tdMono = { ...td, fontFamily: FONTS.mono }
+  const cardBox = { padding: '18px 20px', borderRadius: 12, border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff', marginBottom: 12 }
+  const divider = { height: 1, background: sep, margin: '40px 0' }
+  const label = { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }
+
+  return (
+    <div style={{ maxWidth: 680 }}>
+
+      {/* 타이틀 */}
+      <div style={{ marginBottom: 8 }}>
+        <span style={badge('설계 문서', '#2563EB')}>설계 문서</span>
+        <span style={badge('2026-04-09', dark ? '#52525B' : '#A1A1AA')}>v1.0</span>
+      </div>
+      <h1 style={h1}>시스템 아키텍처</h1>
+      <p style={{ fontSize: 14, color: colors.textMuted, margin: '8px 0 0', lineHeight: 1.6 }}>
+        전략 문서의 "무엇을"을 "어떻게"로 바꾸는 설계서.
+      </p>
+      <div style={divider} />
+
+
+      {/* ══ 1. 현재 시스템 진단 ══ */}
+      <h2 style={h2}>현재 시스템 진단</h2>
+
+      <h3 style={h3}>파이프라인 현황</h3>
+      <div style={mono}>
+{`[Phase 0]  KIND/NAVER 경보 수집
+[Phase 1]  DART API 폴링 → 중복 제거
+[Phase 2]  등급 분류 (scoring_engine + scoring_v2)
+[Phase 6]  정보 보강 (enrichment)  ⚠️ 메모리만, DB 미저장
+[Phase 4a] 알림 발송
+[Phase 7]  기업 카드 생성
+[Phase 4b] 주가 추적 시작 (T+0)
+[15:35]    종가 수집
+[15:40]    5일 종가 수집  ❌ 버그: 컬럼 미존재`}
+      </div>
+
+      <h3 style={h3}>발견된 문제</h3>
+      {[
+        { severity: '높음', color: '#DC2626', title: 'price_5d / change_5d 컬럼 없음', desc: 'fetch_5d_prices()가 업데이트를 시도하지만 테이블에 컬럼이 없다. 5일 수익률 데이터가 실제로 안 쌓이고 있었다.' },
+        { severity: '중간', color: '#D97706', title: 'enrichment 데이터 메모리 휘발', desc: 'Phase 6에서 PBR/PER/외국인비율/부채비율을 이미 조회하지만, 메모리에만 쓰고 버리고 있다. DB에 안 남는다.' },
+        { severity: '중간', color: '#D97706', title: 'V2 스코어 사장', desc: 'disclosures 테이블에 저장되지만 price_tracks나 알림에서 사용하지 않는다. 쓸모없이 저장만.' },
+        { severity: '핵심', color: '#DC2626', title: '스냅샷 없음', desc: '공시 시점의 시장 컨텍스트가 저장되지 않는다. "왜 이건 올랐고 저건 안 올랐지?"에 답할 수 없다.' },
+      ].map((item, i) => (
+        <div key={i} style={{ ...cardBox, borderLeft: `3px solid ${item.color}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={badge(item.severity, item.color)}>{item.severity}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{item.title}</span>
+          </div>
+          <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.7 }}>{item.desc}</div>
+        </div>
+      ))}
+
+      <h3 style={h3}>핵심 발견</h3>
+      <div style={{ ...quote, borderLeftColor: '#16A34A' }}>
+        스냅샷에 필요한 데이터의 <b style={{ color: '#16A34A' }}>80%가 이미 시스템 안에 있다.</b>
+        Phase 6 enrichment에서 PBR, PER, 외국인비율, 부채비율을 매번 조회하고 있다.
+        다만 price_tracks에 함께 저장되지 않을 뿐이다.
+        추가 API 호출 0건으로 스냅샷을 구현할 수 있다.
+      </div>
+
+      <table style={tbl}>
+        <thead><tr><th style={th}>데이터</th><th style={th}>소스</th><th style={th}>현재 상태</th></tr></thead>
+        <tbody>
+          <tr><td style={td}>PBR, PER, 외국인비율, 시총</td><td style={td}>fetch_current_price()</td><td style={{ ...td, color: '#D97706' }}>Phase 6에서 조회 후 버려짐</td></tr>
+          <tr><td style={td}>부채비율, ICR</td><td style={td}>fetch_financials()</td><td style={{ ...td, color: '#D97706' }}>Phase 6에서 조회 후 버려짐</td></tr>
+          <tr><td style={td}>V2 스코어 (5대 카테고리)</td><td style={td}>scoring_v2</td><td style={{ ...td, color: '#16A34A' }}>disclosures 테이블에 저장됨</td></tr>
+          <tr><td style={td}>기관/외국인 순매매 랭킹</td><td style={td}>kiwoom_client</td><td style={{ ...td, color: '#16A34A' }}>5분 캐시 존재</td></tr>
+          <tr><td style={td}>소수계좌 감시 종목</td><td style={td}>kind_alerts</td><td style={{ ...td, color: '#16A34A' }}>별도 크롤링 수집 중</td></tr>
+          <tr><td style={td}>코스피 일별 등락</td><td style={td}>market_index</td><td style={{ ...td, color: '#16A34A' }}>15:35에 저장 중</td></tr>
+        </tbody>
+      </table>
+
+      <div style={divider} />
+
+
+      {/* ══ 2. 목표 아키텍처 ══ */}
+      <h2 style={h2}>목표 아키텍처</h2>
+
+      <h3 style={h3}>전략 모형 → 시스템 매핑</h3>
+      <div style={mono}>
+{`상승확률 = 시그널 강도 × 0.70 + 기본확률 × 0.15 + 수급 × 0.15 × 위험 필터
+           ↓                    ↓                  ↓              ↓
+           scoring_v2           SIGNAL_TIER         스냅샷          스냅샷
+           + 내용 분석          (config.py)        (수급 필드)     (위험 필드)
+           (향후 고도화)         (이미 있음)        (신규 저장)     (신규 저장)`}
+      </div>
+
+      <h3 style={h3}>변경 후 파이프라인</h3>
+      <div style={mono}>
+{`[Phase 0]  KIND/NAVER 경보 수집 (기존)
+[Phase 1]  DART API 폴링 (기존)
+[Phase 2]  등급 분류 + V2 스코어링 (기존)
+[Phase 6]  정보 보강 (기존)
+               ↓
+[Phase S]  ★ 스냅샷 수집 (신규)
+           enrichment에서 이미 조회한 데이터를
+           price_tracks에 함께 저장
+               ↓
+[Phase 4a] 알림 발송 (기존)
+[Phase 4b] 주가 추적 T+0 + 스냅샷 (확장)
+[15:35]    종가 수집 + 초과수익률 (확장)
+[15:40]    5일 종가 수집 (버그 수정)`}
+      </div>
+
+      <div style={divider} />
+
+
+      {/* ══ 3. 데이터 흐름 ══ */}
+      <h2 style={h2}>데이터 흐름</h2>
+      <p style={p}>
+        핵심은 단순하다.
+        Phase 6에서 이미 조회한 데이터를 Phase 4b에서 price_tracks에 <b style={{ color: colors.textPrimary }}>같이 저장</b>하는 것.
+        새로운 API 호출은 없다. 이미 있는 데이터의 동선만 바꾼다.
+      </p>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '16px 0' }}>
+        {/* Phase 2 */}
+        <div style={{ ...cardBox, flex: '1 1 100%', borderLeft: '3px solid #6B7280' }}>
+          <div style={{ ...label, color: '#6B7280' }}>Phase 2 — 등급 분류</div>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 6 }}>
+            {['grade (S/A/D)', 'v2_score', 'parsed_data', 'base_price'].map(f => (
+              <span key={f} style={{ fontSize: 11, fontFamily: FONTS.mono, padding: '3px 8px', borderRadius: 5, background: dark ? '#1E1E22' : '#F0F0F2', color: colors.textPrimary }}>{f}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Phase 6 */}
+        <div style={{ ...cardBox, flex: '1 1 100%', borderLeft: '3px solid #D97706' }}>
+          <div style={{ ...label, color: '#D97706' }}>Phase 6 — 정보 보강 (이미 조회하는 데이터)</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+            {['pbr', 'per', 'foreign_ratio', 'market_cap', 'volume_ratio', 'debt_ratio', 'icr'].map(f => (
+              <span key={f} style={{ fontSize: 11, fontFamily: FONTS.mono, padding: '3px 8px', borderRadius: 5, background: 'rgba(217,119,6,0.1)', color: '#D97706' }}>{f}</span>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: '#D97706', marginTop: 8 }}>
+            현재: 메모리에서 사용 후 버려짐 → 변경: price_tracks에 저장
+          </div>
+        </div>
+
+        {/* Phase S */}
+        <div style={{ ...cardBox, flex: '1 1 100%', borderLeft: '3px solid #DC2626' }}>
+          <div style={{ ...label, color: '#DC2626' }}>Phase S — 스냅샷 수집 (신규, 추가 API 0건)</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+            {['foreign_consec_buy', 'inst_consec_buy', 'minority_flag', 'overhang_pct', 'disclosure_type'].map(f => (
+              <span key={f} style={{ fontSize: 11, fontFamily: FONTS.mono, padding: '3px 8px', borderRadius: 5, background: 'rgba(220,38,38,0.08)', color: '#DC2626' }}>{f}</span>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 8 }}>
+            수급 캐시(5분 TTL) + KIND DB + variable_scores DB에서 조회
+          </div>
+        </div>
+
+        {/* price_tracks */}
+        <div style={{ ...cardBox, flex: '1 1 100%', borderLeft: '3px solid #16A34A' }}>
+          <div style={{ ...label, color: '#16A34A' }}>price_tracks — 최종 저장 (14개 스냅샷 필드 추가)</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+            {['base_price', 'snap_pbr', 'snap_per', 'snap_foreign_ratio', 'snap_market_cap', 'snap_volume_ratio', 'snap_debt_ratio', 'snap_icr', 'snap_foreign_consec_buy', 'snap_inst_consec_buy', 'snap_minority_flag', 'snap_overhang_pct', 'snap_disclosure_type', 'snap_v2_score'].map(f => (
+              <span key={f} style={{ fontSize: 10, fontFamily: FONTS.mono, padding: '2px 6px', borderRadius: 4, background: 'rgba(22,163,74,0.08)', color: '#16A34A' }}>{f}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={divider} />
+
+
+      {/* ══ 4. DB 스키마 변경 ══ */}
+      <h2 style={h2}>DB 스키마 변경</h2>
+      <p style={p}>
+        기존 price_tracks 테이블에 컬럼을 추가한다.
+        모든 신규 컬럼은 NULL 허용이므로 기존 12,706건은 null로 유지된다.
+        SQLite ALTER TABLE ADD COLUMN은 무중단이다.
+      </p>
+
+      <div style={mono}>
+{`-- 버그 수정: 5일 추적 (코드는 있으나 컬럼이 없었음)
+price_5d REAL
+change_5d REAL
+
+-- 스냅샷: 수급
+snap_foreign_ratio REAL          외국인 보유비율
+snap_foreign_consec_buy INTEGER  외국인 연속순매수 일수
+snap_inst_consec_buy INTEGER     기관 연속순매수 일수
+snap_minority_flag INTEGER       소수계좌 집중매수 (0/1)
+snap_volume_ratio REAL           거래량/20일평균
+
+-- 스냅샷: 위험 필터
+snap_pbr REAL
+snap_per REAL
+snap_debt_ratio REAL             부채비율
+snap_icr REAL                    이자보상배율
+snap_market_cap REAL             시가총액(억)
+snap_overhang_pct REAL           CB/BW 오버행(%)
+
+-- 스냅샷: 공시 컨텍스트
+snap_disclosure_type TEXT        공시 유형 분류
+snap_v2_score INTEGER            V2 종합 점수
+
+-- 초과수익률
+excess_return_close REAL         종가 초과수익률
+excess_return_5d REAL            5일 초과수익률`}
+      </div>
+      <p style={p}>
+        <b style={{ color: colors.textPrimary }}>설계 원칙:</b> snap_ 접두사로 스냅샷 필드를 구분한다.
+        기존 컬럼은 건드리지 않는다. 하위 호환 유지.
+      </p>
+
+      <div style={divider} />
+
+
+      {/* ══ 5. 스냅샷 수집 로직 ══ */}
+      <h2 style={h2}>스냅샷 수집 로직</h2>
+      <p style={p}>
+        새 함수 <code style={{ fontFamily: FONTS.mono, fontSize: 13, background: dark ? '#1E1E22' : '#F0F0F2', padding: '2px 6px', borderRadius: 4 }}>_collect_snapshot()</code>이
+        enrichment에서 이미 조회한 데이터를 재활용하고, 추가 필요한 데이터만 캐시/DB에서 가져온다.
+      </p>
+
+      <table style={tbl}>
+        <thead><tr><th style={th}>스냅샷 필드</th><th style={th}>데이터 소스</th><th style={th}>추가 API</th></tr></thead>
+        <tbody>
+          {[
+            ['PBR/PER/외국인비율/시총/거래량', 'enrichment → price', '0'],
+            ['부채비율/ICR', 'enrichment → financials', '0'],
+            ['외국인 연속매수일수', '_foreign_flow_cache (5분)', '0'],
+            ['기관 연속매수일수', '_trend_cache (5분)', '0'],
+            ['소수계좌 여부', 'kind_alerts 테이블', '0'],
+            ['CB/BW 오버행', 'variable_scores 테이블', '0'],
+            ['공시유형/V2스코어', 'scoring_engine 결과', '0'],
+          ].map(([field, source, api], i) => (
+            <tr key={i}>
+              <td style={td}>{field}</td>
+              <td style={{ ...td, fontSize: 12 }}>{source}</td>
+              <td style={{ ...tdMono, color: '#16A34A', fontWeight: 700 }}>{api}</td>
+            </tr>
+          ))}
+          <tr style={{ background: dark ? 'rgba(22,163,74,0.04)' : 'rgba(22,163,74,0.02)' }}>
+            <td style={{ ...td, fontWeight: 700 }} colSpan={2}>추가 API 호출 합계</td>
+            <td style={{ ...tdMono, color: '#16A34A', fontWeight: 800 }}>0건</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style={divider} />
+
+
+      {/* ══ 6. 변경 파일 ══ */}
+      <h2 style={h2}>변경 파일</h2>
+
+      <table style={tbl}>
+        <thead><tr><th style={th}>파일</th><th style={th}>변경 내용</th></tr></thead>
+        <tbody>
+          {[
+            ['modules/db.py', 'price_tracks 스키마 확장 + 마이그레이션'],
+            ['modules/price_tracker.py', '_collect_snapshot() + 초과수익률 + 5일 버그 수정'],
+            ['modules/kiwoom_client.py', 'get_foreign_consec_buy_days() 헬퍼'],
+            ['main.py', 'enrichment → price_tracker 전달'],
+            ['tests/test_price_tracker.py', '스냅샷 저장/조회 테스트'],
+          ].map(([file, desc], i) => (
+            <tr key={i}>
+              <td style={{ ...tdMono, fontWeight: 600 }}>{file}</td>
+              <td style={td}>{desc}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div style={divider} />
+
+
+      {/* ══ 7. 구현 순서 ══ */}
+      <h2 style={h2}>구현 순서</h2>
+
+      {[
+        { step: '1', title: 'DB 스키마', time: '30분', desc: '_init_tables() 신규 컬럼 추가. 기존 DB ALTER TABLE 마이그레이션. price_5d/change_5d 버그 수정.', color: '#DC2626' },
+        { step: '2', title: '스냅샷 수집 함수', time: '1시간', desc: 'price_tracker.py에 _collect_snapshot() 추가. enrichment 데이터 → snap_* 필드 변환. kiwoom_client에 연속매수일수 헬퍼.', color: '#D97706' },
+        { step: '3', title: '파이프라인 연결', time: '30분', desc: 'main.py에서 enrichment → price_tracker 전달. schedule_tracking()에 enrichment 파라미터 추가.', color: '#2563EB' },
+        { step: '4', title: '초과수익률 계산', time: '30분', desc: 'fetch_closing_prices()에 코스피 차감. fetch_5d_prices() 복구 + 5일 초과수익률.', color: '#7C3AED' },
+        { step: '5', title: '검증 + 배포', time: '30분', desc: '테스트 공시로 스냅샷 확인. 종가 수집 후 초과수익률 확인. Cloud5 배포.', color: '#16A34A' },
+      ].map((item, i) => (
+        <div key={i} style={{ display: 'flex', gap: 14, marginBottom: i < 4 ? 4 : 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 36 }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 14, background: item.color,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: FONTS.mono,
+            }}>{item.step}</div>
+            {i < 4 && <div style={{ width: 2, height: 20, background: sep, marginTop: 2 }} />}
+          </div>
+          <div style={{ flex: 1, paddingTop: 3 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: item.color }}>{item.title}</span>
+              <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 'auto' }}>{item.time}</span>
+            </div>
+            <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.6 }}>{item.desc}</div>
+          </div>
+        </div>
+      ))}
+
+      <div style={divider} />
+
+
+      {/* ══ 8. 지금은 하지 않는 것 ══ */}
+      <h2 style={h2}>지금은 하지 않는 것</h2>
+      <div style={{ borderRadius: 10, border: `1px solid ${sep}`, overflow: 'hidden', margin: '14px 0 24px' }}>
+        {[
+          { text: '조건부 승률 집계 API', when: 'Phase 3, 1개월 후' },
+          { text: 'signal_intensity 필드 (시그널 강도 70%)', when: '기준 정의 후' },
+          { text: '확률 모형 학습', when: 'Phase 4, 50K건 도달 후' },
+          { text: 'enrichment 구조 리팩토링', when: '스냅샷 안정화 후' },
+        ].map((item, i) => (
+          <div key={i} style={{
+            padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            borderBottom: i < 3 ? `1px solid ${sep}` : 'none',
+          }}>
+            <span style={{ fontSize: 13, color: colors.textSecondary }}>{item.text}</span>
+            <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{item.when}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={divider} />
+      <div style={{ fontSize: 11, color: colors.textMuted, textAlign: 'center', lineHeight: 1.8, padding: '0 0 20px' }}>
+        DART Insight — System Architecture v1<br/>
+        2026-04-09<br/>
+        "이미 있는 데이터의 동선만 바꾸면 된다."
       </div>
     </div>
   )
