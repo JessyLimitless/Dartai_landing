@@ -758,6 +758,63 @@ function StrategyBlog({ colors, dark, sep }) {
 
 
       {/* ══════════════════════════════════════════
+          진화하는 루프 — 두 번째 해자
+          ══════════════════════════════════════════ */}
+      <h2 style={h2}>진화하는 루프 — 두 번째 해자</h2>
+      <p style={p}>
+        공시 내용 분석이 첫 번째 해자라면,
+        <b style={{ color: colors.textPrimary }}> 분석 → 시뮬레이션 → 검증 → 모형 보정의 순환 루프가 두 번째 해자</b>다.
+        이건 시간이 만드는 해자이기 때문에 돈으로 살 수 없다.
+      </p>
+
+      <div style={{ position: 'relative', padding: '24px 0', margin: '16px 0 24px' }}>
+        {[
+          { step: '1', title: '공시 분석', desc: '원문을 읽고 시그널 강도를 판정한다. 콜옵션인가, 운영자금인가.', color: '#DC2626' },
+          { step: '2', title: '스냅샷 저장', desc: '판정 결과 + 그 순간의 수급/PBR/외국인 데이터를 함께 기록한다.', color: '#D97706' },
+          { step: '3', title: '결과 추적', desc: '2분, 15분, 1시간, 종가, 5일 — 실제로 올랐는지 추적한다.', color: '#2563EB' },
+          { step: '4', title: '오차 분석', desc: '"이 조건이면 올라야 하는데 안 올랐다" — 놓친 변수를 찾는다.', color: '#7C3AED' },
+          { step: '5', title: '모형 보정', desc: '가중치를 수정하고, 시그널 강도 기준을 업데이트한다. 모형이 진화한다.', color: '#16A34A' },
+        ].map((item, i) => (
+          <div key={i} style={{ display: 'flex', gap: 14, marginBottom: i < 4 ? 4 : 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 36 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 14, background: item.color,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: FONTS.mono, flexShrink: 0,
+              }}>{item.step}</div>
+              {i < 4 && <div style={{ width: 2, height: 20, background: sep, marginTop: 2 }} />}
+            </div>
+            <div style={{ flex: 1, paddingTop: 3 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginBottom: 2 }}>{item.title}</div>
+              <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.6 }}>{item.desc}</div>
+            </div>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 14, marginTop: 8 }}>
+          <div style={{ width: 36, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ fontSize: 18, color: '#DC2626', fontWeight: 800 }}>↺</div>
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#DC2626', paddingTop: 2 }}>
+            → 다시 1번으로. 보정된 모형으로 더 정확한 시그널을 낸다.
+          </div>
+        </div>
+      </div>
+
+      <p style={p}>
+        경쟁자가 내일 똑같은 시스템을 만들어도, 이 루프를 1년 돌린 우리의 모형 정밀도는 복제할 수 없다.
+        데이터는 복제 가능하지만, <b style={{ color: colors.textPrimary }}>루프를 돌려서 보정된 모형은 시간으로만 만들어진다.</b>
+      </p>
+      <p style={p}>
+        루프를 한 바퀴 돌 때마다 두 가지가 쌓인다.
+        하나는 스냅샷 데이터(양적 축적), 다른 하나는 "어떤 공시가 진짜 시그널인지"에 대한 판단력(질적 축적)이다.
+        양적 축적은 통계적 신뢰도를 높이고, 질적 축적은 시그널 강도 70%의 정밀도를 높인다.
+        둘 다 시간의 함수이고, 둘 다 복제 불가능하다.
+      </p>
+
+      <div style={divider} />
+
+
+      {/* ══════════════════════════════════════════
           3. 최종 모형 구조
           ══════════════════════════════════════════ */}
       <h2 style={h2}>최종 모형 구조</h2>
