@@ -76,6 +76,7 @@ export default function AdminPage() {
           { key: 'inquiries', label: `문의 (${inquiries.length})` },
           { key: 'strategy', label: '전략' },
           { key: 'architecture', label: '설계' },
+          { key: 'guide', label: '가이드' },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
@@ -390,6 +391,8 @@ export default function AdminPage() {
         <StrategyBlog colors={colors} dark={dark} sep={sep} />
       ) : tab === 'architecture' ? (
         <ArchitectureBlog colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'guide' ? (
+        <GuideBlog colors={colors} dark={dark} sep={sep} />
       ) : null}
 
       {/* ── 공시 상세 팝업 모달 ── */}
@@ -1503,6 +1506,313 @@ excess_return_5d REAL            5일 초과수익률`}
         DART Insight — System Architecture v1<br/>
         2026-04-09<br/>
         "이미 있는 데이터의 동선만 바꾸면 된다."
+      </div>
+    </div>
+  )
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   가이드 블로그 — 시그널 강도 판정 가이드라인
+   ═══════════════════════════════════════════════════════════ */
+
+function GuideBlog({ colors, dark, sep }) {
+  const h1 = { fontSize: 26, fontWeight: 900, color: colors.textPrimary, margin: 0, fontFamily: FONTS.serif, lineHeight: 1.3 }
+  const h2 = { fontSize: 19, fontWeight: 800, color: colors.textPrimary, margin: '48px 0 14px', fontFamily: FONTS.serif }
+  const h3 = { fontSize: 15, fontWeight: 700, color: colors.textPrimary, margin: '28px 0 10px' }
+  const p = { fontSize: 14, color: colors.textSecondary, lineHeight: 1.85, margin: '0 0 16px' }
+  const tbl = { width: '100%', fontSize: 12, borderCollapse: 'collapse', margin: '14px 0 22px' }
+  const th = { textAlign: 'left', padding: '8px 10px', fontWeight: 700, color: colors.textPrimary, borderBottom: `2px solid ${dark ? '#333' : '#D4D4D8'}`, fontSize: 11 }
+  const td = { padding: '7px 10px', borderBottom: `1px solid ${sep}`, color: colors.textSecondary, fontSize: 12, lineHeight: 1.5 }
+  const badge = (text, bg) => ({ display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 5, background: bg, color: '#fff', marginRight: 6 })
+  const divider = { height: 1, background: sep, margin: '40px 0' }
+  const cardBox = { padding: '16px 18px', borderRadius: 12, border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff', marginBottom: 10 }
+  const tierBadge = (tier, color) => ({ display: 'inline-block', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: color, color: '#fff', marginRight: 8 })
+
+  const SignalTable = ({ rows }) => (
+    <table style={tbl}>
+      <thead>
+        <tr>
+          <th style={{ ...th, width: 70 }}>강도</th>
+          <th style={th}>조건</th>
+          <th style={th}>핵심 포인트</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(([intensity, condition, point], i) => (
+          <tr key={i}>
+            <td style={{ ...td, fontWeight: 700, color: intensity === 'strong' ? '#16A34A' : intensity === 'weak' ? '#DC2626' : '#D97706' }}>
+              {intensity}
+            </td>
+            <td style={td}>{condition}</td>
+            <td style={{ ...td, fontSize: 11.5, color: colors.textMuted }}>{point}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+
+  return (
+    <div style={{ maxWidth: 680 }}>
+
+      {/* 타이틀 */}
+      <div style={{ marginBottom: 8 }}>
+        <span style={badge('가이드', '#16A34A')}>가이드</span>
+        <span style={badge('v1.0', dark ? '#52525B' : '#A1A1AA')}>v1.0</span>
+      </div>
+      <h1 style={h1}>시그널 강도 판정 가이드라인</h1>
+      <p style={{ fontSize: 14, color: colors.textMuted, margin: '8px 0 0', lineHeight: 1.6 }}>
+        Claude Code Opus가 공시 분석 시 signal_intensity를 판정하는 기준서.
+      </p>
+      <div style={divider} />
+
+
+      {/* ══ 판정 원칙 ══ */}
+      <h2 style={h2}>판정 원칙</h2>
+      <div style={{ borderRadius: 10, border: `1px solid ${sep}`, overflow: 'hidden', margin: '14px 0 24px' }}>
+        {[
+          { num: '1', text: '원문을 읽고 판정한다', sub: '제목만으로 판정하지 않는다. 내용을 읽어야 강도가 보인다.' },
+          { num: '2', text: '같은 유형이라도 내용이 다르면 강도가 다르다', sub: '이것이 해자의 핵심. CB발행 두 건이 전혀 다른 시그널일 수 있다.' },
+          { num: '3', text: '애매하면 medium', sub: 'strong과 weak는 확신이 있을 때만. 과감한 판정보다 일관성이 중요.' },
+          { num: '4', text: 'reason을 한 줄로 기록한다', sub: '나중에 "왜 strong으로 판정했지?" 할 때 필요하다.' },
+        ].map((item, i) => (
+          <div key={i} style={{
+            padding: '12px 16px', display: 'flex', gap: 12,
+            borderBottom: i < 3 ? `1px solid ${sep}` : 'none',
+          }}>
+            <span style={{ fontSize: 16, fontWeight: 900, color: '#16A34A', fontFamily: FONTS.mono, flexShrink: 0, width: 24 }}>{item.num}</span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, marginBottom: 2 }}>{item.text}</div>
+              <div style={{ fontSize: 12, color: colors.textMuted }}>{item.sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={divider} />
+
+
+      {/* ══ TIER 1 ══ */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <span style={tierBadge('TIER 1', '#DC2626')}>TIER 1</span>
+        <h2 style={{ ...h2, margin: 0 }}>돈 되는 시그널</h2>
+      </div>
+      <p style={{ ...p, marginTop: 8 }}>실증 데이터에서 초과수익률이 검증된 유형들.</p>
+
+      <h3 style={h3}>CB발행 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 +2.31%, 승률 49%, 상한가 최다</span></h3>
+      <SignalTable rows={[
+        ['strong', '대주주 콜옵션 + 리픽싱 포기', '주가 오를 것을 알고 지분 설계'],
+        ['strong', '시설자금 + 구체적 투자 계획', '성장 투자 목적 명확'],
+        ['strong', '글로벌 펀드/전략적 투자자 대상', '발행 대상 신뢰도'],
+        ['medium', '일반 조건, 시설/운영 혼합', '특별한 시그널 없음'],
+        ['medium', '리픽싱 있으나 전환가 할증', '양면적'],
+        ['weak', '운영자금 100% + 리픽싱', '현금 부족 → 희석 가속'],
+        ['weak', '발행 대상 SPC/무명 투자조합', '작전 의심'],
+        ['weak', '단기 만기(1년 이내) + 높은 이자', '급전 조달'],
+      ]} />
+
+      <h3 style={h3}>자사주취득 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 +0.68%, 승률 72% (승률 1등)</span></h3>
+      <SignalTable rows={[
+        ['strong', '직접취득 + 소각 목적 명시', '주식 수 영구 감소'],
+        ['strong', '취득 규모 시총 3%+', '의미 있는 규모'],
+        ['medium', '직접취득, 소각 미명시', '처분 가능성 잔존'],
+        ['medium', '신탁계약 방식', '간접적, 영향 분산'],
+        ['weak', '주가안정 + 소규모(시총 1% 미만)', '형식적 주주환원'],
+      ]} />
+
+      <h3 style={h3}>투자경고/투자주의 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 +3.69%, 5일 +11.25% (역발상)</span></h3>
+      <SignalTable rows={[
+        ['strong', '소수계좌 + PBR < 1 + 흑자', '저평가 + 누군가 알고 산다'],
+        ['strong', '소수계좌 + 최근 호재 공시 동반', '공시에 실체 있음'],
+        ['medium', '소수계좌 단독 (PBR 1~3)', '시그널이나 가격 부담'],
+        ['weak', '가격급변 + PBR 5배+', '이미 과열, 테마 후기'],
+        ['weak', '풍문 기반 급등 + 실체 없음', '루머 소멸 시 급락'],
+      ]} />
+
+      <div style={divider} />
+
+
+      {/* ══ TIER 2 ══ */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <span style={tierBadge('TIER 2', '#D97706')}>TIER 2</span>
+        <h2 style={{ ...h2, margin: 0 }}>양호</h2>
+      </div>
+
+      <h3 style={h3}>대량보유 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 +0.68%, 승률 52%, 1,152건</span></h3>
+      <SignalTable rows={[
+        ['strong', '글로벌 펀드(블랙록 등) 신규 진입', '깊은 리서치 기반'],
+        ['strong', '국민연금/기관 2곳+ 동시 진입', '더블 기관 = 최강'],
+        ['strong', '5% → 10%+ 추가 매수', '확신을 가지고 늘림'],
+        ['medium', '국내 자산운용사 신규', '일반적 기관 매수'],
+        ['medium', '기존 보유자 소폭 변동(±1%p)', '리밸런싱 가능성'],
+        ['weak', '개인/SPC/무명 투자조합', '실체 불분명'],
+        ['weak', '지분 감소 보고 (5% 이탈)', '매도 시그널'],
+      ]} />
+
+      <h3 style={h3}>공급계약 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 -0.05%, 승률 41% (규모에 따라)</span></h3>
+      <SignalTable rows={[
+        ['strong', '매출비 30%+ & 대기업/글로벌 향', '실적 궤도를 바꾸는 계약'],
+        ['strong', '신규 거래처 대형 계약', '새 성장 동력'],
+        ['medium', '매출비 10~30%', '의미 있으나 결정적이진 않음'],
+        ['medium', '기존 거래처 반복 (규모 유사)', '유지 수준'],
+        ['weak', '매출비 5% 미만', '노이즈'],
+        ['weak', '거래처 SPC/관계사', '실질 없는 거래'],
+      ]} />
+
+      <h3 style={h3}>무상증자 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 +0.61%, 5일 +8.79%</span></h3>
+      <SignalTable rows={[
+        ['strong', '비율 100%+ (1주당 1주 이상)', '강한 주주환원'],
+        ['strong', '실적 호조 동반', '실체 있는 환원'],
+        ['medium', '비율 50~100%', '보통'],
+        ['weak', '비율 50% 미만', '형식적'],
+        ['weak', '적자 기업의 무상증자', '실체 없는 이벤트'],
+      ]} />
+
+      <h3 style={h3}>유상증자 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 +0.32%, 5일 +14.44% (반등형)</span></h3>
+      <SignalTable rows={[
+        ['strong', '제3자배정 + 글로벌펀드/대기업', '전략적 투자 유치'],
+        ['strong', '할증 발행 + 보호예수 1년+', '프리미엄 지불'],
+        ['medium', '제3자배정 + 국내 기관', '일반 기관 투자'],
+        ['medium', '주주배정, 적정 할인율', '기존 주주 보호'],
+        ['weak', '일반공모 + 대폭 할인', '수요 부족 → 희석'],
+        ['weak', '운영자금 + 적자 기업', '절박한 자금 조달'],
+      ]} />
+
+      <h3 style={h3}>소수계좌 집중매수 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 +0.67%, 승률 25% (저승률 고수익)</span></h3>
+      <SignalTable rows={[
+        ['strong', '소수계좌 + 동시 호재 공시', '공시에 근거 있음'],
+        ['strong', '소수계좌 + PBR < 1 + 흑자', '저평가 실체주'],
+        ['medium', '소수계좌 단독, PBR 1~3', '시그널이나 판단 유보'],
+        ['weak', '소수계좌 + PBR 5배+ 또는 적자', '테마/작전 가능성'],
+      ]} />
+
+      <div style={divider} />
+
+
+      {/* ══ TIER 3 ══ */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <span style={tierBadge('TIER 3', '#6B7280')}>TIER 3</span>
+        <h2 style={{ ...h2, margin: 0 }}>함정 시그널</h2>
+      </div>
+      <p style={{ ...p, marginTop: 8 }}>공시 후 오히려 하락하는 유형. strong 판정은 서프라이즈일 때만.</p>
+
+      <h3 style={h3}>실적공시 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 -2.44%, 승률 23% (이미 반영)</span></h3>
+      <SignalTable rows={[
+        ['strong', '적자→흑자 전환 + 시장 미반영', '서프라이즈일 때만'],
+        ['strong', '영업이익 YoY +100%+ & 컨센서스 초과', '기대 이상'],
+        ['medium', '영업이익 YoY +30~100%', '양호하나 주가에 반영됐을 수 있음'],
+        ['weak', '매출↑ 영업이익↓', '외형 성장, 수익성 악화'],
+        ['weak', '흑자 지속 but 기대치 하회', '어닝 쇼크'],
+      ]} />
+
+      <h3 style={h3}>시설투자 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 -0.74%, 5일 -5.98% (단기 악재)</span></h3>
+      <SignalTable rows={[
+        ['strong', '수주 확보 후 확장 + 가동률 90%+', '성장 투자'],
+        ['medium', '일반 설비 투자, 자금 여력 충분', '중립'],
+        ['weak', '대규모 + 부채비율 200%+', '재무 부담 가중'],
+        ['weak', '목적 불분명 / 관계사 토지 매입', '의심'],
+      ]} />
+
+      <h3 style={h3}>배당 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 -0.95%, 5일 -2.47% (배당락)</span></h3>
+      <SignalTable rows={[
+        ['strong', '특별배당 or 전년 대비 50%+ 증가', '서프라이즈'],
+        ['medium', '전년 수준 유지', '기대대로'],
+        ['weak', '배당 감소 or 무배당 전환', '악재'],
+      ]} />
+
+      <h3 style={h3}>전환권행사 <span style={{ fontWeight: 400, fontSize: 12, color: colors.textMuted }}>— 종가 +0.19%, 5일 -11.73% (희석)</span></h3>
+      <SignalTable rows={[
+        ['strong', '전환 후 보호예수 설정', '즉시 매도 불가 → 희석 완화'],
+        ['medium', '소규모 전환 (시총 2% 미만)', '영향 미미'],
+        ['weak', '대규모 + 보호예수 없음', '즉시 매도 → 급락'],
+        ['weak', '전환가 현재가 대비 50%+ 할인', '대량 차익 매도 예상'],
+      ]} />
+
+      <div style={divider} />
+
+
+      {/* ══ 기타 유형 ══ */}
+      <h2 style={h2}>기타 유형</h2>
+
+      <h3 style={h3}>내부자 매매</h3>
+      <SignalTable rows={[
+        ['strong', '대표이사/최대주주 장내매수 대량', '확신의 매수'],
+        ['strong', '복수 임원 동시 매수', '내부 공감대'],
+        ['medium', '임원 소량 매수', '형식적 가능성'],
+        ['weak', '임원 매도 (특히 대량)', '이탈 시그널'],
+        ['weak', '배우자/자녀 매도', '간접 매도'],
+      ]} />
+
+      <h3 style={h3}>풍문해명</h3>
+      <SignalTable rows={[
+        ['strong', '"사실입니다" + M&A/대형계약 확인', '루머 → 팩트'],
+        ['medium', '"검토 중입니다"', '가능성 열어둠'],
+        ['weak', '"사실무근"', '루머 소멸 → 되돌림'],
+      ]} />
+
+      <h3 style={h3}>M&A / 타법인 주식취득</h3>
+      <SignalTable rows={[
+        ['strong', '동종업종 흑자기업 인수, 시너지 명확', '성장 가속'],
+        ['strong', '피인수 기업 기술력 확보', '미래 매출 전조'],
+        ['medium', '재무적 투자 (지분 5~20%)', '전략적 제휴'],
+        ['weak', '적자 기업 인수 + 인수가 과대', '밸류 파괴'],
+        ['weak', '관계사/특수관계인 지원성 거래', '사익 편취 의심'],
+      ]} />
+
+      <h3 style={h3}>D등급 (위험/악재)</h3>
+      <table style={tbl}>
+        <thead><tr><th style={th}>유형</th><th style={th}>strong (위험 높음)</th><th style={th}>weak (위험 낮음)</th></tr></thead>
+        <tbody>
+          <tr><td style={{ ...td, fontWeight: 700 }}>횡령/배임</td><td style={td}>대표이사 직접 연루 + 대규모</td><td style={td}>과거 건 추가 고발, 이미 반영</td></tr>
+          <tr><td style={{ ...td, fontWeight: 700 }}>감자결정</td><td style={td}>유상감자 + 채무초과</td><td style={td}>무상감자 + 재무구조 개선</td></tr>
+          <tr><td style={{ ...td, fontWeight: 700 }}>채무보증</td><td style={td}>보증 규모 {'>'} 자기자본 50%</td><td style={td}>소규모, 일상 거래</td></tr>
+        </tbody>
+      </table>
+
+      <div style={divider} />
+
+
+      {/* ══ 판정 체크리스트 ══ */}
+      <h2 style={h2}>판정 체크리스트</h2>
+      <div style={{ borderRadius: 10, border: `1px solid ${sep}`, overflow: 'hidden', margin: '14px 0 24px' }}>
+        {[
+          '원문을 읽었는가? (제목만으로 판정 금지)',
+          '거래 상대방 / 발행 대상을 확인했는가?',
+          '금액의 맥락(매출비, 시총비)을 파악했는가?',
+          '같은 유형의 과거 판정과 일관성이 있는가?',
+          'reason을 한 줄로 적었는가?',
+        ].map((text, i) => (
+          <div key={i} style={{
+            padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
+            borderBottom: i < 4 ? `1px solid ${sep}` : 'none',
+          }}>
+            <span style={{ width: 20, height: 20, borderRadius: 4, border: `2px solid ${dark ? '#333' : '#D4D4D8'}`, flexShrink: 0 }} />
+            <span style={{ fontSize: 13.5, color: colors.textSecondary }}>{text}</span>
+          </div>
+        ))}
+      </div>
+
+
+      {/* ══ API ══ */}
+      <h2 style={h2}>판정 입력</h2>
+      <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: colors.textPrimary, background: dark ? '#1A1A1E' : '#F4F4F5', padding: '16px 18px', borderRadius: 10, margin: '14px 0 18px', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+{`POST /api/admin/signal-intensity
+{
+  "rcept_no": "20260409000123",
+  "intensity": "strong",
+  "reason": "CB + 대주주 콜옵션 + 리픽싱 포기, 시설자금 80%"
+}`}
+      </div>
+      <p style={p}>
+        판정률 목표: <b style={{ color: colors.textPrimary }}>S등급 100%, A등급 80%, D등급 50%.</b><br/>
+        null은 "미분석"이며 통계 집계에서 제외.
+      </p>
+
+      <div style={divider} />
+      <div style={{ fontSize: 11, color: colors.textMuted, textAlign: 'center', lineHeight: 1.8, padding: '0 0 20px' }}>
+        Signal Intensity Guideline v1.0<br/>
+        2026-04-09<br/>
+        이 가이드라인은 살아있는 문서다. 데이터가 쌓이면 기준도 진화한다.
       </div>
     </div>
   )
