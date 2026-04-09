@@ -897,6 +897,51 @@ function StrategyBlog({ colors, dark, sep }) {
         <b style={{ color: colors.textPrimary }}> 공시를 읽는 눈이 모든 것의 시작이다.</b>
       </div>
 
+      {/* ══ 시그널 강도 판정 기준 (요약) ══ */}
+      <h3 style={h3}>시그널 강도 판정 기준</h3>
+      <p style={p}>
+        판정의 일관성이 데이터의 품질을 결정한다.
+        아래는 주요 유형별 strong/weak 구분 기준 요약이다.
+        (전체 가이드: <code style={{ fontFamily: FONTS.mono, fontSize: 12, background: dark ? '#1E1E22' : '#F0F0F2', padding: '2px 6px', borderRadius: 4 }}>docs/GUIDE_signal_intensity.md</code>)
+      </p>
+
+      <table style={tbl}>
+        <thead>
+          <tr>
+            <th style={th}>유형</th>
+            <th style={{ ...th, color: '#16A34A' }}>strong</th>
+            <th style={{ ...th, color: '#DC2626' }}>weak</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            ['CB발행', '대주주 콜옵션 + 리픽싱 포기', '운영자금 + 리픽싱 + SPC 대상'],
+            ['자사주', '직접취득 + 소각 목적, 시총 3%+', '소규모 신탁, 주가안정 명목'],
+            ['투자경고', '소수계좌 + PBR<1 + 흑자', 'PBR 5배+ 과열, 실체 없는 루머'],
+            ['대량보유', '글로벌펀드/국민연금 신규 진입', '개인/SPC, 지분 감소 보고'],
+            ['공급계약', '매출비 30%+ 대기업 향', 'SPC 향 5% 미만'],
+            ['유상증자', '제3자배정 + 글로벌펀드 + 할증', '일반공모 + 대폭 할인 + 적자'],
+            ['실적공시', '적자→흑자 전환, 컨센서스 초과', '매출↑ 영업이익↓, 기대 하회'],
+            ['내부자', '대표이사 장내매수 대량', '임원/배우자 매도'],
+          ].map(([type, strong, weak], i) => (
+            <tr key={i}>
+              <td style={{ ...td, fontWeight: 700 }}>{type}</td>
+              <td style={{ ...td, fontSize: 12, color: '#16A34A' }}>{strong}</td>
+              <td style={{ ...td, fontSize: 12, color: '#DC2626' }}>{weak}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div style={{ background: dark ? '#1A1A1E' : '#F9FAFB', borderRadius: 8, padding: '12px 16px', margin: '12px 0 20px' }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: colors.textPrimary, marginBottom: 6 }}>판정 원칙</div>
+        <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.7 }}>
+          1. 원문을 읽고 판정한다 (제목만으로 판정 금지)<br/>
+          2. 애매하면 medium (strong/weak는 확신이 있을 때만)<br/>
+          3. reason을 한 줄로 기록한다 (나중에 검증용)
+        </div>
+      </div>
+
       <div style={divider} />
 
 
