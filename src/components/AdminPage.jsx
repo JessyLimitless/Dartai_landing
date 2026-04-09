@@ -868,7 +868,7 @@ function StrategyBlog({ colors, dark, sep }) {
             <td style={{ ...td, fontWeight: 800, color: '#DC2626' }}>시그널 강도</td>
             <td style={{ ...tdMono, fontWeight: 800, color: '#DC2626' }}>70%</td>
             <td style={td}>같은 유형 내 강/중/약 구별 — 콜옵션 vs 운영자금, 삼성 향 vs SPC 향</td>
-            <td style={td}>공시 원문 딥 분석 (컨텍스트 윈도우)</td>
+            <td style={td}>Claude Code Opus가 원문 읽고 직접 판정 (strong/medium/weak)</td>
           </tr>
           <tr>
             <td style={{ ...td, fontWeight: 700 }}>기본확률</td>
@@ -1237,7 +1237,7 @@ function ArchitectureBlog({ colors, dark, sep }) {
         <div style={{ ...cardBox, flex: '1 1 100%', borderLeft: '3px solid #16A34A' }}>
           <div style={{ ...label, color: '#16A34A' }}>price_tracks — 최종 저장 (14개 스냅샷 필드 추가)</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-            {['base_price', 'snap_pbr', 'snap_per', 'snap_foreign_ratio', 'snap_market_cap', 'snap_volume_ratio', 'snap_debt_ratio', 'snap_icr', 'snap_foreign_consec_buy', 'snap_inst_consec_buy', 'snap_minority_flag', 'snap_overhang_pct', 'snap_disclosure_type', 'snap_v2_score'].map(f => (
+            {['base_price', 'snap_pbr', 'snap_per', 'snap_foreign_ratio', 'snap_market_cap', 'snap_volume_ratio', 'snap_debt_ratio', 'snap_icr', 'snap_foreign_consec_buy', 'snap_inst_consec_buy', 'snap_minority_flag', 'snap_overhang_pct', 'snap_disclosure_type', 'snap_v2_score', 'snap_signal_intensity'].map(f => (
               <span key={f} style={{ fontSize: 10, fontFamily: FONTS.mono, padding: '2px 6px', borderRadius: 4, background: 'rgba(22,163,74,0.08)', color: '#16A34A' }}>{f}</span>
             ))}
           </div>
@@ -1278,6 +1278,7 @@ snap_overhang_pct REAL           CB/BW 오버행(%)
 -- 스냅샷: 공시 컨텍스트
 snap_disclosure_type TEXT        공시 유형 분류
 snap_v2_score INTEGER            V2 종합 점수
+snap_signal_intensity TEXT       시그널 강도 (Claude 판정: strong/medium/weak)
 
 -- 초과수익률
 excess_return_close REAL         종가 초과수익률
@@ -1337,6 +1338,7 @@ excess_return_5d REAL            5일 초과수익률`}
             ['modules/price_tracker.py', '_collect_snapshot() + 초과수익률 + 5일 버그 수정'],
             ['modules/kiwoom_client.py', 'get_foreign_consec_buy_days() 헬퍼'],
             ['main.py', 'enrichment → price_tracker 전달'],
+            ['api.py', 'POST /api/admin/signal-intensity — Claude 판정 결과 저장'],
             ['tests/test_price_tracker.py', '스냅샷 저장/조회 테스트'],
           ].map(([file, desc], i) => (
             <tr key={i}>
@@ -1387,7 +1389,6 @@ excess_return_5d REAL            5일 초과수익률`}
       <div style={{ borderRadius: 10, border: `1px solid ${sep}`, overflow: 'hidden', margin: '14px 0 24px' }}>
         {[
           { text: '조건부 승률 집계 API', when: 'Phase 3, 1개월 후' },
-          { text: 'signal_intensity 필드 (시그널 강도 70%)', when: '기준 정의 후' },
           { text: '확률 모형 학습', when: 'Phase 4, 50K건 도달 후' },
           { text: 'enrichment 구조 리팩토링', when: '스냅샷 안정화 후' },
         ].map((item, i) => (
