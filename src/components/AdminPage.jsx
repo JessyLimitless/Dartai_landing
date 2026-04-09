@@ -1170,19 +1170,70 @@ function ArchitectureBlog({ colors, dark, sep }) {
 
       <h3 style={h3}>변경 후 파이프라인</h3>
       <div style={mono}>
-{`[Phase 0]  KIND/NAVER 경보 수집 (기존)
-[Phase 1]  DART API 폴링 (기존)
-[Phase 2]  등급 분류 + V2 스코어링 (기존)
-[Phase 6]  정보 보강 (기존)
-               ↓
-[Phase S]  ★ 스냅샷 수집 (신규)
-           enrichment에서 이미 조회한 데이터를
-           price_tracks에 함께 저장
-               ↓
-[Phase 4a] 알림 발송 (기존)
-[Phase 4b] 주가 추적 T+0 + 스냅샷 (확장)
-[15:35]    종가 수집 + 초과수익률 (확장)
-[15:40]    5일 종가 수집 (버그 수정)`}
+{`[Phase 0]   KIND/NAVER 경보 수집 (기존)
+                ↓
+[Phase 0-S] ★ 경량 스냅샷 (신규)
+            fetch_current_price 1회로 PBR/PER/외국인/시총 직접 수집
+            재무는 기업카드 DB 조회 (API 0회)
+                ↓
+[Phase 1]   DART API 폴링 (기존)
+[Phase 2]   등급 분류 + V2 스코어링 (기존)
+[Phase 6]   정보 보강 (기존)
+                ↓
+[Phase S]   ★ 스냅샷 수집 (신규) — enrichment 데이터 재활용
+                ↓
+[Phase 4a]  알림 발송 (기존)
+[Phase 4b]  주가 추적 T+0 + 스냅샷 (확장)
+[분석 시]   Claude 판정 → signal_intensity 기록 (관리자 API)
+[15:35]     종가 수집 + 초과수익률 (확장)
+[15:40]     5일 종가 수집 (버그 수정)
+[장 마감]   미판정 공시 일괄 검토 (배치 보정)`}
+      </div>
+
+      {/* KIND 스냅샷 해결 */}
+      <div style={{ ...cardBox, borderLeft: '3px solid #D97706', marginTop: 16 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#D97706', marginBottom: 6 }}>해결: KIND/NAVER 경보 스냅샷 누락</div>
+        <p style={{ ...p, marginBottom: 8 }}>
+          소수계좌 투자주의, 투자경고 같은 TIER 1 시그널이 Phase 6 enrichment를 안 거쳐서
+          스냅샷이 전부 null이 되는 문제.
+        </p>
+        <p style={{ ...p, marginBottom: 0 }}>
+          <b style={{ color: colors.textPrimary }}>Phase 0-S (경량 스냅샷)</b>으로 해결.
+          enrichment 없이 fetch_current_price() 1회 호출로 PBR/PER/외국인/시총 직접 수집.
+          base_price 조회 시 이미 호출하므로 응답 필드 확장만 하면 추가 API 0회.
+        </p>
+      </div>
+
+      {/* 캐시 cold start 해결 */}
+      <div style={{ ...cardBox, borderLeft: '3px solid #2563EB', marginTop: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#2563EB', marginBottom: 6 }}>해결: 수급 캐시 cold start</div>
+        <p style={{ ...p, marginBottom: 8 }}>
+          서버 재시작 직후나 장외 시간에 _foreign_flow_cache가 비어서
+          외국인 연속매수일수가 null이 되는 문제.
+        </p>
+        <div style={{ fontFamily: FONTS.mono, fontSize: 12, color: colors.textPrimary, background: dark ? '#1A1A1E' : '#F4F4F5', padding: '10px 14px', borderRadius: 8, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+{`1차) _foreign_flow_cache → 있으면 사용
+2차) price_daily DB에서 최근 20일 역산
+3차) 둘 다 없으면 null (허용)`}
+        </div>
+      </div>
+
+      {/* 시그널 강도 워크플로우 */}
+      <div style={{ ...cardBox, borderLeft: '3px solid #DC2626', marginTop: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#DC2626', marginBottom: 6 }}>해결: 시그널 강도 입력 워크플로우</div>
+        <p style={{ ...p, marginBottom: 8 }}>
+          Claude가 판정한다고 했는데 "언제 어떻게"가 없던 문제.
+          3가지 입력 경로를 정의한다.
+        </p>
+        <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.8 }}>
+          <b style={{ color: colors.textPrimary }}>경로 1</b> — 브리핑/급등 분석 시 자연스럽게 판정 (주력)<br/>
+          <b style={{ color: colors.textPrimary }}>경로 2</b> — 등급 검토 (/grade-review) 시 함께 판정<br/>
+          <b style={{ color: colors.textPrimary }}>경로 3</b> — 장 마감 후 당일 미판정 공시 배치 보정
+        </div>
+        <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 10, lineHeight: 1.6 }}>
+          판정률 목표: S등급 100%, A등급 80%, D등급 50%.
+          null은 "미분석"이며 통계 집계에서 제외.
+        </div>
       </div>
 
       <div style={divider} />
@@ -1335,11 +1386,11 @@ excess_return_5d REAL            5일 초과수익률`}
         <tbody>
           {[
             ['modules/db.py', 'price_tracks 스키마 확장 + 마이그레이션'],
-            ['modules/price_tracker.py', '_collect_snapshot() + 초과수익률 + 5일 버그 수정'],
-            ['modules/kiwoom_client.py', 'get_foreign_consec_buy_days() 헬퍼'],
-            ['main.py', 'enrichment → price_tracker 전달'],
+            ['modules/price_tracker.py', '_collect_snapshot() + _collect_light_snapshot() + 초과수익률 + 5일 버그 수정'],
+            ['modules/kiwoom_client.py', 'get_foreign_consec_buy_days() 헬퍼 + DB fallback'],
+            ['main.py', 'enrichment → price_tracker 전달 + Phase 0-S 경량 스냅샷'],
             ['api.py', 'POST /api/admin/signal-intensity — Claude 판정 결과 저장'],
-            ['tests/test_price_tracker.py', '스냅샷 저장/조회 테스트'],
+            ['tests/test_price_tracker.py', '스냅샷 저장/조회/경량 스냅샷 테스트'],
           ].map(([file, desc], i) => (
             <tr key={i}>
               <td style={{ ...tdMono, fontWeight: 600 }}>{file}</td>
