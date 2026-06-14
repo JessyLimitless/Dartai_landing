@@ -7,6 +7,7 @@ import { useDisclosures } from '../hooks/useDisclosures'
 import { FONTS, GRADE_COLORS, PREMIUM } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
 import { API } from '../lib/api'
+import { getSignalTag, SIGNAL_ORDER, SIGNAL_COLORS } from '../lib/signalTags'
 
 export default function TodayPage({ onViewCard }) {
   const { colors, dark } = useTheme()
@@ -26,11 +27,10 @@ export default function TodayPage({ onViewCard }) {
   } = useDisclosures()
 
   useEffect(() => {
-    const urlGrade = searchParams.get('grade')
-    if (urlGrade && ['S', 'A', 'D'].includes(urlGrade)) {
-      setGradeFilter(urlGrade)
-      setSearchParams({}, { replace: true })
-    }
+    // 시그널 필터 딥링크 (?signal=소수계좌). 구버전 ?grade= 링크는 무시하고 초기화.
+    const urlSignal = searchParams.get('signal')
+    if (urlSignal && SIGNAL_ORDER.includes(urlSignal)) setGradeFilter(urlSignal)
+    if (searchParams.get('grade') || urlSignal) setSearchParams({}, { replace: true })
   }, [])
 
   // Global 탭 선택 시 SEC 데이터 fetch
@@ -74,11 +74,10 @@ export default function TodayPage({ onViewCard }) {
   }, [disclosures, targetStr])
 
   const todayCounts = useMemo(() => {
-    const c = { S: 0, A: 0, D: 0, total: 0 }
+    const c = { total: 0 }
     todayDisclosures.forEach(d => {
-      if (d.grade === 'S') c.S++
-      else if (d.grade === 'A') c.A++
-      else if (d.grade === 'D') c.D++
+      const k = getSignalTag(d).key
+      c[k] = (c[k] || 0) + 1
       c.total++
     })
     return c
@@ -86,7 +85,7 @@ export default function TodayPage({ onViewCard }) {
 
   const filtered = useMemo(() => {
     let list = todayDisclosures
-    if (gradeFilter) list = list.filter(d => d.grade === gradeFilter)
+    if (gradeFilter && gradeFilter !== 'GLOBAL') list = list.filter(d => getSignalTag(d).key === gradeFilter)
     if (search) {
       const q = search.toLowerCase()
       list = list.filter(d =>
@@ -218,11 +217,10 @@ export default function TodayPage({ onViewCard }) {
           <div style={{ width: 24, flexShrink: 0 }} />
           {[
             { key: null, label: '전체', count: todayCounts.total },
-            { key: 'S', label: 'S', count: todayCounts.S, color: GRADE_COLORS.S.bg },
-            { key: 'A', label: 'A', count: todayCounts.A, color: GRADE_COLORS.A.bg },
-            { key: 'D', label: 'D', count: todayCounts.D, color: GRADE_COLORS.D.bg },
-            // { key: 'GLOBAL', label: 'Global', count: 0, color: '#3182F6' },
-          ].filter(t => t.key === null || t.key === 'GLOBAL' || t.count > 0).map(t => {
+            ...SIGNAL_ORDER
+              .filter(k => todayCounts[k] > 0)
+              .map(k => ({ key: k, label: k, count: todayCounts[k], color: SIGNAL_COLORS[k] })),
+          ].map(t => {
             const active = gradeFilter === t.key
             return (
               <button key={t.label} className="touch-press"
@@ -370,7 +368,7 @@ export default function TodayPage({ onViewCard }) {
         ) : (
           <>
             {visibleItems.map((d, i) => {
-              const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
+              const sig = getSignalTag(d)
               const pd = prices[d.stock_code]
               const currentPrice = pd?.price || 0
               const bp = d.base_price
@@ -394,14 +392,14 @@ export default function TodayPage({ onViewCard }) {
                     padding: '18px 0',
                   }}>
                   <span className="today-rank" style={{
-                    fontWeight: 700, fontFamily: FONTS.mono, color: gc.bg, textAlign: 'right',
+                    fontWeight: 700, fontFamily: FONTS.mono, color: sig.color, textAlign: 'right',
                   }}>{i + 1}</span>
-                  <div className="today-badge" style={{
-                    borderRadius: '50%', flexShrink: 0,
-                    background: gc.bg, color: gc.color,
+                  <div className="today-sigchip" style={{
+                    flexShrink: 0, borderRadius: 8,
+                    background: sig.color + '14', color: sig.color,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 800, fontFamily: FONTS.mono,
-                  }}>{d.grade}</div>
+                    fontWeight: 700, whiteSpace: 'nowrap',
+                  }}>{sig.label}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span className="today-corp" style={{
@@ -426,32 +424,8 @@ export default function TodayPage({ onViewCard }) {
                     <div className="today-sub" style={{
                       color: colors.textMuted, marginTop: 3,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      display: 'flex', alignItems: 'center', gap: 4,
                     }}>
-                      {/소수계좌|소수지점/.test(d.report_nm) && (
-                        <span style={{
-                          fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
-                          background: 'rgba(220,38,38,0.1)', color: '#DC2626', flexShrink: 0,
-                          letterSpacing: -0.3,
-                        }}>소수계좌</span>
-                      )}
-                      {/투자경고/.test(d.report_nm) && !/소수/.test(d.report_nm) && (
-                        <span style={{
-                          fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
-                          background: 'rgba(234,88,12,0.1)', color: '#EA580C', flexShrink: 0,
-                          letterSpacing: -0.3,
-                        }}>투자경고</span>
-                      )}
-                      {/투자위험|매매거래정지/.test(d.report_nm) && (
-                        <span style={{
-                          fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
-                          background: 'rgba(127,29,29,0.1)', color: '#991B1B', flexShrink: 0,
-                          letterSpacing: -0.3,
-                        }}>거래정지</span>
-                      )}
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {d.report_nm}
-                      </span>
+                      {d.report_nm}
                     </div>
                   </div>
                   <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -515,7 +489,7 @@ export default function TodayPage({ onViewCard }) {
         .today-section-title { font-size: 20px; }
         .today-row { gap: 16px; }
         .today-rank { font-size: 17px; min-width: 24px; display: inline-block; }
-        .today-badge { width: 48px; height: 48px; font-size: 16px; }
+        .today-sigchip { min-width: 60px; height: 30px; padding: 0 8px; font-size: 12px; }
         .today-corp { font-size: 17px; }
         .today-sub { font-size: 14px; }
         .today-right-num { font-size: 17px; }
@@ -526,7 +500,7 @@ export default function TodayPage({ onViewCard }) {
           .today-section-title { font-size: 18px; }
           .today-row { gap: 10px; }
           .today-rank { font-size: 14px; min-width: 18px; }
-          .today-badge { width: 40px; height: 40px; font-size: 14px; }
+          .today-sigchip { min-width: 54px; height: 28px; padding: 0 7px; font-size: 11px; }
           .today-corp { font-size: 15px; }
           .today-sub { font-size: 13px; }
           .today-right-num { font-size: 15px; }
@@ -535,7 +509,7 @@ export default function TodayPage({ onViewCard }) {
         @media (max-width: 360px) {
           .today-pad { padding-left: 12px; padding-right: 12px; }
           .today-rank { display: none; }
-          .today-badge { width: 36px; height: 36px; font-size: 13px; }
+          .today-sigchip { min-width: 48px; height: 26px; padding: 0 6px; font-size: 10px; }
           .today-corp { font-size: 14px; }
           .today-sub { font-size: 12px; }
           .today-right-num { font-size: 14px; }
