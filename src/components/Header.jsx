@@ -11,7 +11,8 @@ const TABS = [
   { key: '/today', label: '오늘의 공시', mobileLabel: '공시' },
   { key: '/briefing', label: '브리핑', mobileLabel: '브리핑' },
   { key: '/us-beneficiary', label: '미국 시그널', mobileLabel: '미국' },
-  { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
+  // 재무분석(/dart-view): 미완성이라 정식 서비스에서 숨김. 라우트는 App.jsx에 유지 — 완성 시 이 줄 복구로 재노출.
+  // { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
   { key: '/premium', label: '프리미엄', mobileLabel: '구독' },
 ]
 

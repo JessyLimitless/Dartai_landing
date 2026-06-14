@@ -347,7 +347,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━ 4. DART View — 딥분석 ━━━ */}
+      {/* ━━━ 4. DART View — 딥분석 (미완성이라 정식 서비스에서 숨김 — false→true 로 복구) ━━━ */}
+      {false && (
       <section style={{ borderTop: '1px solid #F4F4F5', background: '#FAFAFA' }}>
         <div style={{ maxWidth: 560, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
           <Reveal>
@@ -414,6 +415,7 @@ export default function LandingPage() {
           </Reveal>
         </div>
       </section>
+      )}
 
       {/* ━━━ 4.5. 시그널 시리즈 — 전자책 3부작 ━━━ */}
       <section style={{ borderTop: '1px solid #F4F4F5' }}>
