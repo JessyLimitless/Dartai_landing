@@ -30,6 +30,11 @@ const MID = [
 
 export function getSignalStrength(d) {
   const rn = (d && d.report_nm) || ''
+  // 임원·주요주주 특정증권 보고: 장내매수만 중(내부자 매수 = 상승 시그널), 매도/불명은 약
+  if (/특정증권등소유/.test(rn)) {
+    const t = d && d.parsed_data && d.parsed_data['거래유형']
+    return t === '장내매수' ? 'mid' : 'weak'
+  }
   if (STRONG.some(re => re.test(rn))) return 'strong'
   if (MID.some(re => re.test(rn))) return 'mid'
   return 'weak'
@@ -45,6 +50,6 @@ export function strengthBadgeStyle(strength, dark) {
 // 가이드 범례용 설명 (실증 근거 반영)
 export const STRENGTH_INFO = [
   { key: 'strong', label: '강', desc: '투자경고·소수계좌·CB·자사주 (실증 TIER1 + 룰북)' },
-  { key: 'mid', label: '중', desc: '대량보유·무상/유상증자·공급계약·풍문 (TIER2)' },
-  { key: 'weak', label: '약', desc: '임원 단순보고·시장경보 단발' },
+  { key: 'mid', label: '중', desc: '대량보유·무상/유상증자·공급계약·내부자 매수 (TIER2)' },
+  { key: 'weak', label: '약', desc: '임원 매도·단순보고·시장경보 단발' },
 ]
