@@ -445,6 +445,12 @@ export default function TodayPage({ onViewCard }) {
                           letterSpacing: -0.3,
                         }}>소수계좌</span>
                       )}
+                      {d.minority_repeat >= 2 && /소수|단일계좌/.test(d.report_nm || '') && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 4,
+                          background: '#DC2626', color: '#fff', flexShrink: 0, letterSpacing: -0.3,
+                        }}>연속{d.minority_repeat}</span>
+                      )}
                       {/투자경고/.test(d.report_nm) && !/소수/.test(d.report_nm) && (
                         <span style={{
                           fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
