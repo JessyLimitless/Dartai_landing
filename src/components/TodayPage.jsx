@@ -8,6 +8,7 @@ import { FONTS, GRADE_COLORS, PREMIUM } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
 import { API } from '../lib/api'
 import { GUIDE_GRADES, GUIDE_SIGNALS, GUIDE_DISCLAIMER } from '../lib/signalGuide'
+import { getSignalStrength, strengthBadgeStyle, STRENGTH_INFO } from '../lib/signalStrength'
 
 export default function TodayPage({ onViewCard }) {
   const { colors, dark } = useTheme()
@@ -376,6 +377,10 @@ export default function TodayPage({ onViewCard }) {
           <>
             {visibleItems.map((d, i) => {
               const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
+              // S는 공시 유형 강도로 색 농도 차등 (강=진한, 약=연한). A/D는 기존 색.
+              const badge = d.grade === 'S'
+                ? strengthBadgeStyle(getSignalStrength(d), dark)
+                : { bg: gc.bg, fg: gc.color }
               const pd = prices[d.stock_code]
               const currentPrice = pd?.price || 0
               const bp = d.base_price
@@ -403,7 +408,7 @@ export default function TodayPage({ onViewCard }) {
                   }}>{i + 1}</span>
                   <div className="today-badge" style={{
                     borderRadius: '50%', flexShrink: 0,
-                    background: gc.bg, color: gc.color,
+                    background: badge.bg, color: badge.fg,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontWeight: 800, fontFamily: FONTS.mono,
                   }}>{d.grade}</div>
@@ -883,6 +888,27 @@ function GuideBanner({ open, onToggle, dark, colors }) {
                     }}>{g}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.3 }}>{tag}</div>
+                      <div style={{ fontSize: 12.5, color: colors.textMuted, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* ── S 강도 (색 농도) ── */}
+            <div style={{ borderTop: `1px solid ${lineSep}`, paddingTop: 15, marginTop: 3 }}>
+              <Eyebrow>S 색 농도 = 시그널 강도</Eyebrow>
+              {STRENGTH_INFO.map(({ key, label, desc }) => {
+                const st = strengthBadgeStyle(key, dark)
+                return (
+                  <div key={key} style={{ display: 'flex', gap: 11, marginBottom: 12, alignItems: 'center' }}>
+                    <span style={{
+                      flexShrink: 0, width: 26, height: 26, borderRadius: '50%',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      background: st.bg, color: st.fg, fontSize: 12, fontWeight: 800, fontFamily: FONTS.mono,
+                    }}>S</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.3 }}>{label}</div>
                       <div style={{ fontSize: 12.5, color: colors.textMuted, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>
                     </div>
                   </div>
