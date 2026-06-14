@@ -816,61 +816,117 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
 
 // ══ 공시 가이드 (접기/펼치기, 기본 접힘) ══
 function GuideBanner({ open, onToggle, dark, colors }) {
-  const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const cardBg = dark ? '#141416' : '#FFFFFF'
+  const cardBorder = dark ? 'rgba(255,255,255,0.07)' : '#ECECEF'
+  const closedBg = dark ? 'rgba(255,255,255,0.035)' : '#EEF0F3'
+  const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'
+  const accent = '#DC2626'
+
+  const Eyebrow = ({ children }) => (
+    <div style={{
+      fontSize: 10.5, fontWeight: 800, letterSpacing: '0.05em',
+      color: colors.textMuted, marginBottom: 11,
+    }}>{children}</div>
+  )
+
   return (
     <div className="today-pad" style={{ marginTop: 12 }}>
       <div style={{
-        borderRadius: 14, overflow: 'hidden',
-        border: `1px solid ${open ? (dark ? 'rgba(255,255,255,0.08)' : '#ECECEF') : 'transparent'}`,
-        background: open ? (dark ? '#141416' : '#FFFFFF') : (dark ? 'rgba(255,255,255,0.04)' : '#EDEEF0'),
-        transition: 'background 0.2s',
+        borderRadius: 16, overflow: 'hidden',
+        border: `1px solid ${open ? cardBorder : 'transparent'}`,
+        background: open ? cardBg : closedBg,
+        boxShadow: open && !dark ? '0 1px 3px rgba(0,0,0,0.04), 0 10px 28px -14px rgba(0,0,0,0.12)' : 'none',
+        transition: 'background 0.25s, box-shadow 0.25s, border-color 0.25s',
       }}>
+        {/* ── 헤더 ── */}
         <button className="touch-press" onClick={onToggle} style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '11px 14px', border: 'none', background: 'transparent',
-          cursor: 'pointer', color: colors.textPrimary, minHeight: 46,
+          width: '100%', display: 'flex', alignItems: 'center', gap: 11,
+          padding: '13px 16px', border: 'none', background: 'transparent',
+          cursor: 'pointer', color: colors.textPrimary, minHeight: 54, textAlign: 'left',
         }}>
-          <span style={{ fontSize: 15 }}>📖</span>
-          <span style={{ fontSize: 14, fontWeight: 700, flex: 1, textAlign: 'left' }}>공시 가이드 — S·A·D가 뭐고 어떻게 보나</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted}
+          <span style={{
+            flexShrink: 0, width: 32, height: 32, borderRadius: 10,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            background: dark ? 'rgba(220,38,38,0.16)' : 'rgba(220,38,38,0.08)',
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accent}
+              strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.2px', fontFamily: FONTS.serif }}>공시 가이드</div>
+            <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 1 }}>등급과 시그널, 어떻게 보나</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted}
             strokeWidth="2" strokeLinecap="round"
-            style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>
+            style={{ transition: 'transform 0.25s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>
 
         {open && (
-          <div style={{ padding: '4px 16px 16px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, margin: '4px 0 8px' }}>등급 보는 법</div>
-            {GUIDE_GRADES.map(({ g, desc }) => {
-              const gc = GRADE_COLORS[g] || { bg: '#94A3B8' }
-              return (
-                <div key={g} style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 7 }}>
+          <div className="guide-reveal" style={{ padding: '0 16px 18px' }}>
+            {/* ── 등급 ── */}
+            <div style={{ borderTop: `1px solid ${lineSep}`, paddingTop: 15 }}>
+              <Eyebrow>등급 보는 법</Eyebrow>
+              {GUIDE_GRADES.map(({ g, tag, desc }) => {
+                const gc = GRADE_COLORS[g] || { bg: '#94A3B8' }
+                return (
+                  <div key={g} style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
+                    <span style={{
+                      flexShrink: 0, width: 26, height: 26, borderRadius: '50%',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      background: gc.bg, color: '#fff', fontSize: 12, fontWeight: 800, fontFamily: FONTS.mono,
+                      marginTop: 1,
+                    }}>{g}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.3 }}>{tag}</div>
+                      <div style={{ fontSize: 12.5, color: colors.textMuted, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* ── 시그널 ── */}
+            <div style={{ borderTop: `1px solid ${lineSep}`, paddingTop: 15, marginTop: 3 }}>
+              <Eyebrow>핵심 시그널 빠른 해석</Eyebrow>
+              {GUIDE_SIGNALS.map((s, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 11 }}>
                   <span style={{
-                    flexShrink: 0, width: 22, height: 22, borderRadius: '50%',
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    background: gc.bg, color: '#fff', fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono,
-                  }}>{g}</span>
-                  <span style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.5 }}>{desc}</span>
+                    flexShrink: 0, width: 7, height: 7, borderRadius: '50%',
+                    background: s.color || colors.textMuted, marginTop: 6,
+                  }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.35 }}>{s.name}</div>
+                    <div style={{ fontSize: 12.5, color: colors.textMuted, lineHeight: 1.5, marginTop: 2 }}>{s.desc}</div>
+                  </div>
                 </div>
-              )
-            })}
+              ))}
+            </div>
 
-            <div style={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, margin: '14px 0 8px' }}>핵심 시그널 빠른 해석</div>
-            {GUIDE_SIGNALS.map((s, i) => (
-              <div key={i} style={{ marginBottom: 7, lineHeight: 1.5 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary }}>{s.name}</span>
-                <span style={{ fontSize: 13, color: colors.textMuted }}> — {s.desc}</span>
-              </div>
-            ))}
-
+            {/* ── 면책 ── */}
             <div style={{
-              fontSize: 11, color: colors.textMuted, lineHeight: 1.5,
-              borderTop: `1px solid ${lineSep}`, marginTop: 12, paddingTop: 10,
-            }}>{GUIDE_DISCLAIMER}</div>
+              fontSize: 11, color: colors.textMuted, lineHeight: 1.55,
+              borderTop: `1px solid ${lineSep}`, marginTop: 3, paddingTop: 13,
+              display: 'flex', gap: 7,
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted}
+                strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: 2, opacity: 0.7 }}>
+                <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
+              </svg>
+              <span>{GUIDE_DISCLAIMER}</span>
+            </div>
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes guide-in { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: none } }
+        .guide-reveal { animation: guide-in 0.25s ease both; }
+      `}</style>
     </div>
   )
 }
