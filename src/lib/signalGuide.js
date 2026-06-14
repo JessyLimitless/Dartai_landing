@@ -6,7 +6,7 @@
 export const GRADE_LABELS = {
   S: { label: '호재', color: '#DC2626', desc: '강한 긍정공시 (상승 기대)' },
   A: { label: '실적', color: '#0D9488', desc: '실적 개선' },
-  D: { label: '경보', color: '#EA580C', desc: '거래소 경보 · 반등 주목' },
+  D: { label: '경보', color: '#C2410C', desc: '거래소 경보 · 반등 주목' },
 }
 
 // 표시 순서 (전체 탭 제외)
