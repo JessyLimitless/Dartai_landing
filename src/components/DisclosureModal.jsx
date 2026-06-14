@@ -59,7 +59,7 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [visible, setVisible] = useState(false)
-  const [signalStat, setSignalStat] = useState(null)
+  // signalStat 제거 — 공시 정체성에 맞지 않음
   const sheetRef = useRef(null)
 
   useEffect(() => {
@@ -71,18 +71,7 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
       .catch(() => setLoading(false))
   }, [rcept_no])
 
-  // 공시 유형별 승률 조회
-  useEffect(() => {
-    if (!data?.report_nm) return
-    fetch(`${API}/api/signal-stats?min_samples=5`)
-      .then(r => r.json())
-      .then(res => {
-        const nm = (data.report_nm || '').trim()
-        const match = (res.type_stats || []).find(s => nm.startsWith(s.report_nm) || s.report_nm.startsWith(nm))
-        if (match) setSignalStat(match)
-      })
-      .catch(() => {})
-  }, [data?.report_nm])
+  // 승률 조회 제거됨
 
   // 진입 애니메이션
   useEffect(() => {
@@ -209,18 +198,13 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
                 {raw.stock_code}
               </span>
             )}
-            {signalStat && (
+            {data?.rise_prob != null && data.rise_prob >= 0 && (
               <span style={{
-                fontSize: 10, fontWeight: 700, fontFamily: FONTS.mono,
-                padding: '2px 8px', borderRadius: 4,
-                background: signalStat.win_rate_1d >= 65 ? '#0D9488'
-                  : signalStat.win_rate_1d >= 50 ? '#D97706'
-                  : '#DC2626',
-                color: '#fff',
-              }}>
-                승률 {signalStat.win_rate_1d}% ({signalStat.samples}건)
-                {signalStat.avg_return_1d >= 0 ? ` +${signalStat.avg_return_1d}%` : ` ${signalStat.avg_return_1d}%`}
-              </span>
+                fontSize: 11, fontWeight: 700, fontFamily: FONTS.mono,
+                padding: '3px 8px', borderRadius: 5,
+                background: data.rise_prob >= 60 ? 'rgba(22,163,74,0.12)' : data.rise_prob >= 45 ? 'rgba(217,119,6,0.10)' : 'rgba(107,114,128,0.08)',
+                color: data.rise_prob >= 60 ? '#16A34A' : data.rise_prob >= 45 ? '#D97706' : '#9CA3AF',
+              }}>T+5d {Math.round(data.rise_prob)}%</span>
             )}
           </div>
         </div>

@@ -15,9 +15,30 @@ export function isAdmin() {
   }
 }
 
+function AdminBlockedView({ colors, navigate }) {
+  return (
+    <div style={{ maxWidth: 480, margin: '80px auto', padding: 24, textAlign: 'center' }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
+      <h2 style={{ color: colors.textPrimary, marginBottom: 12 }}>관리자 전용 페이지</h2>
+      <p style={{ color: colors.textMuted, fontSize: 13, lineHeight: 1.6, marginBottom: 20 }}>
+        이 페이지는 등록된 관리자만 접근할 수 있습니다.<br/>
+        구글 로그인 후 권한이 있는 계정으로 접근하세요.
+      </p>
+      <button onClick={() => navigate('/')} style={{
+        padding: '10px 24px', fontSize: 13, fontWeight: 600,
+        background: '#DC2626', color: '#fff', border: 'none', borderRadius: 6,
+        cursor: 'pointer',
+      }}>홈으로 돌아가기</button>
+    </div>
+  )
+}
+
 export default function AdminPage() {
   const { colors, dark } = useTheme()
   const navigate = useNavigate()
+  const adminOk = isAdmin()  // 권한 체크 (Hook 호출 전)
+
+  const [category, setCategory] = useState('ops')
   const [tab, setTab] = useState('watch')
   const [ranking, setRanking] = useState([])
   const [rankingStats, setRankingStats] = useState({ total: 0, done: 0 })
@@ -29,6 +50,8 @@ export default function AdminPage() {
   const [selectedDisc, setSelectedDisc] = useState(null)
   const [ssItems, setSsItems] = useState([])
   const [watchData, setWatchData] = useState(null)
+  const [cbDisclosures, setCbDisclosures] = useState([])
+  const [cbDays, setCbDays] = useState(7)
 
   useEffect(() => {
     if (!isAdmin()) { navigate('/'); return }
@@ -40,7 +63,8 @@ export default function AdminPage() {
       fetch(`${API}/api/admin/users`).then(r => r.json()),
       fetch(`${API}/api/admin/ss-screen`).then(r => r.json()),
       fetch(`${API}/api/watch/concentrated`).then(r => r.ok ? r.json() : null),
-    ]).then(([rankData, discData, inqData, userData, ssData, watchResult]) => {
+      fetch(`${API}/api/admin/cb-disclosures?days=7&analyze=true`).then(r => r.json()),
+    ]).then(([rankData, discData, inqData, userData, ssData, watchResult, cbData]) => {
       setRanking(rankData.ranking || [])
       setRankingStats({ total: rankData.total || 0, done: rankData.done || 0, kospi: rankData.kospi_count || 0, kosdaq: rankData.kosdaq_count || 0 })
       setDisclosures(discData.disclosures || [])
@@ -49,12 +73,18 @@ export default function AdminPage() {
       setUserTotal(userData.total || 0)
       setSsItems(ssData.items || [])
       if (watchResult) setWatchData(watchResult)
+      setCbDisclosures(cbData.disclosures || [])
     }).catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
   const sep = dark ? '#1E1E22' : '#F0F0F2'
   const pct = rankingStats.total > 0 ? Math.round(rankingStats.done / rankingStats.total * 100) : 0
+
+  // 🔒 권한 체크 — 비admin은 차단 view 노출
+  if (!adminOk) {
+    return <AdminBlockedView colors={colors} navigate={navigate} />
+  }
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 20px 80px', fontFamily: FONTS.body }}>
@@ -65,31 +95,86 @@ export default function AdminPage() {
         <h1 style={{ fontSize: 20, fontWeight: 700, color: colors.textPrimary, margin: 0 }}>관리자</h1>
       </div>
 
-      {/* 탭 */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderRadius: 8, overflow: 'hidden', border: `1px solid ${sep}` }}>
-        {[
-          { key: 'ss', label: `SS급 (${ssItems.length})` },
-          { key: 'watch', label: `소수계좌 (${watchData ? (watchData.total_active || 0) : 0})` },
-          { key: 'users', label: `유저 (${userTotal})` },
-          { key: 'ranking', label: `시총 (${rankingStats.done}/${rankingStats.total})` },
-          { key: 'disclosures', label: `공시 (${disclosures.length})` },
-          { key: 'inquiries', label: `문의 (${inquiries.length})` },
-          { key: 'strategy', label: '전략' },
-          { key: 'architecture', label: '설계' },
-          { key: 'guide', label: '가이드' },
-          { key: 'signal', label: '시그널' },
-        ].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} style={{
-            flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
-            fontSize: 13, fontWeight: 600,
-            background: tab === t.key ? '#DC2626' : (dark ? '#141416' : '#fff'),
-            color: tab === t.key ? '#fff' : colors.textMuted,
-          }}>{t.label}</button>
-        ))}
-      </div>
+      {/* ── 2단 네비게이션 ── */}
+      {(() => {
+        const categories = [
+          { key: 'ops', label: '운영', icon: '⚙' },
+          { key: 'strategy', label: '전략', icon: '◆' },
+          { key: 'signal', label: '시그널', icon: '◈' },
+        ]
+        const subTabs = {
+          ops: [
+            { key: 'top10', label: '🔥 TOP10' },
+            { key: 'screener', label: '🎯 시그널 룰북' },
+            { key: 'radar', label: '📡 매집 레이더' },
+            { key: 'focus', label: '집중관심' },
+            { key: 'watchlist', label: '주목종목' },
+            { key: 'ss', label: `SS급 ${ssItems.length}` },
+            { key: 'watch', label: `소수계좌 ${watchData ? (watchData.total_active || 0) : 0}` },
+            { key: 'cb', label: `CB발행 ${cbDisclosures.length}` },
+            { key: 'users', label: `유저 ${userTotal}` },
+            { key: 'ranking', label: `시총` },
+            { key: 'disclosures', label: `공시 ${disclosures.length}` },
+            { key: 'inquiries', label: `문의 ${inquiries.length}` },
+          ],
+          strategy: [
+            { key: 'book', label: '📖 전자책', route: '/admin/book' },
+            { key: 'engine', label: '🔬 엔진 연구' },
+            { key: 'aidc', label: 'AI DC' },
+            { key: 'strategy', label: '전략' },
+            { key: 'architecture', label: '설계' },
+            { key: 'guide', label: '가이드' },
+          ],
+          signal: [
+            { key: 'signal', label: '대시보드' },
+            { key: 'picks', label: '콘텐츠' },
+            { key: 'feedback', label: '📊 픽 채점', route: '/feedback' },
+            { key: 'theme', label: '테마워치' },
+            { key: 'journal', label: '투자일지' },
+          ],
+        }
+        return (
+          <div style={{ marginBottom: 20 }}>
+            {/* 1단: 카테고리 */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              {categories.map(c => (
+                <button key={c.key} onClick={() => { setCategory(c.key); setTab(subTabs[c.key][0].key) }} style={{
+                  flex: 1, padding: '12px 0', border: 'none', cursor: 'pointer',
+                  borderRadius: 10, fontSize: 14, fontWeight: 700, letterSpacing: -0.3,
+                  background: category === c.key ? '#DC2626' : (dark ? '#1A1A1E' : '#F4F4F5'),
+                  color: category === c.key ? '#fff' : colors.textMuted,
+                  transition: 'all 0.15s',
+                }}>{c.icon} {c.label}</button>
+              ))}
+            </div>
+            {/* 2단: 서브탭 */}
+            <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2 }}>
+              {(subTabs[category] || []).map(t => (
+                <button key={t.key} onClick={() => t.route ? navigate(t.route) : setTab(t.key)} style={{
+                  padding: '7px 14px', border: 'none', cursor: 'pointer',
+                  borderRadius: 20, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+                  background: tab === t.key ? (dark ? '#27272A' : '#E4E4E7') : 'transparent',
+                  color: tab === t.key ? colors.textPrimary : colors.textMuted,
+                  transition: 'all 0.15s',
+                }}>{t.label}</button>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+      ) : tab === 'top10' ? (
+        <TopPicksPanel colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'screener' ? (
+        <MinorityScreenerPanel colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'radar' ? (
+        <CollectionRadarPanel colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'focus' ? (
+        <FocusStocksPanel colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'watchlist' ? (
+        <WatchlistPanel colors={colors} dark={dark} sep={sep} />
       ) : tab === 'ss' ? (
         ssItems.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted, fontSize: 13 }}>SS급 종목 없음</div>
@@ -314,6 +399,17 @@ export default function AdminPage() {
             ))}
           </div>
         </>
+      ) : tab === 'cb' ? (
+        <CbDisclosures
+          items={cbDisclosures}
+          days={cbDays}
+          onDaysChange={async (d) => {
+            setCbDays(d)
+            const res = await fetch(`${API}/api/admin/cb-disclosures?days=${d}&analyze=true`).then(r => r.json())
+            setCbDisclosures(res.disclosures || [])
+          }}
+          colors={colors} dark={dark} sep={sep}
+        />
       ) : tab === 'disclosures' ? (
         disclosures.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>
@@ -388,6 +484,8 @@ export default function AdminPage() {
             })}
           </div>
         )
+      ) : tab === 'engine' ? (
+        <EngineResearchBlog colors={colors} dark={dark} sep={sep} />
       ) : tab === 'strategy' ? (
         <StrategyBlog colors={colors} dark={dark} sep={sep} />
       ) : tab === 'architecture' ? (
@@ -396,6 +494,14 @@ export default function AdminPage() {
         <GuideBlog colors={colors} dark={dark} sep={sep} />
       ) : tab === 'signal' ? (
         <SignalDashboard colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'picks' ? (
+        <DailyPicks colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'theme' ? (
+        <ThemeWatch colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'journal' ? (
+        <TradeJournal colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'aidc' ? (
+        <AiDcPanel colors={colors} dark={dark} sep={sep} />
       ) : null}
 
       {/* ── 공시 상세 팝업 모달 ── */}
@@ -463,6 +569,551 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   엔진 연구 — 상승 시그널 엔진 전수 점검 + 개선 설계안
+   (2026-06-03 점검 회의록. 계속 고민하기 위한 작업 노트)
+   ═══════════════════════════════════════════════════════════ */
+
+function EngineResearchBlog({ colors, dark, sep }) {
+  const h1 = { fontSize: 26, fontWeight: 900, color: colors.textPrimary, margin: 0, fontFamily: FONTS.serif, lineHeight: 1.3 }
+  const h2 = { fontSize: 19, fontWeight: 800, color: colors.textPrimary, margin: '48px 0 14px', fontFamily: FONTS.serif }
+  const h3 = { fontSize: 15, fontWeight: 700, color: colors.textPrimary, margin: '28px 0 10px' }
+  const p = { fontSize: 14, color: colors.textSecondary, lineHeight: 1.85, margin: '0 0 16px' }
+  const quote = { borderLeft: '3px solid #DC2626', paddingLeft: 16, margin: '20px 0', fontSize: 14, color: colors.textSecondary, lineHeight: 1.8 }
+  const badge = (text, bg) => ({ display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 5, background: bg, color: '#fff', marginRight: 6 })
+  const mono = { fontFamily: FONTS.mono, fontSize: 12, color: colors.textPrimary, background: dark ? '#1A1A1E' : '#F4F4F5', padding: '16px 18px', borderRadius: 10, margin: '14px 0 18px', lineHeight: 1.7, overflowX: 'auto', whiteSpace: 'pre' }
+  const tblWrap = { overflowX: 'auto', margin: '14px 0 22px' }
+  const tbl = { width: '100%', fontSize: 12, borderCollapse: 'collapse', minWidth: 480 }
+  const th = { textAlign: 'left', padding: '8px 10px', fontWeight: 700, color: colors.textPrimary, borderBottom: `2px solid ${dark ? '#333' : '#D4D4D8'}`, fontSize: 11, whiteSpace: 'nowrap' }
+  const td = { padding: '8px 10px', borderBottom: `1px solid ${sep}`, color: colors.textSecondary, fontSize: 12, lineHeight: 1.5, verticalAlign: 'top' }
+  const cardBox = { padding: '18px 20px', borderRadius: 12, border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff', marginBottom: 12 }
+  const divider = { height: 1, background: sep, margin: '40px 0' }
+  const label = { fontSize: 11, fontWeight: 700, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }
+  const conclusionBox = { background: dark ? '#1A1A1E' : '#F9FAFB', borderRadius: 8, padding: '12px 16px', marginTop: 8 }
+  // 심각도 색
+  const sev = (lv) => lv === 'red' ? '#DC2626' : lv === 'orange' ? '#D97706' : lv === 'green' ? '#16A34A' : colors.textMuted
+  const chip = (text, lv) => (
+    <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: `${sev(lv)}1A`, color: sev(lv), whiteSpace: 'nowrap' }}>{text}</span>
+  )
+
+  return (
+    <div style={{ maxWidth: 680 }}>
+      {/* 타이틀 */}
+      <div style={{ marginBottom: 8 }}>
+        <span style={badge('작업 노트', '#DC2626')}>작업 노트</span>
+        <span style={badge('2026-06-03', dark ? '#52525B' : '#A1A1AA')}>점검 회의록</span>
+      </div>
+      <h1 style={h1}>상승 시그널 엔진 전수 점검</h1>
+      <p style={{ fontSize: 14, color: colors.textMuted, margin: '8px 0 0', lineHeight: 1.6 }}>
+        우리는 시그널을 어떻게 잡고 있는가 — 8개 엔진을 펼쳐 점검하고, 브리핑에 실제로 쓰이는 엔진 1·2를 정밀 해부한 뒤 개선안을 설계한다. 계속 고민하기 위한 살아있는 노트.
+      </p>
+      <div style={divider} />
+
+      {/* 1. 8개 엔진 인벤토리 */}
+      <h2 style={h2}>우리는 시그널을 8개 엔진으로 잡고 있다</h2>
+      <p style={p}>
+        하나의 룰이 아니라, 서로 다른 가중치를 가진 8개 엔진 + 3개 룰 문서(CLAUDE.md HARD RULE, 메모리 룰북, /market-scan 스킬)가 병존한다. 문제는 <b style={{ color: colors.textPrimary }}>어느 것이 "정본"인지 정해져 있지 않다는 것.</b>
+      </p>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr>
+            <th style={th}>#</th><th style={th}>엔진</th><th style={th}>파일</th><th style={th}>스케일</th><th style={th}>실증</th><th style={th}>브리핑</th>
+          </tr></thead>
+          <tbody>
+            {[
+              ['①', '등급 분류', 'scoring_engine', '라벨 S/A/D', '12,706건 태깅', '✅ 사용'],
+              ['②', 'V2 카테고리', 'scoring_v2', '0~100+', '⚠️ 가설', '✅ 사용'],
+              ['③', '매집 레이더', 'collection_signal_hub', '0~100', '⚠️ 검증예정', '미사용'],
+              ['④', '소수계좌 룰북 v1.3', 'minority_screener', '0~100 강도', '✅ 232종+134건', '미사용'],
+              ['⑤', '5대 변수', 'variable_engine', '0~10', '재무 정량', '미사용'],
+              ['⑥', 'Edge-Finder', 'signal_hub', '0~100', '공식 기반', '미사용'],
+              ['⑦', '모닝버스트', 'morning_burst_scorer', '합산점', '⚠️ PRD v0.2', '미사용'],
+              ['⑧', '확률모델(ML)', 'probability_engine', '0~100%', '✅ 로지스틱', '미사용'],
+            ].map((r, i) => (
+              <tr key={i} style={{ background: (r[0] === '①' || r[0] === '②') ? (dark ? 'rgba(220,38,38,0.05)' : 'rgba(220,38,38,0.03)') : 'transparent' }}>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontWeight: 700, color: colors.textPrimary }}>{r[0]}</td>
+                <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>{r[1]}</td>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontSize: 11 }}>{r[2]}</td>
+                <td style={td}>{r[3]}</td>
+                <td style={td}>{r[4]}</td>
+                <td style={{ ...td, fontWeight: 700, color: r[5].includes('✅') ? '#DC2626' : colors.textMuted }}>{r[5]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={quote}>
+        가장 실증된 ④(232종 3개월 알파)·⑧(ML 12,706건 학습)은 브리핑에 한 번도 안 닿는다. 정작 브리핑은 가장 덜 검증된 ②(가설)로 굴러간다.
+      </div>
+
+      {/* 2. 브리핑 실제 경로 */}
+      <h2 style={h2}>오늘 브리핑에 실제로 쓰이는 엔진 = ① + ②</h2>
+      <p style={p}>
+        /market-scan이 부르는 API의 실제 연결을 추적한 결과, 브리핑을 굴리는 건 ① 등급 분류와 ② V2 카테고리 둘뿐이다.
+      </p>
+      <div style={mono}>{`공시 ──→ ① 등급(제목 키워드, 작동 O)
+          └──→ ② V2(본문 필요한데 제목만 받음 → 0점/fake_pump)
+                     ↓
+        브리핑 = ①의 S/A 라벨 + ②(거의 0) + 사람 수작업(CLAUDE.md)`}</div>
+      <p style={p}>
+        ②는 켜져 있되 오늘 대부분 <b style={{ color: colors.textPrimary }}>v2_score=0 / [교차검증: fake_pump]</b>를 뱉었다. 즉 종목 선별의 무게중심이 ①(등급)과 사람 손으로 쏠린다.
+      </p>
+
+      <div style={divider} />
+
+      {/* 3. 엔진 1 정밀 점검 */}
+      <h2 style={h2}>엔진 ① 등급 분류 — 정밀 점검</h2>
+      <p style={p}>
+        제목(report_nm) 키워드 매칭 → 초벌 등급 → (S/A만) DS005·본문 파싱으로 정량 확인 → 최종 등급. <b style={{ color: colors.textPrimary }}>점수가 아니라 라벨(S/A/D)을 찍는 엔진.</b>
+      </p>
+
+      <h3 style={h3}>1-A. 키워드 → 초벌 등급</h3>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>등급</th><th style={th}>대표 키워드</th><th style={th}>처리</th></tr></thead>
+          <tbody>
+            {[
+              ['SS→S', '자기주식취득, 주식소각', '즉시 S (파싱 불필요)'],
+              ['S후보', '공급계약, 무상증자, 투자주의종목, 전환사채, 타법인취득, 임원특정증권, 증권신고서', '파싱으로 S/A 확정'],
+              ['A후보', '영업실적, 시설투자, 대량보유, 배당, 최대주주변동, 자사주처분, 기업가치제고', '파싱/자동 A'],
+              ['D', '횡령, 배임, 불성실공시, 의견거절, 감자, 채무보증, 경영권분쟁', '즉시 D'],
+              ['premium', '이사회, 주주총회, BW, 합병, 분할, 전환청구권행사', '관리자만, S/D키워드 시 승격'],
+              ['드롭', '그 외 전부', '버림 (압축 핵심)'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 700, color: colors.textPrimary, whiteSpace: 'nowrap' }}>{r[0]}</td>
+                <td style={td}>{r[1]}</td>
+                <td style={td}>{r[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style={h3}>1-B. S/A 정량 확정 조건</h3>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>유형</th><th style={th}>확정 조건</th><th style={th}>미충족</th></tr></thead>
+          <tbody>
+            {[
+              ['공급계약', '매출 대비 ≥30% → S', '<30% → A 하향'],
+              ['무상증자', '배정 ≥1.0주 → S', '<1.0 → A 하향'],
+              ['제3자배정', '배정대상 = 대기업 → S', '아니면 A'],
+              ['영업실적', '흑자전환 or 영업이익 YoY+30% → A', '미달 → 드롭'],
+              ['파싱 실패', 'S후보 → A 하향', 'A후보 → 자동확정 or 드롭'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 600, color: colors.textPrimary, whiteSpace: 'nowrap' }}>{r[0]}</td>
+                <td style={td}>{r[1]}</td>
+                <td style={td}>{r[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style={h3}>1-C. KIND 세분화 태깅 — 실증 승률 내장, 그러나 점수화 안 됨</h3>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>태그</th><th style={th}>실증 성적</th><th style={th}>현재 활용</th></tr></thead>
+          <tbody>
+            {[
+              ['투자경고확정', '승률 83%, 당일 +11.9% (n=6)', '태그만'],
+              ['경고지정예고', '당일 보합, 5일 +12.8%', '태그만'],
+              ['거래집중', '승률 60%, +3.6%', '태그만'],
+              ['15일상승', '승률 56%, +3.2%', '태그만'],
+              ['소수계좌_연속N일', '연속 2일+ = 매집 미완료', 'consecutive_days 저장'],
+              ['소수계좌_단발', '단발, 수급 확인 필요', '태그만'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 600, color: colors.textPrimary, whiteSpace: 'nowrap' }}>{r[0]}</td>
+                <td style={td}>{r[1]}</td>
+                <td style={{ ...td, color: colors.textMuted }}>{r[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style={h3}>엔진 ① 점검 결과</h3>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>항목</th><th style={th}>평가</th><th style={th}>비고</th></tr></thead>
+          <tbody>
+            {[
+              ['키워드 분류', 'green', '잘 작동 — 오늘 S/A/D 라벨 정상'],
+              ['정량 확정(30% 등)', 'green', 'DS005 우선이라 신뢰도 높음'],
+              ['등급 인플레', 'red', '투자주의·소수계좌=무조건 S → 오늘 S 14,571건. "800→5" 철학과 충돌'],
+              ['kind_subtype 사장', 'orange', '승률 83%/56% 실증이 태그로만, 정렬·필터·점수에 미사용'],
+              ['본문 미열람', 'orange', '즉시 S 유형은 제목만으로 판정'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>{r[0]}</td>
+                <td style={td}>{chip(r[1] === 'green' ? '양호' : r[1] === 'red' ? '문제' : '주의', r[1])}</td>
+                <td style={td}>{r[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div style={divider} />
+
+      {/* 4. 엔진 2 정밀 점검 */}
+      <h2 style={h2}>엔진 ② V2 카테고리 — 정밀 점검</h2>
+      <p style={p}>
+        공시 <b style={{ color: colors.textPrimary }}>본문 텍스트</b>를 4개 카테고리 키워드로 점수화 + King S-Class + Fake 필터 + 교차검증. 0~100+ 점수를 내는 엔진.
+      </p>
+
+      <h3 style={h3}>2-A. 4대 카테고리 가중치</h3>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>카테고리</th><th style={th}>서브항목</th><th style={th}>점수</th><th style={th}>enhancer</th></tr></thead>
+          <tbody>
+            {[
+              ['①자본의 설계', 'CB 리픽싱포기/콜옵션', '30', '—'],
+              ['', '자사주 신탁/맞교환', '25', '—'],
+              ['', '무상증자', '15', '+200%↑ → +15'],
+              ['②내부자 확신', '임원 장내매수/사재출연', '35', '—'],
+              ['', '보호예수 연장', '30', '—'],
+              ['', '담보 상향', '20', '—'],
+              ['', '핵심인력 선임', '15', '삼성/SK/정부 → +15'],
+              ['③거버넌스', '위임장대결/주주제안', '35', '—'],
+              ['', '합병', '30', '비상장/우량 +15'],
+              ['', '분할', '25', '인적+10 / 물적−15'],
+              ['④미래매출', '정관변경/사업목적', '15', 'AI/반도체/원전 → +20'],
+              ['', '전략계약(FDA/독점)', '30', '—'],
+              ['', '정부계약(방사청)', '25', '—'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 700, color: colors.textPrimary, whiteSpace: 'nowrap' }}>{r[0]}</td>
+                <td style={td}>{r[1]}</td>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontWeight: 700, color: colors.textPrimary }}>{r[2]}</td>
+                <td style={{ ...td, fontSize: 11 }}>{r[3]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style={h3}>2-B. King S-Class + 보정 로직</h3>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>단계</th><th style={th}>룰</th><th style={th}>영향</th></tr></thead>
+          <tbody>
+            {[
+              ['King S 기본', '제3자배정 감지', '+30'],
+              ['King S enhancer', '글로벌펀드 +20, 할증발행 +20, 대금납입 +15', '누적'],
+              ['King S 화이트리스트', '블랙록/국민연금/삼성전자 매칭', '+20'],
+              ['King S 실격', '최대주주변경/경영권양도/채무출자전환', '→ 0'],
+              ['Fake 필터', '투자경고 2회+ / 내부자매도+소수계좌', '−80'],
+              ['Fake 필터', 'SPC 유상증자(글로벌펀드 미확인)', '−30'],
+              ['교차검증', 'max≥25 & 매칭≥1 → real_alpha', '+20'],
+              ['교차검증', 'max<15 → fake_pump', '−50'],
+              ['교차검증', 'max<20 → suspicious', '−20'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 600, color: colors.textPrimary, whiteSpace: 'nowrap' }}>{r[0]}</td>
+                <td style={td}>{r[1]}</td>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontWeight: 700, color: r[2].includes('−') ? '#DC2626' : r[2].includes('+') ? '#16A34A' : colors.textMuted }}>{r[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style={h3}>엔진 ② 점검 결과 — 오늘 왜 전부 0점/fake_pump였는가</h3>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>항목</th><th style={th}>평가</th><th style={th}>비고</th></tr></thead>
+          <tbody>
+            {[
+              ['본문 없이 제목만 입력', 'red', 'html 없으면 report_nm만 → 카테고리 키워드 미매칭 → 0점'],
+              ['0점 → fake_pump 강등', 'red', '본문 못 읽어 0점인데 max<15→fake_pump. 오늘 fake 표시는 작전주 아닌 "본문 미열람" 흔적'],
+              ['키워드 과도하게 특수', 'orange', '"보호예수 연장" 등 본문에 드묾 → 대부분 미감지'],
+              ['화이트리스트 오염', 'orange', '삼성전자/SK/LG가 King S +20 오탐 유발'],
+              ['가중치 미검증', 'orange', '30/25/15… "Phase1 가설", 백테스트 없음'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>{r[0]}</td>
+                <td style={td}>{chip(r[1] === 'red' ? '치명' : '주의', r[1])}</td>
+                <td style={td}>{r[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div style={divider} />
+
+      {/* 5. 개선 설계안 */}
+      <h2 style={h2}>개선 설계안</h2>
+      <p style={p}>
+        점검에서 나온 이슈를 그대로 개선 항목으로 전환한다. 마침 config.py에 이미 <b style={{ color: colors.textPrimary }}>SIGNAL_TIER</b>(price_tracks 12,706건 실증 성적표)가 있어, 새로 만들 필요 없이 엔진 ①에 물리는 게 핵심.
+      </p>
+
+      <h3 style={h3}>엔진 ① 개선</h3>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>#</th><th style={th}>개선안</th><th style={th}>구현 위치</th><th style={th}>난이도</th><th style={th}>효과</th></tr></thead>
+          <tbody>
+            {[
+              ['I1', 'kind_subtype → 실증 승률 점수화 (config.SIGNAL_TIER 매핑)', 'scoring_engine kind_sub', '낮음', 'green'],
+              ['I2', 'S를 S+/S/S− 또는 priority_score로 세분', 'scoring_engine 확정부', '중간', 'green'],
+              ['I3', '연속 2일+ → priority 가산 (매집 미완료)', '이미 계산됨, 반영만', '낮음', 'orange'],
+              ['I4', '3일 내 다중공시 → 복합 보너스 (CLAUDE.md 룰 코드화)', '신규 후처리', '중간', 'orange'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontWeight: 700, color: colors.textPrimary }}>{r[0]}</td>
+                <td style={td}>{r[1]}</td>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontSize: 11 }}>{r[2]}</td>
+                <td style={td}>{r[3]}</td>
+                <td style={td}>{chip(r[4] === 'green' ? '높음' : '중간', r[4])}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style={h3}>엔진 ② 개선</h3>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>#</th><th style={th}>개선안</th><th style={th}>구현 위치</th><th style={th}>난이도</th><th style={th}>효과</th></tr></thead>
+          <tbody>
+            {[
+              ['I5', '_apply_v2_scoring에 html 항상 주입 (본문 fetch)', 'scoring_engine 호출부', '중간', 'green'],
+              ['I6', '본문 없으면 fake_pump 판정 보류 → unscored', 'scoring_v2 교차검증 가드', '낮음', 'green'],
+              ['I7', 'DS005 정형 필드를 키워드 대신 입력 + 키워드 확장', 'scoring_v2 + ds005', '높음', 'green'],
+              ['I8', '화이트리스트에서 일반 그룹명 제거 (펀드만 유지)', 'scoring_v2 WHITELIST', '낮음', 'orange'],
+              ['I9', 'price_tracks로 가중치 백테스트 보정 (⑧ 연결)', '신규 스크립트', '높음', 'green'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontWeight: 700, color: colors.textPrimary }}>{r[0]}</td>
+                <td style={td}>{r[1]}</td>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontSize: 11 }}>{r[2]}</td>
+                <td style={td}>{r[3]}</td>
+                <td style={td}>{chip(r[4] === 'green' ? '높음' : '중간', r[4])}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style={h3}>개선 후 통합 흐름 (목표)</h3>
+      <div style={mono}>{`공시 ──→ ① 등급 + priority_score (I1·I3·I4 실증 승률)
+              └─→ ② V2 (I5 본문 주입 → 실제 강도, I6 fake 가드)
+                       └─→ 통합 priority = ①실증 70% + ②본문강도 30%
+                                └─→ S 14,571건 → 정렬 → 진짜 TOP 5`}</div>
+
+      <div style={divider} />
+
+      {/* 6. 우선순위 로드맵 */}
+      <h2 style={h2}>우선순위 로드맵</h2>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>순위</th><th style={th}>작업</th><th style={th}>난이도</th><th style={th}>효과</th><th style={th}>근거</th></tr></thead>
+          <tbody>
+            {[
+              ['1', 'I6 fake_pump 가드', '낮음', '높음', '오늘 거짓 fake 즉시 제거, 리스크 0'],
+              ['2', 'I1 kind_subtype 점수화', '낮음', '높음', '기존 SIGNAL_TIER 재활용, 압축 복원'],
+              ['3', 'I5 V2 본문 주입', '중간', '높음', '② 엔진 부활'],
+              ['4', 'I3+I4 연속/복합 보너스', '중간', '중간', '매집·복합 패턴 포착'],
+              ['5', 'I8 화이트리스트 정제', '낮음', '중간', 'King S 오탐 제거'],
+              ['6', 'I2 S 등급 세분화', '중간', '높음', '최종 압축 완성'],
+              ['7', 'I7+I9 DS005 연계 + 백테스트', '높음', '높음', '가설→실증, 장기 과제'],
+            ].map((r, i) => (
+              <tr key={i} style={{ background: i < 2 ? (dark ? 'rgba(22,163,74,0.06)' : 'rgba(22,163,74,0.04)') : 'transparent' }}>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontWeight: 700, color: i < 2 ? '#16A34A' : colors.textPrimary }}>{r[0]}</td>
+                <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>{r[1]}</td>
+                <td style={td}>{r[2]}</td>
+                <td style={td}>{r[3]}</td>
+                <td style={{ ...td, fontSize: 11 }}>{r[4]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div style={conclusionBox}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', marginBottom: 4 }}>다음 액션 후보</div>
+        <div style={{ fontSize: 13, color: colors.textPrimary, lineHeight: 1.6 }}>
+          1번(I6)·2번(I1)은 리스크가 거의 없고 효과가 즉각적. 이 둘만 먼저 적용해도 브리핑 품질이 눈에 띄게 바뀐다. 그 다음 I5로 ② 엔진을 부활시키는 순서.
+        </div>
+      </div>
+
+      <div style={divider} />
+
+      {/* 7. ML 적용 — 가중치가 정확해지나? */}
+      <h2 style={h2}>ML을 적용하면 가중치가 정확해지나?</h2>
+      <p style={p}>
+        지금 우리가 하는 건 대부분 <b style={{ color: colors.textPrimary }}>사람이 변수를 고르고 가중치를 손으로 매기는</b> 방식이다(①~⑦). ⑧ 확률모델만 데이터로 학습한다. 그럼 ML을 전면 적용하면 가중치가 "정확"해질까? — 답은 <b style={{ color: colors.textPrimary }}>조건부</b>다.
+      </p>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>구분</th><th style={th}>의미</th><th style={th}>ML이 주는가</th></tr></thead>
+          <tbody>
+            <tr><td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>정밀(일관성)</td><td style={td}>같은 입력에 항상 같은 점수, 사람 기분 안 탐</td><td style={td}>{chip('확실히', 'green')}</td></tr>
+            <tr><td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>정확(진실 근접)</td><td style={td}>가중치가 실제 상승 원인을 맞게 반영</td><td style={td}>{chip('데이터에 달림', 'orange')}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style={p}>
+        ML은 <b style={{ color: colors.textPrimary }}>"주어진 데이터에서 예측 오차를 최소화하는 가중치"</b>를 찾을 뿐, "진짜 정답 가중치"를 주는 게 아니다. 지금 우리 상태로 돌리면 오히려 위험한 4가지:
+      </p>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>위험</th><th style={th}>내용</th></tr></thead>
+          <tbody>
+            {[
+              ['컨텍스트 누락', '공시 시점 수급·재무가 안 붙어 있으면 핵심 변수 빠진 채 학습 (Garbage in)'],
+              ['커브피팅', '교차조건 걸면 샘플 급감 → 과거엔 맞고 미래엔 빗나감'],
+              ['비정상성', '시장 레짐이 바뀜 → 과거 평균 가중치 ≠ 현재 진실'],
+              ['해자가 모델 밖', '"콜옵션이냐 운영자금이냐" 본문 시그널이 정형 피처에 안 들어감'],
+            ].map((r, i) => (
+              <tr key={i}><td style={{ ...td, fontWeight: 600, color: '#DC2626', whiteSpace: 'nowrap' }}>{r[0]}</td><td style={td}>{r[1]}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={conclusionBox}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#DC2626', marginBottom: 4 }}>결론</div>
+        <div style={{ fontSize: 13, color: colors.textPrimary, lineHeight: 1.6 }}>
+          ML은 가중치 정확도의 "해결책"이 아니라 "데이터가 갖춰졌을 때 쓰는 도구". 지금 병목은 알고리즘이 아니라 <b>데이터(스냅샷+컨텍스트)</b>다. 순서를 거꾸로 하면 정밀해 보이지만 틀린 숫자에 속는다.
+        </div>
+      </div>
+
+      <div style={divider} />
+
+      {/* 8. 스냅샷 점검 */}
+      <h2 style={h2}>스냅샷 점검 — 학습 연료는 쌓이고 있나</h2>
+      <p style={p}>
+        ML의 전제는 "공시 시점의 상태를 박제한 스냅샷"이다. 2026-06-03 Cloud5 실측(price_tracks 37,355행) 결과, <b style={{ color: colors.textPrimary }}>절반만 작동</b> 중이다.
+      </p>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>스냅샷</th><th style={th}>최근30일 채움</th><th style={th}>상태</th></tr></thead>
+          <tbody>
+            {[
+              ['PBR·PER·시총', '99.9%', 'green', '정적 컨텍스트 — 건강'],
+              ['외국인비율·소수계좌·거래량', '99.9%', 'green', '실시간 수집 정상'],
+              ['snap_v2_score', '90.5%', 'green', '—'],
+              ['외국인 연속순매수', '0.2%', 'red', '전략문서가 "수급 핵심"이라 한 변수'],
+              ['기관 연속순매수', '0%', 'red', '미수집'],
+              ['ICR·부채비율·오버행', '0%', 'red', '위험 필터용 데이터 없음'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>{r[0]}</td>
+                <td style={{ ...td, fontFamily: FONTS.mono, fontWeight: 700, color: sev(r[2]) }}>{r[1]}</td>
+                <td style={td}>{r[3]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={quote}>
+        스냅샷은 CCTV 녹화다. 사건(공시)이 터지는 순간 카메라가 돌고 있어야 나중에 돌려본다. "ML 돌릴 때 모으자"는 "ML을 1년 더 미루자"와 같은 말 — 과거 시점 수급은 복원 불가다.
+      </div>
+      <p style={p}>
+        과거 백필분(3~5월초)이 비어 전체 채움률은 10%지만, 이건 과거 시점이라 원천 복원 불가라 불가피. 중요한 건 <b style={{ color: colors.textPrimary }}>5/4 이후 실시간분은 정적 변수 99% 채워진다</b>는 것. 단 수급·안전 변수는 실시간조차 0%다.
+      </p>
+
+      <div style={divider} />
+
+      {/* 9. 2단계 깔때기 */}
+      <h2 style={h2}>2단계 깔때기 아키텍처 (결정)</h2>
+      <p style={p}>
+        전체 공시에 수급을 다 붙이는 건 비용 과대 + 잡주 노이즈. 대신 <b style={{ color: colors.textPrimary }}>공시로 후보를 압축한 뒤 그 소수에만 수급·차트를 정밀 체크</b>하는 깔때기로 간다. 기존 Edge-Finder(⑥)가 부분적으로 갖던 구조를 정식 승격.
+      </p>
+      <div style={mono}>{`Stage 1 (전공시 800건, 싼 연산):
+  공시 → 등급① + 소수계좌 강도④ + V2② → 후보 10~30종 압축
+
+Stage 2 (후보만, 비싼 연산):
+  각 후보 → 키움 수급(외국인/기관 연속순매수)
+          + 재무안전(ICR/부채)
+          + 일봉 fresh → 차트지표(MA/RSI/볼린저)
+          + ★ 그 시점값을 스냅샷으로 박제(stamp)
+          → 최종 랭킹`}</div>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}></th><th style={th}>Stage 1</th><th style={th}>Stage 2</th></tr></thead>
+          <tbody>
+            {[
+              ['대상', '전공시 800건', '후보 10~30종'],
+              ['엔진', '① 등급 + ② V2 + ④ 소수계좌', '수급 + 재무안전 + 차트지표'],
+              ['연산', '싸다', '비싸다 (후보만이라 OK)'],
+              ['스냅샷', '정적변수 (이미 됨)', '수급·안전·차트 (★ 여기서 박제)'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 700, color: colors.textMuted }}>{r[0]}</td>
+                <td style={td}>{r[1]}</td>
+                <td style={{ ...td, color: colors.textPrimary }}>{r[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={conclusionBox}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#DC2626', marginBottom: 4 }}>반드시 지킬 원칙</div>
+        <div style={{ fontSize: 13, color: colors.textPrimary, lineHeight: 1.6 }}>
+          Stage 2가 수급·차트를 <b>조회만 하고 버리면</b> 오늘 판단엔 쓰여도 학습 데이터는 0건이다. 조회한 그 순간 값을 <b>반드시 스냅샷으로 박제</b>해야 한다. 그래야 운영(오늘 결정)과 학습(미래 ML)이 동시에 충족된다.
+        </div>
+      </div>
+      <p style={p}>
+        "후보만 기록하면 편향 아니냐"는 걱정은 기우다. 우리가 내리는 결정은 "공시 통과 후보 중 무엇을 살까"이고, 모델도 그 후보 안에서 순위만 매기면 된다. <b style={{ color: colors.textPrimary }}>후보만 학습 = 용도에 정확히 맞는 설계.</b>
+      </p>
+
+      <div style={divider} />
+
+      {/* 10. 차트 분석 */}
+      <h2 style={h2}>차트 분석 가능 여부 (점검 완료)</h2>
+      <p style={p}>
+        2026-06-03 price_daily 실측: 188,946행 / 2,645종목, OHLCV 완비, 96% 종목이 60일+ 이력 보유. <b style={{ color: colors.textPrimary }}>지표 계산에 필요한 데이터 구조 자체는 갖춰져 있다.</b>
+      </p>
+      <div style={{ ...conclusionBox, background: dark ? 'rgba(220,38,38,0.06)' : 'rgba(220,38,38,0.03)', border: '1px solid rgba(220,38,38,0.2)' }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#DC2626', marginBottom: 4 }}>⚠️ 검증 중 발견 — 일봉이 심각하게 stale</div>
+        <div style={{ fontSize: 13, color: colors.textPrimary, lineHeight: 1.6 }}>
+          삼성전자(005930) 저장 일봉이 <b>2026-04-07(종가 199,300)에서 멈춤</b>. 실제 키움 현재가 360,500과 약 16만원 괴리. 시총 1위조차 2개월 묵음. 최신 일봉 분포도 6/2에 단 1종목. → <b>저장 일봉을 그대로 쓰면 안 된다. 지표는 반드시 fresh fetch 후 계산.</b>
+        </div>
+      </div>
+      <div style={tblWrap}>
+        <table style={tbl}>
+          <thead><tr><th style={th}>질문</th><th style={th}>답</th><th style={th}>근거</th></tr></thead>
+          <tbody>
+            {[
+              ['이동평균(5/20/60)', 'green', '구조상 가능 — 60일+ 이력 96% (단 fresh fetch 전제)'],
+              ['RSI / 볼린저 / 거래량지표', 'green', 'OHLCV 완비 — 계산 로직만 추가'],
+              ['저장 일봉 그대로', 'red', '심각하게 stale (삼성전자 2개월 묵음) → 쓰면 안 됨'],
+              ['실시간 차트로', 'orange', 'Stage 2에서 후보만 fresh fetch → 계산'],
+              ['ML 변수로', 'green', 'Stage 2에서 박제 → "공시 × 차트상태" 교차변수 확보'],
+            ].map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>{r[0]}</td>
+                <td style={td}>{chip(r[1] === 'green' ? '됨' : '조건부', r[1])}</td>
+                <td style={{ ...td, fontSize: 11 }}>{r[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style={p}>
+        보너스: Stage 2에서 "공시 시점의 RSI·이격도·정배열"을 박제하면 <b style={{ color: colors.textPrimary }}>공시 × 기술적상태 교차 변수</b>가 생긴다 — 예: "소수계좌 + RSI 과매도" 승률, "공급계약 + 20일선 정배열" 승률. 지금 아무도 안 보는 영역.
+      </p>
+
+      <div style={conclusionBox}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', marginBottom: 4 }}>오늘 논의 종합 (2026-06-03)</div>
+        <div style={{ fontSize: 13, color: colors.textPrimary, lineHeight: 1.7 }}>
+          ① 지금은 수동 가중치 단계(의도된 1단계) · ② ML은 데이터 갖춰진 뒤의 도구 · ③ 2단계 깔때기로 간다(공시 압축 → 후보 정밀검증) · ④ Stage 2에서 수급·차트·안전을 박제 → 운영+학습 동시 충족 · ⑤ 차트 분석은 데이터상 가능, 실시간은 Stage 2에서 후보만.
+        </div>
+      </div>
+
+      <p style={{ ...p, marginTop: 24, fontSize: 12, color: colors.textMuted, fontStyle: 'italic' }}>
+        이 노트는 계속 고민하며 갱신한다. 새 점검·결정이 생기면 이 페이지에 누적한다. (최종 갱신: 2026-06-03)
+      </p>
     </div>
   )
 }
@@ -1884,14 +2535,47 @@ function GuideBlog({ colors, dark, sep }) {
    시그널 대시보드 — 시각화
    ═══════════════════════════════════════════════════════════ */
 
+function classifySignalTier(report_nm) {
+  const nm = report_nm || ''
+  if (nm.includes('소수계좌'))
+    return { tier: 1, label: '소수계좌', strategy: '익일 단기 진입', color: '#DC2626' }
+  if (nm.includes('투자경고') && nm.includes('지정예고'))
+    return { tier: 1, label: '투자경고 예고', strategy: '익일 단기 (PBR 확인)', color: '#DC2626' }
+  if (nm.includes('최대주주') && (nm.includes('변동') || nm.includes('취득')))
+    return { tier: 2, label: '최대주주 변동', strategy: '1~2주 스윙', color: '#D97706' }
+  if (nm.includes('대량보유'))
+    return { tier: 2, label: '기관 대량보유', strategy: '1~2주 스윙', color: '#D97706' }
+  if (nm.includes('임원') && nm.includes('소유상황'))
+    return { tier: 2, label: '임원 매수', strategy: '1~2주 스윙', color: '#D97706' }
+  if (nm.includes('무상증자'))
+    return { tier: 3, label: '무상증자', strategy: '권리락 전 타이밍', color: '#7C3AED' }
+  if (nm.includes('제3자배정') || (nm.includes('유상증자') && nm.includes('3자')))
+    return { tier: 3, label: '3자배정', strategy: '전략투자자 확인 후', color: '#7C3AED' }
+  if (nm.includes('전환사채'))
+    return { tier: 3, label: 'CB 발행', strategy: '전환가·기관 조건 확인', color: '#7C3AED' }
+  if (nm.includes('단일판매') || nm.includes('공급계약체결'))
+    return { tier: 4, label: '공급계약', strategy: '당일 규모 확인', color: '#2563EB' }
+  if (nm.includes('잠정실적') || nm.includes('영업(잠정)'))
+    return { tier: 4, label: '잠정실적', strategy: '당일 서프라이즈 확인', color: '#2563EB' }
+  if (nm.includes('기업가치제고'))
+    return { tier: 4, label: '가치제고', strategy: '참고용', color: '#6B7280' }
+  return null
+}
+
 function SignalDashboard({ colors, dark, sep }) {
   const [data, setData] = useState(null)
+  const [disclosures, setDisclosures] = useState([])
   const [loading, setLoading] = useState(true)
+  const [tierFilter, setTierFilter] = useState(0)
 
   useEffect(() => {
     Promise.all([
       fetch(`${API}/api/admin/signal-dashboard`).then(r => r.json()),
-    ]).then(([d]) => setData(d))
+      fetch(`${API}/api/disclosures?limit=200`).then(r => r.json()),
+    ]).then(([d, disc]) => {
+      setData(d)
+      setDisclosures(disc.disclosures || [])
+    })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -1908,6 +2592,98 @@ function SignalDashboard({ colors, dark, sep }) {
 
       <h1 style={{ fontSize: 24, fontWeight: 900, color: colors.textPrimary, fontFamily: FONTS.serif, margin: '0 0 4px' }}>시그널 대시보드</h1>
       <div style={{ fontSize: 13, color: colors.textMuted, marginBottom: 24 }}>실증 데이터 기반 시그널 분석</div>
+
+      {/* ══ 오늘의 군별 시그널 ══ */}
+      {(() => {
+        const TIERS = [
+          { n: 1, label: '1군 — 수급 직접', color: '#DC2626', bg: 'rgba(220,38,38,0.06)', desc: '익일 단기 진입' },
+          { n: 2, label: '2군 — 내부자/기관', color: '#D97706', bg: 'rgba(217,119,6,0.06)', desc: '1~2주 스윙' },
+          { n: 3, label: '3군 — 자본 이벤트', color: '#7C3AED', bg: 'rgba(124,58,237,0.06)', desc: '이벤트 타이밍' },
+          { n: 4, label: '4군 — 실적/계약', color: '#2563EB', bg: 'rgba(37,99,235,0.06)', desc: '당일 규모 확인' },
+        ]
+
+        // 중복 제거 + 분류
+        const seen = new Set()
+        const classified = []
+        for (const d of disclosures) {
+          if (seen.has(d.stock_code)) continue
+          const t = classifySignalTier(d.report_nm)
+          if (!t) continue
+          seen.add(d.stock_code)
+          classified.push({ ...d, tierInfo: t })
+        }
+
+        const filtered = tierFilter === 0 ? classified : classified.filter(d => d.tierInfo.tier === tierFilter)
+        const byTier = (n) => classified.filter(d => d.tierInfo.tier === n)
+
+        return (
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: colors.textPrimary }}>오늘의 군별 시그널</div>
+              <div style={{ fontSize: 11, color: colors.textMuted }}>총 {classified.length}건</div>
+            </div>
+
+            {/* 군 필터 + 카운트 */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+              <button onClick={() => setTierFilter(0)} style={{
+                padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600,
+                background: tierFilter === 0 ? (dark ? '#fff' : '#111') : 'transparent',
+                color: tierFilter === 0 ? (dark ? '#111' : '#fff') : colors.textMuted,
+              }}>전체 {classified.length}</button>
+              {TIERS.map(t => (
+                <button key={t.n} onClick={() => setTierFilter(t.n)} style={{
+                  padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                  background: tierFilter === t.n ? t.color : `${t.color}18`,
+                  color: tierFilter === t.n ? '#fff' : t.color,
+                }}>{t.n}군 {byTier(t.n).length}</button>
+              ))}
+            </div>
+
+            {/* 시그널 리스트 */}
+            {TIERS.filter(t => tierFilter === 0 || tierFilter === t.n).map(t => {
+              const items = byTier(t.n)
+              if (items.length === 0) return null
+              return (
+                <div key={t.n} style={{ marginBottom: 14 }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6,
+                    padding: '6px 12px', borderRadius: 8, background: t.bg,
+                  }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: t.color }}>{t.label}</span>
+                    <span style={{ fontSize: 10, color: t.color, opacity: 0.8 }}>→ {t.desc}</span>
+                    <span style={{ marginLeft: 'auto', fontSize: 10, color: t.color, fontWeight: 700 }}>{items.length}건</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {items.map(d => {
+                      const chg = d.base_change_pct || 0
+                      const chgColor = chg > 0 ? '#DC2626' : chg < 0 ? '#2563EB' : colors.textMuted
+                      return (
+                        <div key={d.rcept_no} style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '7px 12px', borderRadius: 8,
+                          background: dark ? '#141416' : '#F9F9FB',
+                          border: `1px solid ${sep}`,
+                          borderLeft: `3px solid ${d.tierInfo.color}`,
+                        }}>
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                            background: `${d.tierInfo.color}14`, color: d.tierInfo.color, flexShrink: 0,
+                          }}>{d.tierInfo.label}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary }}>{d.corp_name}</span>
+                          <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>{d.stock_code}</span>
+                          <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800, color: chgColor, fontFamily: 'JetBrains Mono, monospace' }}>
+                            {chg > 0 ? '+' : ''}{chg !== 0 ? chg.toFixed(2) + '%' : '-'}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )
+      })()}
 
       {/* ══ 축적 현황 ══ */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
@@ -2164,6 +2940,2006 @@ function SignalDashboard({ colors, dark, sep }) {
         })}
       </div>
 
+    </div>
+  )
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   콘텐츠 — 일일 시그널 스크리닝 TOP 3
+   ═══════════════════════════════════════════════════════════ */
+
+function DailyPicks({ colors, dark, sep }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`${API}/api/admin/daily-picks`)
+      .then(r => r.json())
+      .then(d => setData(d))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>스크리닝 중...</div>
+  if (!data || !data.picks?.length) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>오늘의 시그널 데이터 없음</div>
+
+  const { picks, date, total_screened } = data
+  const top3 = picks.slice(0, 3)
+  const rest = picks.slice(3, 10)
+
+  const scoreColor = s => s >= 0.75 ? '#DC2626' : s >= 0.6 ? '#D97706' : s >= 0.45 ? '#6B7280' : '#A1A1AA'
+  const scoreBar = s => Math.min(s / 0.9 * 100, 100)
+
+  return (
+    <div style={{ maxWidth: 720 }}>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: colors.textPrimary, fontFamily: FONTS.serif, margin: 0 }}>
+            오늘의 시그널
+          </h1>
+          <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
+            {date} · {total_screened}건 스크리닝 → {picks.length}건 통과
+          </div>
+        </div>
+        <div style={{ fontSize: 10, color: colors.textMuted, textAlign: 'right', lineHeight: 1.5 }}>
+          기본확률 15% + 수급 15%<br/>시그널 강도 70%
+        </div>
+      </div>
+
+      {/* TOP 3 카드 */}
+      {top3.map((pick, i) => {
+        const medal = ['1st', '2nd', '3rd'][i]
+        const medalColor = ['#DC2626', '#D97706', '#2563EB'][i]
+        return (
+          <div key={pick.stock_code} style={{
+            padding: '20px', borderRadius: 14, marginBottom: 12,
+            border: `1px solid ${i === 0 ? 'rgba(220,38,38,0.2)' : sep}`,
+            background: i === 0 ? (dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.02)') : (dark ? '#141416' : '#fff'),
+          }}>
+            {/* 헤더 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{
+                fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 5,
+                background: medalColor, color: '#fff',
+              }}>{medal}</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: colors.textPrimary, fontFamily: FONTS.serif }}>
+                {pick.corp_name}
+              </span>
+              <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{pick.stock_code}</span>
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                background: pick.dtype === '투자경고' || pick.dtype === '소수계좌' ? '#DC2626' : pick.dtype === '자사주취득' ? '#0D9488' : '#D97706',
+                color: '#fff', marginLeft: 'auto',
+              }}>{pick.dtype}</span>
+            </div>
+
+            {/* 공시명 */}
+            <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 12 }}>
+              {pick.report_nm}
+            </div>
+
+            {/* 핵심 숫자 */}
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+              {[
+                { label: '현재가', value: `${pick.current_price?.toLocaleString()}원`, sub: `${pick.change_pct > 0 ? '+' : ''}${pick.change_pct}%`, color: pick.change_pct > 0 ? '#DC2626' : pick.change_pct < 0 ? '#2563EB' : colors.textMuted },
+                { label: 'PBR', value: pick.pbr || '-', sub: pick.bps ? `BPS ${pick.bps?.toLocaleString()}` : '', color: pick.pbr && pick.pbr < 1 ? '#16A34A' : pick.pbr > 3 ? '#DC2626' : colors.textPrimary },
+                { label: 'PER', value: pick.per || '-', sub: pick.is_profit ? '흑자' : '적자', color: pick.is_profit ? '#16A34A' : '#DC2626' },
+                { label: '외국인', value: `${pick.foreign_ratio}%`, sub: `시총 ${pick.market_cap?.toLocaleString()}억`, color: pick.foreign_ratio > 20 ? '#0D9488' : colors.textPrimary },
+              ].map((item, j) => (
+                <div key={j} style={{ minWidth: 70 }}>
+                  <div style={{ fontSize: 10, color: colors.textMuted }}>{item.label}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: item.color, fontFamily: FONTS.mono }}>{item.value}</div>
+                  <div style={{ fontSize: 10, color: colors.textMuted }}>{item.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 스코어 바 */}
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+                  {[
+                    { label: '기본', score: pick.score_base, w: 0.15 },
+                    { label: '수급', score: pick.score_supply, w: 0.15 },
+                    { label: '강도', score: pick.score_intensity, w: 0.70 },
+                  ].map((s, k) => (
+                    <div key={k} style={{ flex: s.w * 10, minWidth: 0 }}>
+                      <div style={{ fontSize: 9, color: colors.textMuted, marginBottom: 2 }}>{s.label} {(s.score * 100).toFixed(0)}</div>
+                      <div style={{ height: 6, borderRadius: 3, background: dark ? '#1E1E22' : '#F0F0F2', overflow: 'hidden' }}>
+                        <div style={{ width: `${s.score * 100}%`, height: '100%', borderRadius: 3, background: scoreColor(s.score) }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0, paddingLeft: 12 }}>
+                <div style={{ fontSize: 22, fontWeight: 900, color: scoreColor(pick.score_total), fontFamily: FONTS.mono }}>
+                  {(pick.score_total * 100).toFixed(0)}
+                </div>
+                <div style={{ fontSize: 9, color: colors.textMuted }}>종합점수</div>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+
+      {/* 나머지 4~10위 */}
+      {rest.length > 0 && (
+        <>
+          <div style={{ fontSize: 13, fontWeight: 700, color: colors.textMuted, margin: '20px 0 10px' }}>그 외 후보</div>
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff' }}>
+            {rest.map((pick, i) => (
+              <div key={pick.stock_code} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 14px',
+                borderBottom: i < rest.length - 1 ? `1px solid ${sep}` : 'none',
+              }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: colors.textMuted, fontFamily: FONTS.mono, width: 20, textAlign: 'right' }}>{i + 4}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary, flex: 1 }}>{pick.corp_name}</span>
+                <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: dark ? '#1E1E22' : '#F0F0F2', color: colors.textMuted }}>{pick.dtype}</span>
+                <span style={{ fontSize: 11, color: pick.pbr && pick.pbr < 1 ? '#16A34A' : colors.textMuted, fontFamily: FONTS.mono }}>
+                  PBR {pick.pbr || '-'}
+                </span>
+                <span style={{ fontSize: 10, color: pick.is_profit ? '#16A34A' : '#DC2626' }}>
+                  {pick.is_profit ? '흑자' : '적자'}
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: scoreColor(pick.score_total), fontFamily: FONTS.mono }}>
+                  {(pick.score_total * 100).toFixed(0)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 16, lineHeight: 1.6, textAlign: 'center' }}>
+        가중치: 시그널 강도(PBR/실적) 70% + 기본확률(유형 TIER) 15% + 수급(외국인/소수계좌) 15%<br/>
+        시그널 강도 70%의 최종 판정은 Claude가 원문을 읽고 보정합니다.
+      </div>
+    </div>
+  )
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   투자일지 — 성공 / 실패 케이스 기록
+   ═══════════════════════════════════════════════════════════ */
+
+const TRADE_JOURNAL = [
+  {
+    id: 'j-001',
+    date: '2026-04-22',
+    stock: '삼아알미늄',
+    code: '006110',
+    signal: '소수계좌 집중매수 3연속',
+    signalColor: '#7C3AED',
+    entry: '4/20 첫 소수계좌 지정 → 4/21 연속 2일 + 외국인 37.7% → 4/22 장초반 +15%구간 진입. 눌림목 확인 후 불타기. V1 알림 2회 발동 후 상승세 지속 → 상한가 직전 청산.',
+    result: '+10.0',
+    outcome: 'success',
+    lesson: '소수계좌 3연속 = 매집 미완료 시그널. V1 발동 후 추가 상승 지속 시 상한가 확신 가능. 적자 기업도 수급 논리로 상한가 가능 — 재무제표는 진입 허들이 아님.',
+  },
+  {
+    id: 'j-002',
+    date: '2026-04-22',
+    stock: '나인테크',
+    code: '267320',
+    signal: '장초반 불기둥 + 거래량 폭발',
+    signalColor: '#EA580C',
+    entry: '장초반 이차전지 테마 수급 집중, 거래량 폭발과 함께 +15% 불기둥 형성. "이차전지 테마 단기 아님 + 강한 장세"로 판단, 눌림목에서 불타기 진입. 이후 추가 상승 실패 → 반전 하락, -10% 손절.',
+    result: '-10.0',
+    outcome: 'fail',
+    lesson: '거래량 폭발 + 장초반 강세가 반드시 상한가를 보장하지 않는다. 테마 모멘텀이 강해도 눌림목 불타기는 소수계좌 연속 지정 같은 "매집 미완료" 구조적 시그널 없이는 고위험. 불기둥 단독 시그널은 진입 근거 부족.',
+  },
+]
+
+function TradeJournal({ colors, dark, sep }) {
+  const [filter, setFilter] = useState('all')
+
+  const filtered = filter === 'all'
+    ? TRADE_JOURNAL
+    : TRADE_JOURNAL.filter(j => j.outcome === filter)
+
+  const successCount = TRADE_JOURNAL.filter(j => j.outcome === 'success').length
+  const failCount = TRADE_JOURNAL.filter(j => j.outcome === 'fail').length
+  const avgReturn = TRADE_JOURNAL.length
+    ? (TRADE_JOURNAL.reduce((s, j) => s + parseFloat(j.result), 0) / TRADE_JOURNAL.length).toFixed(1)
+    : 0
+
+  return (
+    <div>
+      {/* 통계 요약 */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {[
+          { label: '총 케이스', value: TRADE_JOURNAL.length, color: colors.textPrimary },
+          { label: '성공', value: successCount, color: '#16A34A' },
+          { label: '실패', value: failCount, color: '#DC2626' },
+          { label: '평균 수익률', value: `${avgReturn > 0 ? '+' : ''}${avgReturn}%`, color: avgReturn >= 0 ? '#16A34A' : '#DC2626' },
+        ].map(s => (
+          <div key={s.label} style={{
+            flex: 1, padding: '10px 12px', borderRadius: 10,
+            background: dark ? '#141416' : '#F9F9FB', border: `1px solid ${sep}`, textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: s.color, fontFamily: 'JetBrains Mono, monospace' }}>{s.value}</div>
+            <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 2 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 필터 탭 */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        {[
+          { key: 'all', label: '전체' },
+          { key: 'success', label: '✅ 성공' },
+          { key: 'fail', label: '❌ 실패' },
+        ].map(f => (
+          <button key={f.key} onClick={() => setFilter(f.key)} style={{
+            padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer',
+            fontSize: 12, fontWeight: 600,
+            background: filter === f.key ? (dark ? '#fff' : '#111') : 'transparent',
+            color: filter === f.key ? (dark ? '#111' : '#fff') : colors.textMuted,
+          }}>{f.label}</button>
+        ))}
+      </div>
+
+      {/* 케이스 카드 */}
+      {filtered.map(j => {
+        const isSuccess = j.outcome === 'success'
+        const outcomeColor = isSuccess ? '#16A34A' : '#DC2626'
+        const outcomeBg = isSuccess ? 'rgba(22,163,74,0.08)' : 'rgba(220,38,38,0.06)'
+        const ret = parseFloat(j.result)
+
+        return (
+          <div key={j.id} style={{
+            borderRadius: 14, overflow: 'hidden',
+            border: `1px solid ${sep}`, marginBottom: 12,
+            background: dark ? '#141416' : '#fff',
+            borderLeft: `3px solid ${outcomeColor}`,
+          }}>
+            {/* 헤더 */}
+            <div style={{ padding: '12px 16px', borderBottom: `1px solid ${sep}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                  background: `${j.signalColor}14`, color: j.signalColor,
+                }}>{j.signal}</span>
+                <span style={{ fontSize: 15, fontWeight: 800, color: colors.textPrimary }}>{j.stock}</span>
+                <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>{j.code}</span>
+                <span style={{ marginLeft: 'auto', fontSize: 11, color: colors.textMuted }}>{j.date}</span>
+              </div>
+            </div>
+
+            {/* 바디 */}
+            <div style={{ padding: '12px 16px' }}>
+              {/* 진행 스토리 */}
+              <div style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.75, marginBottom: 12 }}>
+                {j.entry}
+              </div>
+
+              {/* 결과 배지 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <span style={{
+                  fontSize: 16, fontWeight: 800, color: outcomeColor,
+                  fontFamily: 'JetBrains Mono, monospace',
+                  padding: '4px 12px', borderRadius: 8, background: outcomeBg,
+                }}>
+                  {ret > 0 ? '+' : ''}{j.result}%
+                </span>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6,
+                  background: outcomeBg, color: outcomeColor,
+                }}>{isSuccess ? '✅ 성공' : '❌ 실패'}</span>
+              </div>
+
+              {/* 배운 점 */}
+              <div style={{
+                padding: '10px 14px', borderRadius: 10,
+                borderLeft: `2px solid ${j.signalColor}`,
+                background: dark ? `${j.signalColor}0C` : `${j.signalColor}08`,
+                fontSize: 12, color: colors.textSecondary, lineHeight: 1.7,
+              }}>
+                <span style={{ fontWeight: 700, color: j.signalColor, fontSize: 11 }}>배운 점 </span>
+                {j.lesson}
+              </div>
+            </div>
+          </div>
+        )
+      })}
+
+      {filtered.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px 0', color: colors.textMuted, fontSize: 13 }}>
+          기록 없음
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   테마워치 — 광통신/네트워크 인프라 테마 종목 PBR 맵
+   ═══════════════════════════════════════════════════════════ */
+
+function ThemeWatch({ colors, dark, sep }) {
+  const themeStocks = [
+    // 광통신/통신장비/네트워크/RF 업종 전체 (PBR 순)
+    { name: '비덴트', code: '121800', mc: 2563, pbr: 0.40, per: 29.2, profit: true, sector: '영상통신장비', note: '' },
+    { name: '인탑스', code: '049070', mc: 2924, pbr: 0.42, per: 18.0, profit: true, sector: '통신장비', note: '' },
+    { name: '성우전자', code: '081580', mc: 485, pbr: 0.43, per: 3.9, profit: true, sector: '통신장비', note: 'PER 3.9' },
+    { name: '광무', code: '029480', mc: 1296, pbr: 0.51, per: 1.1, profit: true, sector: '광통신장비', note: 'PER 1.1(!), 업종 26410' },
+    { name: '빛샘전자', code: '007330', mc: 1719, pbr: 0.53, per: 21.8, profit: true, sector: '전자', note: '4/10 상한가' },
+    { name: '나이스정보통신', code: '036800', mc: 2465, pbr: 0.59, per: 5.8, profit: true, sector: '정보통신', note: '' },
+    { name: '휴니드테크놀러지스', code: '005870', mc: 1180, pbr: 0.69, per: null, profit: false, sector: '통신장비', note: '방산 통신' },
+    { name: '현대에이치티', code: '039010', mc: 763, pbr: 0.72, per: 5.5, profit: true, sector: '광통신장비', note: '업종 26410' },
+    { name: '가온그룹', code: '078890', mc: 1061, pbr: 0.81, per: 15.6, profit: true, sector: '통신장비', note: '' },
+    { name: '한국정보통신', code: '025770', mc: 2943, pbr: 0.83, per: 8.0, profit: true, sector: '정보통신', note: '' },
+    { name: '다산네트웍스', code: '039560', mc: 2194, pbr: 0.85, per: null, profit: false, sector: '광통신장비', note: 'BW 희석' },
+    { name: '삼지전자', code: '037460', mc: 4765, pbr: 0.96, per: 6.3, profit: true, sector: '통신장비', note: '' },
+    { name: '대신정보통신', code: '020180', mc: 406, pbr: 1.04, per: 7.1, profit: true, sector: '정보통신', note: '' },
+    { name: '머큐리', code: '100590', mc: 1471, pbr: 1.05, per: null, profit: false, sector: '통신장비', note: '투자경고, 공급계약' },
+    { name: '유비쿼스홀딩스', code: '078070', mc: 2959, pbr: 1.09, per: 14.7, profit: true, sector: '네트워크장비', note: '' },
+    { name: '슈프리마', code: '236200', mc: 3222, pbr: 1.21, per: 10.3, profit: true, sector: '광통신장비', note: '' },
+    { name: '기산텔레콤', code: '035460', mc: 677, pbr: 1.24, per: 16.0, profit: true, sector: '통신장비', note: '4/10 상한가, B-' },
+    { name: '알로이스', code: '297570', mc: 583, pbr: 1.26, per: 11.8, profit: true, sector: '통신장비', note: '' },
+    { name: '광전자', code: '017900', mc: 4693, pbr: 1.81, per: 110.3, profit: true, sector: 'LED/광부품', note: '테마 초기 성공' },
+    { name: '이노와이어리스', code: '073490', mc: 3224, pbr: 1.93, per: null, profit: false, sector: '통신장비', note: '' },
+    { name: '에치에프알', code: '230240', mc: 3707, pbr: 2.48, per: null, profit: false, sector: '통신장비', note: '' },
+    { name: '쏠리드', code: '050890', mc: 9174, pbr: 2.56, per: 25.3, profit: true, sector: '통신장비', note: '5G 중계기' },
+    { name: '케이엠더블유', code: '032500', mc: 11016, pbr: 8.27, per: null, profit: false, sector: '통신장비', note: '5G 안테나' },
+    { name: 'AP위성', code: '211270', mc: 2442, pbr: 2.35, per: null, profit: false, sector: '통신장비', note: '위성통신' },
+    { name: '휴먼테크놀로지', code: '175140', mc: 980, pbr: 2.39, per: null, profit: false, sector: '통신장비', note: '' },
+    { name: 'CS', code: '065770', mc: 489, pbr: 2.80, per: null, profit: false, sector: '통신장비', note: '' },
+    { name: 'RF시스템즈', code: '474610', mc: 1567, pbr: 2.93, per: 28.4, profit: true, sector: 'RF', note: '' },
+    { name: '에이스테크', code: '088800', mc: 3134, pbr: 3.17, per: null, profit: false, sector: '통신장비', note: '4/10 상한가' },
+    { name: '빛과전자', code: '069540', mc: 3172, pbr: 3.43, per: null, profit: false, sector: '통신장비', note: '' },
+    { name: '이노인스트루먼트', code: '215790', mc: 1178, pbr: 3.45, per: null, profit: false, sector: '광섬유장비', note: '11배 상승' },
+    { name: '피노', code: '033790', mc: 6838, pbr: 4.08, per: null, profit: false, sector: '통신장비', note: '' },
+    { name: '기가레인', code: '049080', mc: 2041, pbr: 5.04, per: null, profit: false, sector: 'RF커넥터', note: '' },
+    { name: '다보링크', code: '340360', mc: 810, pbr: 5.34, per: null, profit: false, sector: '통신장비', note: '' },
+    { name: 'RFHIC', code: '218410', mc: 22597, pbr: 6.25, per: 78.7, profit: true, sector: 'RF', note: '글로벌 GaN' },
+    { name: '오이솔루션', code: '138080', mc: 4840, pbr: 6.35, per: null, profit: false, sector: '광통신장비', note: '' },
+    { name: '라이콤', code: '388790', mc: 1772, pbr: 8.11, per: null, profit: false, sector: '광통신부품', note: 'F등급' },
+    { name: '한국첨단소재', code: '062970', mc: 1543, pbr: 12.07, per: null, profit: false, sector: '광통신장비', note: 'F등급' },
+    { name: '파이버프로', code: '368770', mc: 6752, pbr: 14.74, per: 72.5, profit: true, sector: '광섬유센서', note: '' },
+    { name: '대한광통신', code: '010170', mc: 27863, pbr: 38.12, per: null, profit: false, sector: '광케이블', note: '투자경고, D등급' },
+    { name: '오늘이엔엠', code: '192410', mc: 1621, pbr: 50.29, per: null, profit: false, sector: '통신장비', note: '' },
+  ]
+
+  const getZone = (pbr, profit) => {
+    if (pbr < 1 && profit) return { label: 'STRONG', color: '#16A34A', bg: 'rgba(22,163,74,0.06)' }
+    if (pbr < 1) return { label: 'MEDIUM', color: '#D97706', bg: 'rgba(217,119,6,0.04)' }
+    if (pbr < 2 && profit) return { label: 'MEDIUM', color: '#D97706', bg: 'rgba(217,119,6,0.04)' }
+    return { label: 'WEAK', color: '#DC2626', bg: 'rgba(220,38,38,0.04)' }
+  }
+
+  return (
+    <div style={{ maxWidth: 720 }}>
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 900, color: colors.textPrimary, fontFamily: FONTS.serif, margin: '0 0 4px' }}>
+          광통신 테마 워치리스트
+        </h1>
+        <div style={{ fontSize: 12, color: colors.textMuted, lineHeight: 1.5 }}>
+          DART 기업 데이터에서 통신장비/광통신/RF 업종 전수 검색 결과.
+          PBR + 흑자로 strong/medium/weak 자동 분류.
+        </div>
+      </div>
+
+      {/* 요약 카드 */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        {[
+          { label: 'STRONG', count: themeStocks.filter(s => getZone(s.pbr, s.profit).label === 'STRONG').length, color: '#16A34A', desc: 'PBR<1 흑자' },
+          { label: 'MEDIUM', count: themeStocks.filter(s => getZone(s.pbr, s.profit).label === 'MEDIUM').length, color: '#D97706', desc: 'PBR 1~2 또는 적자' },
+          { label: 'WEAK', count: themeStocks.filter(s => getZone(s.pbr, s.profit).label === 'WEAK').length, color: '#DC2626', desc: 'PBR 2+ 또는 과열' },
+        ].map((z, i) => (
+          <div key={i} style={{
+            flex: 1, padding: '14px 12px', borderRadius: 10, textAlign: 'center',
+            background: dark ? '#141416' : '#fff', border: `1px solid ${sep}`,
+          }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: z.color, fontFamily: FONTS.mono }}>{z.count}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: z.color }}>{z.label}</div>
+            <div style={{ fontSize: 9, color: colors.textMuted, marginTop: 2 }}>{z.desc}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 종목 리스트 */}
+      {themeStocks.map((s, i) => {
+        const zone = getZone(s.pbr, s.profit)
+        return (
+          <div key={s.code} style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '12px 14px', marginBottom: 4, borderRadius: 10,
+            background: zone.bg,
+            borderLeft: `3px solid ${zone.color}`,
+          }}>
+            <div style={{ width: 20, textAlign: 'right', fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{i + 1}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{s.name}</span>
+                <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono }}>{s.code}</span>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4,
+                  background: zone.color, color: '#fff',
+                }}>{zone.label}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, fontSize: 11, color: colors.textMuted }}>
+                <span>{s.sector}</span>
+                {s.note && <span style={{ color: zone.color }}>· {s.note}</span>}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: zone.color, fontFamily: FONTS.mono }}>PBR {s.pbr}</div>
+              <div style={{ fontSize: 10, color: colors.textMuted }}>
+                {s.profit ? `PER ${s.per}` : '적자'} · {s.mc >= 10000 ? `${(s.mc / 10000).toFixed(1)}조` : `${s.mc.toLocaleString()}억`}
+              </div>
+            </div>
+          </div>
+        )
+      })}
+
+      <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 16, lineHeight: 1.6, textAlign: 'center' }}>
+        DART 기업카드 업종코드(264x/261x/262x) + 이름 키워드("광","통신","RF","네트워크") 기반 전수 검색<br/>
+        PBR {'<'} 1 + 흑자 = STRONG | PBR 1~2 = MEDIUM | PBR 2+ = WEAK
+      </div>
+    </div>
+  )
+}
+
+function CbDisclosures({ items, days, onDaysChange, colors, dark, sep }) {
+  const DAYS_OPTIONS = [3, 7, 14, 30]
+
+  const SIG_COLOR  = { GREEN: '#16A34A', YELLOW: '#D97706', RED: '#DC2626', UNKNOWN: '#6B7280' }
+  const SIG_BG     = { GREEN: 'rgba(22,163,74,0.08)', YELLOW: 'rgba(217,119,6,0.08)', RED: 'rgba(220,38,38,0.06)', UNKNOWN: 'rgba(107,114,128,0.06)' }
+  const SIG_LABEL  = { GREEN: '매수 시그널', YELLOW: '관찰', RED: '제외', UNKNOWN: '분석 중' }
+  const SIG_ICON   = { GREEN: '●', YELLOW: '●', RED: '●', UNKNOWN: '○' }
+
+  const greenCount  = items.filter(d => d.cb_signal === 'GREEN').length
+  const yellowCount = items.filter(d => d.cb_signal === 'YELLOW').length
+  const noSignal    = items.filter(d => !d.cb_signal || d.cb_signal === 'UNKNOWN').length
+
+  return (
+    <div>
+      {/* 헤더 + 기간 필터 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary }}>CB 시그널</span>
+          {greenCount > 0 && (
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#16A34A', padding: '2px 8px', borderRadius: 10, background: 'rgba(22,163,74,0.1)' }}>
+              🟢 매수 {greenCount}건
+            </span>
+          )}
+          {yellowCount > 0 && (
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#D97706', padding: '2px 8px', borderRadius: 10, background: 'rgba(217,119,6,0.08)' }}>
+              🟡 관찰 {yellowCount}건
+            </span>
+          )}
+          {noSignal > 0 && (
+            <span style={{ fontSize: 11, color: colors.textMuted }}>분석중 {noSignal}건</span>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {DAYS_OPTIONS.map(d => (
+            <button key={d} onClick={() => onDaysChange(d)} style={{
+              padding: '4px 10px', border: 'none', cursor: 'pointer',
+              borderRadius: 14, fontSize: 11, fontWeight: 600,
+              background: days === d ? '#DC2626' : (dark ? '#27272A' : '#F4F4F5'),
+              color: days === d ? '#fff' : colors.textMuted,
+            }}>{d}일</button>
+          ))}
+        </div>
+      </div>
+
+      {/* 안내 */}
+      <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 14, lineHeight: 1.7 }}>
+        스코어링: <span style={{ color: '#16A34A', fontWeight: 700 }}>전환가 할인율</span> +{' '}
+        <span style={{ color: '#2563EB', fontWeight: 700 }}>1군 기관 수</span> +{' '}
+        <span style={{ color: '#7C3AED', fontWeight: 700 }}>시설자금 비중</span> +{' '}
+        <span style={{ color: colors.textSecondary, fontWeight: 700 }}>발행 규모</span> — 3개+ STRONG → 🟢
+      </div>
+
+      {/* 공시 목록 */}
+      {items.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted, fontSize: 13 }}>
+          최근 {days}일간 S등급 CB 발행 공시 없음
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {items.map((d) => {
+            const sig = d.cb_signal || 'UNKNOWN'
+            const sigColor = SIG_COLOR[sig]
+            const sigBg = SIG_BG[sig]
+            const kstTime = d.created_at ? (() => {
+              const dt = new Date(d.created_at)
+              const k = new Date(dt.getTime() + 9 * 3600000)
+              return `${k.getUTCMonth() + 1}/${k.getUTCDate()} ${String(k.getUTCHours()).padStart(2, '0')}:${String(k.getUTCMinutes()).padStart(2, '0')}`
+            })() : ''
+            const chg = d.base_change_pct
+            const chgColor = chg > 0 ? '#DC2626' : chg < 0 ? '#2563EB' : colors.textMuted
+            const scores = d.cb_scores || {}
+
+            return (
+              <div key={d.rcept_no} style={{
+                padding: '14px 16px', borderRadius: 12,
+                background: sig === 'GREEN'
+                  ? (dark ? 'rgba(22,163,74,0.07)' : 'rgba(22,163,74,0.04)')
+                  : (dark ? '#141416' : '#fff'),
+                border: `1px solid ${sig === 'GREEN' ? 'rgba(22,163,74,0.25)' : sig === 'YELLOW' ? 'rgba(217,119,6,0.2)' : sep}`,
+              }}>
+                {/* 1행: 시그널 배지 + 기업명 + 시간 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 6,
+                    background: sigBg, color: sigColor, border: `1px solid ${sigColor}33`,
+                    letterSpacing: 0.3,
+                  }}>
+                    {SIG_ICON[sig]} {SIG_LABEL[sig]}
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: colors.textPrimary }}>{d.corp_name}</span>
+                  {d.stock_code && (
+                    <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>{d.stock_code}</span>
+                  )}
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>{kstTime}</span>
+                </div>
+
+                {/* 2행: 핵심 지표 (시그널 있는 경우) */}
+                {d.cb_summary && sig !== 'UNKNOWN' && (
+                  <div style={{
+                    fontSize: 11, color: colors.textSecondary, marginBottom: 8,
+                    fontFamily: 'JetBrains Mono, monospace',
+                  }}>
+                    {d.cb_summary}
+                  </div>
+                )}
+
+                {/* 3행: 스코어 배지 (시그널 있는 경우) */}
+                {Object.keys(scores).length > 0 && (
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+                    {[
+                      { key: 'discount', label: '전환가' },
+                      { key: 'investor', label: '기관' },
+                      { key: 'purpose', label: '자금용도' },
+                      { key: 'size', label: '규모' },
+                    ].map(({ key, label }) => {
+                      const val = scores[key]
+                      const c = val === 'STRONG' ? '#16A34A' : val === 'MEDIUM' ? '#D97706' : '#DC2626'
+                      const bg = val === 'STRONG' ? 'rgba(22,163,74,0.1)' : val === 'MEDIUM' ? 'rgba(217,119,6,0.08)' : 'rgba(220,38,38,0.06)'
+                      return (
+                        <span key={key} style={{
+                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                          background: bg, color: c,
+                        }}>
+                          {label} {val === 'STRONG' ? '●' : val === 'MEDIUM' ? '◐' : '○'}
+                        </span>
+                      )
+                    })}
+                    {d.cb_tier1 > 0 && (
+                      <span style={{ fontSize: 10, color: '#2563EB', fontWeight: 600, padding: '2px 7px', borderRadius: 4, background: 'rgba(37,99,235,0.07)' }}>
+                        1군기관 {d.cb_tier1}곳
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* 4행: 기준가 + 당일변동 + DART 링크 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {d.base_price > 0 && (
+                    <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+                      기준가 {d.base_price.toLocaleString()}원
+                      {chg !== 0 && (
+                        <span style={{ color: chgColor, marginLeft: 4, fontWeight: 700 }}>
+                          {chg > 0 ? '+' : ''}{chg.toFixed(2)}%
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  <a
+                    href={`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${d.rcept_no}`}
+                    target="_blank" rel="noreferrer"
+                    style={{ marginLeft: 'auto', fontSize: 10, color: '#6366F1', textDecoration: 'none' }}
+                    onClick={e => e.stopPropagation()}
+                  >원문 →</a>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* 스코어링 기준 안내 */}
+      <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 10, background: dark ? '#141416' : '#F9F9FB', border: `1px solid ${sep}` }}>
+        <div style={{ fontSize: 10, color: colors.textMuted, lineHeight: 1.9 }}>
+          <span style={{ fontWeight: 700, color: colors.textSecondary }}>스코어 기준</span><br/>
+          전환가: 시가 대비 -5% 이내 = STRONG / -15% 이내 = MEDIUM<br/>
+          기관: 1군 증권사·운용사 2곳+ = STRONG (미래에셋·삼성·KB·NH·한투·신한 등)<br/>
+          자금용도: 시설자금 50%+ = STRONG / 운영자금 100% = WEAK<br/>
+          규모: 200억+ = STRONG / 50억 이상 = MEDIUM<br/>
+          <span style={{ color: colors.textMuted, fontStyle: 'italic' }}>
+            근거: 과거 38건 CB발행 → 평균 초과수익 +4.3% (2개월, 추가 검증 중)
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+// ── WatchlistPanel ────────────────────────────────────────────────
+
+function WatchlistPanel({ colors, dark, sep }) {
+  const [data, setData] = useState(null)
+  const [returns, setReturns] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [addCode, setAddCode] = useState('')
+  const [addReason, setAddReason] = useState('')
+  const [adding, setAdding] = useState(false)
+  const [backfilling, setBackfilling] = useState(false)
+  const [backfillMsg, setBackfillMsg] = useState('')
+
+  const load = () => {
+    setLoading(true)
+    Promise.all([
+      fetch(`${API}/api/admin/watchlist`).then(r => r.json()),
+      fetch(`${API}/api/admin/watchlist/returns`).then(r => r.json()),
+    ]).then(([w, ret]) => {
+      setData(w)
+      setReturns(ret)
+    }).catch(() => {}).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [])
+
+  const handleAdd = async () => {
+    if (!addCode.trim()) return
+    setAdding(true)
+    await fetch(`${API}/api/admin/watchlist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stock_code: addCode.trim(), reason: addReason }),
+    })
+    setAddCode('')
+    setAddReason('')
+    setAdding(false)
+    load()
+  }
+
+  const handleRemove = async (sc) => {
+    await fetch(`${API}/api/admin/watchlist/${sc}`, { method: 'DELETE' })
+    load()
+  }
+
+  const handleBackfill = async (endpoint, label) => {
+    setBackfilling(true)
+    setBackfillMsg(`${label} 처리 중...`)
+    try {
+      const res = await fetch(`${API}${endpoint}`, { method: 'POST' })
+      const d = await res.json()
+      setBackfillMsg(`완료: ${d.updated ?? d.ok}건`)
+    } catch {
+      setBackfillMsg('오류 발생')
+    }
+    setBackfilling(false)
+    setTimeout(() => setBackfillMsg(''), 4000)
+  }
+
+  const cardBox = { padding: '16px 18px', borderRadius: 12, border: `1px solid ${sep}`, background: dark ? '#141416' : '#fff', marginBottom: 14 }
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+
+  const watchlist = data?.watchlist || []
+  const byType = returns?.by_type || []
+  const byStock = returns?.returns || []
+
+  return (
+    <div>
+      {/* 종목 추가 */}
+      <div style={cardBox}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>종목 추가</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <input
+            value={addCode} onChange={e => setAddCode(e.target.value)}
+            placeholder="종목코드 (예: 005930)"
+            style={{
+              flex: 1, minWidth: 140, padding: '8px 12px', borderRadius: 8, border: `1px solid ${sep}`,
+              background: dark ? '#0D0D0F' : '#F9F9FB', color: colors.textPrimary, fontSize: 13,
+            }}
+          />
+          <input
+            value={addReason} onChange={e => setAddReason(e.target.value)}
+            placeholder="추가 이유 (선택)"
+            style={{
+              flex: 2, minWidth: 160, padding: '8px 12px', borderRadius: 8, border: `1px solid ${sep}`,
+              background: dark ? '#0D0D0F' : '#F9F9FB', color: colors.textPrimary, fontSize: 13,
+            }}
+          />
+          <button onClick={handleAdd} disabled={adding} style={{
+            padding: '8px 18px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            background: '#DC2626', color: '#fff', fontSize: 13, fontWeight: 700,
+          }}>추가</button>
+        </div>
+      </div>
+
+      {/* 백필 버튼 */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button onClick={() => handleBackfill('/api/admin/backfill-disclosure-type', '공시유형 분류')} disabled={backfilling} style={{
+          padding: '7px 14px', borderRadius: 8, border: `1px solid ${sep}`, cursor: 'pointer',
+          background: 'transparent', color: colors.textSecondary, fontSize: 12, fontWeight: 600,
+        }}>공시유형 백필</button>
+        <button onClick={() => handleBackfill('/api/admin/backfill-5d', '5일수익률 백필')} disabled={backfilling} style={{
+          padding: '7px 14px', borderRadius: 8, border: `1px solid ${sep}`, cursor: 'pointer',
+          background: 'transparent', color: colors.textSecondary, fontSize: 12, fontWeight: 600,
+        }}>5일수익률 백필</button>
+        {backfillMsg && <span style={{ fontSize: 12, color: '#16A34A', fontWeight: 600 }}>{backfillMsg}</span>}
+      </div>
+
+      {/* watchlist 종목 목록 */}
+      <div style={{ ...cardBox, marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>
+          주목 종목 {watchlist.length}개
+        </div>
+        {watchlist.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 32, color: colors.textMuted, fontSize: 13 }}>
+            추가된 종목 없음
+          </div>
+        ) : watchlist.map(item => {
+          const st = item.stats || {}
+          return (
+            <div key={item.stock_code} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 0', borderBottom: `1px solid ${sep}`,
+            }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{item.corp_name || item.stock_code}</span>
+                  <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>{item.stock_code}</span>
+                  {item.source !== 'manual' && (
+                    <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: 'rgba(220,38,38,0.1)', color: '#DC2626', fontWeight: 700 }}>{item.source}</span>
+                  )}
+                </div>
+                {item.added_reason && (
+                  <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>{item.added_reason}</div>
+                )}
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                {st.count > 0 && (
+                  <>
+                    <div style={{ fontSize: 12, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', color: st.avg_close > 0 ? '#DC2626' : '#2563EB' }}>
+                      평균 {st.avg_close > 0 ? '+' : ''}{st.avg_close}%
+                    </div>
+                    <div style={{ fontSize: 10, color: colors.textMuted }}>승률 {st.win_rate}% · {st.count}건</div>
+                  </>
+                )}
+                {st.count === 0 && <div style={{ fontSize: 11, color: colors.textMuted }}>추적 없음</div>}
+              </div>
+              <button onClick={() => handleRemove(item.stock_code)} style={{
+                padding: '4px 10px', borderRadius: 6, border: `1px solid ${sep}`,
+                background: 'transparent', color: colors.textMuted, fontSize: 11, cursor: 'pointer',
+              }}>제거</button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 공시 유형별 수익률 */}
+      {byType.length > 0 && (
+        <div style={cardBox}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>공시 유형별 수익률</div>
+          {byType.map((t, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '8px 0', borderBottom: i < byType.length - 1 ? `1px solid ${sep}` : 'none',
+            }}>
+              <span style={{ fontSize: 13, color: colors.textPrimary, width: 90 }}>{t.name}</span>
+              <div style={{ flex: 1, height: 8, background: dark ? '#1E1E22' : '#F0F0F2', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: 4,
+                  background: t.avg_close >= 0 ? '#DC2626' : '#2563EB',
+                  width: `${Math.min(Math.abs(t.avg_close) * 5, 100)}%`,
+                }} />
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', width: 56, textAlign: 'right', color: t.avg_close >= 0 ? '#DC2626' : '#2563EB' }}>
+                {t.avg_close > 0 ? '+' : ''}{t.avg_close}%
+              </span>
+              <span style={{ fontSize: 10, color: colors.textMuted, width: 50, textAlign: 'right' }}>승률 {t.win_rate}%</span>
+              <span style={{ fontSize: 10, color: colors.textMuted, width: 30, textAlign: 'right' }}>{t.count}건</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 종목별 수익률 */}
+      {byStock.length > 0 && (
+        <div style={cardBox}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>종목별 수익률</div>
+          {byStock.map((s, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '8px 0', borderBottom: i < byStock.length - 1 ? `1px solid ${sep}` : 'none',
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary, flex: 1 }}>{s.name}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', color: s.avg_close >= 0 ? '#DC2626' : '#2563EB' }}>
+                {s.avg_close > 0 ? '+' : ''}{s.avg_close}%
+              </span>
+              <span style={{ fontSize: 10, color: colors.textMuted }}>승률 {s.win_rate}%</span>
+              <span style={{ fontSize: 10, color: colors.textMuted }}>{s.count}건</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────
+// AI DC 수혜주 관리 패널
+// ─────────────────────────────────────────────────────────────────
+const AI_DC_CATS = [
+  { key: 'NVIDIA_수혜',    label: 'NVIDIA',   color: '#76B900' },
+  { key: 'AI_DC_반도체',   label: '반도체',    color: '#3B82F6' },
+  { key: 'AI_DC_전력',     label: '전력',      color: '#F59E0B' },
+  { key: 'AI_DC_냉각',     label: '냉각',      color: '#06B6D4' },
+  { key: 'AI_DC_서버',     label: '서버',      color: '#8B5CF6' },
+  { key: 'AI_DC_기판',     label: '기판',      color: '#EC4899' },
+  { key: 'AI_DC_네트워크', label: '네트워크',  color: '#10B981' },
+  { key: 'AI_SW',          label: 'AI SW',    color: '#6366F1' },
+]
+
+// 다음 릴레이 전망 데이터
+const NEXT_RALLY_SECTORS = [
+  {
+    rank: 1, cat: 'AI_DC_냉각', label: '냉각', color: '#06B6D4',
+    reason: 'GB200 NVLink72 랙 1개당 소비전력 120kW → 수냉 의무화. 국내 냉각 업체 수주 초기 단계.',
+    signal: 'GPU 신규 수주 공시 집중 모니터링',
+  },
+  {
+    rank: 2, cat: 'AI_DC_네트워크', label: '광통신/네트워크', color: '#10B981',
+    reason: '400G→800G→1.6T 전환 사이클. 광트랜시버·광섬유 수요 급증. AI DC 내부 연결 병목 해소 필수.',
+    signal: '분기 수주잔고 + 수출 단가 상승 여부',
+  },
+  {
+    rank: 3, cat: 'AI_SW', label: 'AI SW', color: '#6366F1',
+    reason: 'HW 수혜 포화 후 SW 레이어 전환. 국내 MLOps·RAG·에이전트 플랫폼 초기. PBR 낮은 구간 진입 기회.',
+    signal: '엔터프라이즈 계약 수주 공시 + ARR 공개',
+  },
+]
+
+function AiDcPanel({ colors, dark, sep }) {
+  const [stocks, setStocks] = useState([])
+  const [stats, setStats] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState('screener')  // 'list' | 'screener'
+  const [filterCat, setFilterCat] = useState('ALL')
+  const [search, setSearch] = useState('')
+  const [editCode, setEditCode] = useState(null)
+  const [editCats, setEditCats] = useState([])
+  const [addCode, setAddCode] = useState('')
+  const [addCats, setAddCats] = useState([])
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState('')
+  const [screenerMinScore, setScreenerMinScore] = useState(60)
+  const [screenerMaxPbr, setScreenerMaxPbr] = useState(5)
+
+  const load = () => {
+    setLoading(true)
+    fetch(`${API}/api/admin/ai-dc-tags`)
+      .then(r => r.json())
+      .then(d => {
+        setStocks(d.stocks || [])
+        setStats(d.stats || {})
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [])
+
+  const save = async (newStocks) => {
+    setSaving(true)
+    const tags = {}
+    newStocks.forEach(s => { if (s.categories.length > 0) tags[s.stock_code] = s.categories })
+    const r = await fetch(`${API}/api/admin/ai-dc-tags`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tags }),
+    })
+    const d = await r.json()
+    setSaving(false)
+    if (d.ok) {
+      setMsg(`저장 완료 (${d.total}종목)`)
+      setTimeout(() => setMsg(''), 2000)
+      setStocks(newStocks.filter(s => s.categories.length > 0))
+    }
+  }
+
+  const handleEditSave = () => {
+    const updated = stocks.map(s => s.stock_code === editCode ? { ...s, categories: editCats } : s)
+    setEditCode(null)
+    save(updated)
+  }
+
+  const handleRemove = (code) => {
+    const updated = stocks.filter(s => s.stock_code !== code)
+    save(updated)
+  }
+
+  const handleAdd = () => {
+    const code = addCode.trim()
+    if (!code || addCats.length === 0) return
+    if (stocks.find(s => s.stock_code === code)) {
+      setMsg('이미 존재하는 종목코드입니다')
+      setTimeout(() => setMsg(''), 2000)
+      return
+    }
+    const newStock = { stock_code: code, corp_name: code, categories: addCats, score: null, grade: null, market_cap: 0 }
+    const updated = [...stocks, newStock]
+    setAddCode('')
+    setAddCats([])
+    save(updated)
+    setTimeout(() => load(), 800)
+  }
+
+  const filtered = stocks.filter(s => {
+    const matchCat = filterCat === 'ALL' || s.categories.includes(filterCat)
+    const matchSearch = !search || s.corp_name.includes(search) || s.stock_code.includes(search)
+    return matchCat && matchSearch
+  })
+
+  const gradeColor = (score) => {
+    if (!score) return colors.textMuted
+    if (score >= 85) return '#16A34A'
+    if (score >= 70) return '#0D9488'
+    if (score >= 55) return '#D97706'
+    return '#DC2626'
+  }
+
+  const catMeta = (key) => AI_DC_CATS.find(c => c.key === key) || { label: key, color: '#6B7280' }
+
+  // 스크리너용 정렬+필터
+  const NEXT_RALLY_CATS = new Set(['AI_DC_냉각', 'AI_DC_네트워크', 'AI_SW'])
+  const screenerRows = stocks
+    .filter(s => {
+      const matchCat = filterCat === 'ALL' || s.categories.includes(filterCat)
+      const matchScore = !s.score || s.score >= screenerMinScore
+      const matchPbr = !s.pbr || s.pbr <= screenerMaxPbr
+      return matchCat && matchScore && matchPbr
+    })
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+
+  const isNextRally = (s) => s.categories.some(c => NEXT_RALLY_CATS.has(c)) && (s.score == null || s.score >= 55)
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+
+  return (
+    <div>
+      {/* 뷰 모드 토글 */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        {[{ key: 'screener', label: '📊 스크리너' }, { key: 'list', label: '📋 목록 관리' }].map(m => (
+          <button key={m.key} onClick={() => setViewMode(m.key)} style={{
+            padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+            background: viewMode === m.key ? '#76B900' : (dark ? '#27272A' : '#E4E4E7'),
+            color: viewMode === m.key ? '#fff' : colors.textMuted,
+          }}>{m.label}</button>
+        ))}
+        <div style={{ flex: 1 }} />
+        <div style={{ fontSize: 11, color: colors.textMuted, alignSelf: 'center' }}>총 {stocks.length}종목</div>
+      </div>
+
+      {/* 카테고리 필터 (공통) */}
+      <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 4, marginBottom: 12 }}>
+        <button onClick={() => setFilterCat('ALL')} style={{
+          padding: '6px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+          background: filterCat === 'ALL' ? (dark ? '#27272A' : '#E4E4E7') : 'transparent',
+          color: filterCat === 'ALL' ? colors.textPrimary : colors.textMuted,
+        }}>전체 {stocks.length}</button>
+        {AI_DC_CATS.map(c => (
+          <button key={c.key} onClick={() => setFilterCat(c.key)} style={{
+            padding: '6px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+            background: filterCat === c.key ? c.color : 'transparent',
+            color: filterCat === c.key ? '#fff' : colors.textMuted,
+          }}>{c.label} {stats[c.key] || 0}</button>
+        ))}
+      </div>
+
+      {viewMode === 'screener' ? (
+        /* ── 스크리너 뷰 ── */
+        <div>
+          {/* 다음 릴레이 전망 배너 */}
+          <div style={{
+            borderRadius: 14, marginBottom: 20, overflow: 'hidden',
+            border: `1px solid ${dark ? '#2D2D32' : '#E4E4E7'}`,
+            background: dark ? '#0F0F14' : '#FAFAFA',
+          }}>
+            <div style={{
+              padding: '12px 16px',
+              background: 'linear-gradient(135deg, #76B900 0%, #06B6D4 50%, #6366F1 100%)',
+              fontSize: 13, fontWeight: 800, color: '#fff', letterSpacing: '0.02em',
+            }}>
+              ⚡ 다음 릴레이 전망 — AI DC 수혜 순환
+            </div>
+            {NEXT_RALLY_SECTORS.map(sec => (
+              <div key={sec.rank} style={{
+                display: 'flex', gap: 12, padding: '12px 16px', alignItems: 'flex-start',
+                borderTop: sec.rank > 1 ? `1px solid ${dark ? '#1E1E24' : '#EFEFEF'}` : 'none',
+              }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 8, background: sec.color + '33',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 15, fontWeight: 900, color: sec.color, flexShrink: 0,
+                }}>{sec.rank}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: sec.color }}>{sec.label}</span>
+                    <span style={{ fontSize: 10, color: colors.textMuted }}>
+                      {stocks.filter(s => s.categories.includes(sec.cat)).length}종목
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: colors.textSecondary, lineHeight: 1.5, marginBottom: 4 }}>{sec.reason}</div>
+                  <div style={{ fontSize: 10, color: colors.textMuted, fontStyle: 'italic' }}>시그널: {sec.signal}</div>
+                </div>
+                <button onClick={() => setFilterCat(sec.cat)} style={{
+                  padding: '5px 10px', borderRadius: 6, border: `1px solid ${sec.color}33`,
+                  background: filterCat === sec.cat ? sec.color : 'transparent',
+                  color: filterCat === sec.cat ? '#fff' : sec.color,
+                  fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap',
+                }}>필터</button>
+              </div>
+            ))}
+          </div>
+
+          {/* 스크리너 필터 설정 */}
+          <div style={{
+            display: 'flex', gap: 16, padding: '12px 16px', borderRadius: 10, marginBottom: 12,
+            background: dark ? '#141416' : '#fff', border: `1px solid ${sep}`, alignItems: 'center', flexWrap: 'wrap',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 11, color: colors.textMuted, whiteSpace: 'nowrap' }}>최소 점수</span>
+              {[50, 60, 70, 80].map(v => (
+                <button key={v} onClick={() => setScreenerMinScore(v)} style={{
+                  padding: '3px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                  background: screenerMinScore === v ? '#76B900' : (dark ? '#27272A' : '#E4E4E7'),
+                  color: screenerMinScore === v ? '#fff' : colors.textMuted,
+                }}>{v}+</button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 11, color: colors.textMuted, whiteSpace: 'nowrap' }}>최대 PBR</span>
+              {[1.5, 3, 5, 99].map(v => (
+                <button key={v} onClick={() => setScreenerMaxPbr(v)} style={{
+                  padding: '3px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                  background: screenerMaxPbr === v ? '#0D9488' : (dark ? '#27272A' : '#E4E4E7'),
+                  color: screenerMaxPbr === v ? '#fff' : colors.textMuted,
+                }}>{v === 99 ? '무제한' : `< ${v}`}</button>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: colors.textMuted, marginLeft: 'auto' }}>
+              {screenerRows.length}종목 해당
+            </div>
+          </div>
+
+          {/* 스크리너 테이블 헤더 */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '32px 1fr 70px 54px 54px 60px',
+            padding: '6px 12px', fontSize: 10, color: colors.textMuted, fontWeight: 700,
+            borderBottom: `1px solid ${sep}`, marginBottom: 4,
+          }}>
+            <span>#</span><span>종목명</span><span style={{ textAlign: 'right' }}>점수</span>
+            <span style={{ textAlign: 'right' }}>PBR</span>
+            <span style={{ textAlign: 'right' }}>PER</span>
+            <span style={{ textAlign: 'right' }}>시총</span>
+          </div>
+
+          {screenerRows.map((s, idx) => {
+            const rally = isNextRally(s)
+            const rallyCat = s.categories.find(c => NEXT_RALLY_CATS.has(c))
+            const rallyMeta = rallyCat ? catMeta(rallyCat) : null
+            return (
+              <div key={s.stock_code} style={{
+                display: 'grid', gridTemplateColumns: '32px 1fr 70px 54px 54px 60px',
+                padding: '9px 12px', borderRadius: 8, marginBottom: 3, alignItems: 'center',
+                background: rally
+                  ? (dark ? '#0F1A14' : '#F0FDF4')
+                  : (dark ? '#0D0D10' : '#FAFAFA'),
+                border: `1px solid ${rally ? (rallyMeta?.color || '#10B981') + '44' : sep}`,
+              }}>
+                <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{idx + 1}</span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
+                    {rally && (
+                      <span style={{
+                        fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 3,
+                        background: rallyMeta?.color || '#10B981', color: '#fff',
+                      }}>🔥 릴레이</span>
+                    )}
+                    <span style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.corp_name}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono }}>{s.stock_code}</span>
+                    {s.categories.slice(0, 2).map(cat => {
+                      const cm = catMeta(cat)
+                      return <span key={cat} style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: cm.color + '22', color: cm.color }}>{cm.label}</span>
+                    })}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  {s.score != null ? (
+                    <span style={{ fontSize: 13, fontWeight: 800, color: gradeColor(s.score), fontFamily: FONTS.mono }}>{s.score}</span>
+                  ) : <span style={{ fontSize: 11, color: colors.textMuted }}>-</span>}
+                  {s.grade && <div style={{ fontSize: 9, color: gradeColor(s.score) }}>{s.grade}</div>}
+                </div>
+                <div style={{ textAlign: 'right', fontSize: 12, color: s.pbr && s.pbr < 1.5 ? '#16A34A' : colors.textSecondary, fontFamily: FONTS.mono, fontWeight: s.pbr && s.pbr < 1.5 ? 700 : 400 }}>
+                  {s.pbr != null ? s.pbr.toFixed(1) : '-'}
+                </div>
+                <div style={{ textAlign: 'right', fontSize: 12, color: colors.textSecondary, fontFamily: FONTS.mono }}>
+                  {s.per != null && s.per > 0 ? s.per.toFixed(0) : '-'}
+                </div>
+                <div style={{ textAlign: 'right', fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                  {s.market_cap > 0 ? (s.market_cap >= 10000 ? `${(s.market_cap / 10000).toFixed(0)}조` : `${(s.market_cap / 1000).toFixed(0)}천`) : '-'}
+                </div>
+              </div>
+            )
+          })}
+          {screenerRows.length === 0 && (
+            <div style={{ textAlign: 'center', padding: 40, color: colors.textMuted, fontSize: 13 }}>
+              조건에 해당하는 종목이 없습니다
+            </div>
+          )}
+        </div>
+      ) : (
+        /* ── 목록 관리 뷰 ── */
+        <div>
+          {/* 통계 카드 */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+            <div style={{ padding: '12px 16px', borderRadius: 12, background: dark ? '#141416' : '#fff', border: `1px solid ${sep}`, minWidth: 80 }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#76B900', fontFamily: FONTS.mono }}>{stocks.length}</div>
+              <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>전체 종목</div>
+            </div>
+            {AI_DC_CATS.map(c => (
+              <div key={c.key} style={{ padding: '12px 16px', borderRadius: 12, background: dark ? '#141416' : '#fff', border: `1px solid ${sep}`, minWidth: 64 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: c.color, fontFamily: FONTS.mono }}>{stats[c.key] || 0}</div>
+                <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 2 }}>{c.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* 검색 */}
+          <input
+            value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="종목명 또는 코드 검색..."
+            style={{
+              width: '100%', padding: '10px 14px', borderRadius: 10, marginBottom: 12,
+              border: `1px solid ${sep}`, background: dark ? '#0D0D0F' : '#F9F9FA',
+              color: colors.textPrimary, fontSize: 13, boxSizing: 'border-box', outline: 'none',
+            }}
+          />
+
+          {/* 신규 추가 */}
+          <div style={{ padding: '14px 16px', borderRadius: 12, background: dark ? '#141416' : '#fff', border: `1px solid ${sep}`, marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>+ 종목 추가</div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <input
+                value={addCode} onChange={e => setAddCode(e.target.value)}
+                placeholder="종목코드 (예: 046890)"
+                style={{
+                  flex: 1, padding: '8px 12px', borderRadius: 8,
+                  border: `1px solid ${sep}`, background: dark ? '#0D0D0F' : '#F4F4F5',
+                  color: colors.textPrimary, fontSize: 13, outline: 'none',
+                }}
+              />
+              <button onClick={handleAdd} disabled={!addCode.trim() || addCats.length === 0 || saving} style={{
+                padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                background: addCode.trim() && addCats.length > 0 ? '#76B900' : (dark ? '#27272A' : '#E4E4E7'),
+                color: addCode.trim() && addCats.length > 0 ? '#fff' : colors.textMuted,
+              }}>추가</button>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {AI_DC_CATS.map(c => (
+                <button key={c.key} onClick={() => setAddCats(prev => prev.includes(c.key) ? prev.filter(x => x !== c.key) : [...prev, c.key])} style={{
+                  padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                  background: addCats.includes(c.key) ? c.color : (dark ? '#1A1A1E' : '#F0F0F2'),
+                  color: addCats.includes(c.key) ? '#fff' : colors.textMuted,
+                }}>{c.label}</button>
+              ))}
+            </div>
+            {msg && <div style={{ fontSize: 12, color: '#16A34A', marginTop: 8, fontWeight: 600 }}>{msg}</div>}
+          </div>
+
+          {/* 종목 리스트 */}
+          <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 8 }}>
+            {filtered.length}개 표시
+          </div>
+          {filtered.map(s => (
+            <div key={s.stock_code} style={{
+              padding: '12px 14px', borderRadius: 12, marginBottom: 6,
+              background: dark ? '#141416' : '#fff',
+              border: `1px solid ${editCode === s.stock_code ? '#76B900' : sep}`,
+            }}>
+              {editCode === s.stock_code ? (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{s.corp_name}</span>
+                    <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>{s.stock_code}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                    {AI_DC_CATS.map(c => (
+                      <button key={c.key} onClick={() => setEditCats(prev => prev.includes(c.key) ? prev.filter(x => x !== c.key) : [...prev, c.key])} style={{
+                        padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                        background: editCats.includes(c.key) ? c.color : (dark ? '#1A1A1E' : '#F0F0F2'),
+                        color: editCats.includes(c.key) ? '#fff' : colors.textMuted,
+                      }}>{c.label}</button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={handleEditSave} disabled={saving} style={{
+                      padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                      background: '#76B900', color: '#fff',
+                    }}>저장</button>
+                    <button onClick={() => setEditCode(null)} style={{
+                      padding: '6px 14px', borderRadius: 8, border: `1px solid ${sep}`, cursor: 'pointer', fontSize: 12,
+                      background: 'transparent', color: colors.textMuted,
+                    }}>취소</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{s.corp_name}</span>
+                      <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono }}>{s.stock_code}</span>
+                      {s.grade && (
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: 'transparent', border: `1px solid ${gradeColor(s.score)}`, color: gradeColor(s.score) }}>{s.grade}</span>
+                      )}
+                      {s.market_cap > 0 && (
+                        <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono, marginLeft: 4 }}>{(s.market_cap / 10000).toFixed(0)}조</span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      {s.categories.map(cat => {
+                        const cm = catMeta(cat)
+                        return (
+                          <span key={cat} style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: cm.color + '22', color: cm.color }}>{cm.label}</span>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                    <button onClick={() => { setEditCode(s.stock_code); setEditCats([...s.categories]) }} style={{
+                      padding: '4px 10px', borderRadius: 6, border: `1px solid ${sep}`,
+                      background: 'transparent', color: colors.textSecondary, fontSize: 11, cursor: 'pointer',
+                    }}>편집</button>
+                    <button onClick={() => handleRemove(s.stock_code)} style={{
+                      padding: '4px 10px', borderRadius: 6, border: `1px solid rgba(220,38,38,0.3)`,
+                      background: 'transparent', color: '#DC2626', fontSize: 11, cursor: 'pointer',
+                    }}>제거</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+
+// 집중관심 종목 패널 — 반도체·광통신·전력 그룹 표시
+function FocusStocksPanel({ colors, dark, sep }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [activeGroup, setActiveGroup] = useState('semi')
+
+  useEffect(() => {
+    fetch(`${API}/api/admin/focus-stocks`)
+      .then(r => r.json())
+      .then(d => setData(d))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+  }
+  if (!data) {
+    return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted, fontSize: 13 }}>데이터 없음</div>
+  }
+
+  const groups = [
+    { key: 'semi', label: '반도체', icon: '◈' },
+    { key: 'optical', label: '광통신', icon: '○' },
+    { key: 'power', label: '전력', icon: '⚡' },
+  ]
+  const items = data[activeGroup] || []
+  const totalCount = data.counts?.[activeGroup] || items.length
+
+  const formatCap = (eok) => {
+    if (!eok) return '—'
+    if (eok >= 10000) return (eok / 10000).toFixed(1) + '조'
+    return eok.toLocaleString() + '억'
+  }
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 12 }}>
+        반도체 {data.counts?.semi || 0} · 광통신 {data.counts?.optical || 0} · 전력 {data.counts?.power || 0} = 총 {(data.counts?.semi || 0) + (data.counts?.optical || 0) + (data.counts?.power || 0)}종
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        {groups.map(g => {
+          const cnt = data.counts?.[g.key] || 0
+          const active = activeGroup === g.key
+          return (
+            <button key={g.key} onClick={() => setActiveGroup(g.key)} style={{
+              flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
+              borderRadius: 8, fontSize: 13, fontWeight: 700, letterSpacing: -0.3,
+              background: active ? '#DC2626' : (dark ? '#1A1A1E' : '#F4F4F5'),
+              color: active ? '#fff' : colors.textMuted,
+              transition: 'all 0.15s',
+            }}>{g.icon} {g.label} {cnt}</button>
+          )
+        })}
+      </div>
+
+      <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 8 }}>
+        {items.length}/{totalCount}종 (카드 보유 종목만 표시)
+      </div>
+      {items.map((s, i) => {
+        const changeColor = s.change > 0 ? '#DC2626' : s.change < 0 ? '#1E40AF' : colors.textMuted
+        const pbrColor = s.pbr && s.pbr < 1 ? '#DC2626' : colors.textMuted
+        return (
+          <div key={i} style={{
+            padding: '12px 14px', borderRadius: 10, marginBottom: 6,
+            background: dark ? '#141416' : '#fff',
+            border: `1px solid ${sep}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                  background: dark ? '#27272A' : '#F4F4F5', color: colors.textMuted,
+                  fontFamily: 'JetBrains Mono, monospace',
+                }}>{i + 1}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.corp_name}</span>
+                <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>{s.stock_code}</span>
+              </div>
+              <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace', flexShrink: 0 }}>
+                {formatCap(s.market_cap)}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 11 }}>
+              <span style={{ color: colors.textPrimary, fontFamily: 'JetBrains Mono, monospace' }}>
+                {s.current_price ? s.current_price.toLocaleString() + '원' : '—'}
+              </span>
+              <span style={{ color: changeColor, fontWeight: 600 }}>
+                {s.change > 0 ? '+' : ''}{s.change ? s.change.toFixed(2) : 0}%
+              </span>
+              {s.pbr != null && s.pbr > 0 && (
+                <span style={{ color: pbrColor, fontWeight: 600 }}>PBR {s.pbr.toFixed(2)}</span>
+              )}
+              {s.per != null && s.per !== 0 && (
+                <span style={{ color: colors.textMuted }}>PER {s.per.toFixed(1)}</span>
+              )}
+              {s.foreign_ratio > 0 && (
+                <span style={{ color: colors.textMuted }}>외국인 {s.foreign_ratio.toFixed(1)}%</span>
+              )}
+              {s.w52_position > 0 && (
+                <span style={{
+                  color: s.w52_position > 90 ? '#DC2626' : s.w52_position < 30 ? '#1E40AF' : colors.textMuted,
+                  fontWeight: s.w52_position > 90 || s.w52_position < 30 ? 600 : 400,
+                }}>52주 {s.w52_position.toFixed(0)}%</span>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+
+
+// 🎯 시그널 룰북 — 소수계좌 시그널 인사이트 콘텐츠 + 자동 분류 (룰북 v1.0)
+function MinorityScreenerPanel({ colors, dark, sep }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [activeCat, setActiveCat] = useState('GOLDEN')
+  const [showFullInsight, setShowFullInsight] = useState(false)
+  const [pushStatus, setPushStatus] = useState('checking')  // 'checking' | 'unsubscribed' | 'subscribed' | 'unsupported'
+
+  // Push 구독 상태 체크
+  useEffect(() => {
+    if (!('PushManager' in window) || !('serviceWorker' in navigator)) {
+      setPushStatus('unsupported')
+      return
+    }
+    navigator.serviceWorker.ready.then((reg) => {
+      reg.pushManager.getSubscription().then((sub) => {
+        setPushStatus(sub ? 'subscribed' : 'unsubscribed')
+      })
+    }).catch(() => setPushStatus('unsupported'))
+  }, [])
+
+  const handleEnablePush = async () => {
+    try {
+      const { subscribeToPush } = await import('./PushSubscribeBanner')
+      const ok = await subscribeToPush()
+      if (ok) setPushStatus('subscribed')
+    } catch (e) {
+      console.error('Push 활성화 실패:', e)
+    }
+  }
+
+  useEffect(() => {
+    fetch(`${API}/api/admin/minority-screener?days=30`)
+      .then(r => r.json())
+      .then(d => setData(d))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>스캔 중...</div>
+  if (!data || data.error) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>데이터 없음</div>
+
+  const cats = [
+    { key: 'GOLDEN', label: '🟢 GOLDEN', desc: '황금조합 (적극 매수)', color: '#10B981' },
+    { key: 'SHORT_TERM', label: '🟡 SHORT_TERM', desc: '단기 1주 진입', color: '#F59E0B' },
+    { key: 'WATCH', label: '🔵 WATCH', desc: '대기', color: '#3B82F6' },
+    { key: 'AVOID', label: '🔴 AVOID', desc: '진입 금지', color: '#DC2626' },
+  ]
+
+  const items = data.categories[activeCat] || []
+  const fmtCap = (eok) => !eok ? '—' : eok >= 10000 ? (eok/10000).toFixed(1)+'조' : eok.toLocaleString()+'억'
+
+  return (
+    <div>
+      {/* ── 인사이트 콘텐츠 (관리자 전용) ── */}
+      <div style={{ marginBottom: 16, padding: 16, background: dark ? 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(220,38,38,0.06))' : 'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(220,38,38,0.04))', borderRadius: 8, border: `1px solid ${dark ? 'rgba(139,92,246,0.3)' : 'rgba(139,92,246,0.2)'}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <div>
+            <div style={{ fontWeight: 700, color: '#8B5CF6', fontSize: 15, marginBottom: 2 }}>🎯 소수계좌 시그널의 두 얼굴 <span style={{ fontSize: 10, color: '#10B981', marginLeft: 6, padding: '1px 5px', background: 'rgba(16,185,129,0.15)', borderRadius: 3 }}>v1.3 NEW</span></div>
+            <div style={{ fontSize: 11, color: colors.textMuted }}>232종 + 유형별 134건 실증 — 룰북 v1.3 (환산 GOLDEN · TIER 분류 · ELW 제외)</div>
+          </div>
+          <button onClick={() => setShowFullInsight(!showFullInsight)} style={{
+            padding: '4px 10px', fontSize: 11, background: 'transparent', color: '#8B5CF6',
+            border: '1px solid #8B5CF6', borderRadius: 4, cursor: 'pointer',
+          }}>{showFullInsight ? '접기' : '전체 분석 보기'}</button>
+        </div>
+
+        {/* TL;DR */}
+        <div style={{ padding: 10, background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.6)', borderRadius: 6, marginBottom: 10, fontSize: 12, lineHeight: 1.7, color: colors.textPrimary }}>
+          <b style={{ color: '#DC2626' }}>한 줄 결론</b>: 소수계좌 시그널 분산투자는 <b>KOSPI에 평균 -24.25% 패배</b> (5명 중 4명이 시장 못 이김). 그러나 그 안의 <b style={{ color: '#10B981' }}>황금조합 5종(2.2%)</b>은 <b>알파 +62.34%</b>, <b style={{ color: '#DC2626' }}>함정 9종(4%)</b>은 거래정지·상장폐지로 갔다.
+        </div>
+
+        {/* 양극단 카드 */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: showFullInsight ? 12 : 0 }}>
+          <div style={{ padding: 10, background: 'rgba(16,185,129,0.1)', borderRadius: 6, border: '1px solid rgba(16,185,129,0.3)' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#10B981', marginBottom: 4 }}>🟢 황금조합 (5종, 2.2%)</div>
+            <div style={{ fontSize: 11, color: colors.textPrimary, lineHeight: 1.5 }}>
+              반복 5~9회 + PBR 5~10 + 22일+ 경과<br/>
+              <b>알파 +62.34%, 양수 80%</b><br/>
+              사례: 서울바이오시스 +244%, 삼아알미늄 +42%, 심텍홀딩스 +24%, 삼성전기 +14%
+            </div>
+          </div>
+          <div style={{ padding: 10, background: 'rgba(220,38,38,0.1)', borderRadius: 6, border: '1px solid rgba(220,38,38,0.3)' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#DC2626', marginBottom: 4 }}>🔴 함정 (9종, 4%)</div>
+            <div style={{ fontSize: 11, color: colors.textPrimary, lineHeight: 1.5 }}>
+              시장 패닉일 + 자본잠식 + 1회 단발<br/>
+              <b>추정 손실 -50~-100%</b><br/>
+              사례: KEC(거래정지+병합), 아퓨어스(상장폐지 임박), 2026-03-18 클러스터 4종
+            </div>
+          </div>
+        </div>
+
+        {/* v1.2 NEW: TIER 알파 실증 카드 */}
+        <div style={{ padding: 10, background: dark ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.05)', borderRadius: 6, border: '1px solid rgba(139,92,246,0.25)', marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#8B5CF6', marginBottom: 6 }}>📊 v1.2 NEW — 시그널 유형별 5일 알파 (134건 실증)</div>
+          <div style={{ fontSize: 10, color: colors.textPrimary, lineHeight: 1.6, fontFamily: FONTS.mono }}>
+            🥇 <b style={{ color: '#10B981' }}>T2 매수관여</b>: 평균 <b>+12.53%</b>, 양수 <b>83%</b> · N=24 ← 최강<br/>
+            🥈 <b style={{ color: '#3B82F6' }}>T1 상승+매수관여</b>: 평균 +7.92%, 양수 65% · N=43<br/>
+            🥉 <b style={{ color: '#9CA3AF' }}>T3b 소수지점</b>: 평균 +2.89%, 양수 62% · N=8<br/>
+            ❌ <b style={{ color: '#DC2626' }}>T3a 거래집중</b>: 평균 +1.45%, <b>양수 20%</b> · N=15 ← 사실상 노이즈<br/>
+            🗑 <b style={{ color: colors.textMuted }}>ELW</b>: 완전 제외 (미래에셋증권 31회 "함정" = 발행사 매핑 노이즈였음)
+          </div>
+        </div>
+
+        {/* 전체 분석 — 토글 */}
+        {showFullInsight && (
+          <div style={{ fontSize: 11, lineHeight: 1.7, color: colors.textPrimary }}>
+            {/* 핵심 지표 5 */}
+            <div style={{ fontWeight: 700, color: '#8B5CF6', marginTop: 10, marginBottom: 6 }}>📊 핵심 추적 지표 5</div>
+            <div style={{ paddingLeft: 12 }}>
+              ① 반복 횟수 (매수 의지 누적)<br/>
+              ② PBR 영역 (펀더 동력) — 5구간: &lt;1 / 1~3 / 3~5 / <b>5~10</b> / 10+<br/>
+              ③ 시그널 후 경과일 (시간 변수)<br/>
+              ④ 시그널일 KOSPI 변동 (패닉 여부)<br/>
+              ⑤ 자본 건전성 (자본잠식 여부)
+            </div>
+
+            {/* 핵심 가설 4 */}
+            <div style={{ fontWeight: 700, color: '#8B5CF6', marginTop: 12, marginBottom: 6 }}>🧪 핵심 가설 4</div>
+            <div style={{ paddingLeft: 12 }}>
+              <b style={{ color: '#10B981' }}>가설 1 — 황금조합</b>: PBR 5~10 + 반복 5~9회 + 22일+ → 알파 <b>+62.34%</b><br/>
+              <b style={{ color: '#F59E0B' }}>가설 2 — 단기 진입</b>: 시그널 직후 1주 → 알파 <b>+6.15%</b> (7거래일 청산)<br/>
+              <b style={{ color: '#DC2626' }}>가설 3 — 함정</b>: 패닉 + 자본잠식 + 1회 단발 → 손실 -50~-100%<br/>
+              <b style={{ color: '#6B7280' }}>가설 4 — 분산 패배</b>: 분산 보유 → 알파 -24.25%
+            </div>
+
+            {/* 함정 회피 6대 조건 */}
+            <div style={{ fontWeight: 700, color: '#DC2626', marginTop: 12, marginBottom: 6 }}>⚠ 함정 회피 6대 조건 (진입 금지)</div>
+            <div style={{ paddingLeft: 12 }}>
+              ❌ 1. 자본잠식 (아퓨어스 패턴) — 자본총계 &lt; 0<br/>
+              ❌ 2. 시장 패닉일 시그널 (KOSPI -3%+ 폭락 직후) — 2026-03-18 클러스터 패턴<br/>
+              ❌ 3. 1회 단발 + PBR&lt;1 + 적자 (가치주 함정)<br/>
+              ❌ 4. 10회+ 반복 (과열권) — 미래에셋증권 31회 패턴<br/>
+              ❌ 5. 매매거래정지·투자위험 동반 (KEC 패턴)<br/>
+              ❌ 6. 우선주·코넥스·SPAC (코드 끝 ≠ 0)
+            </div>
+
+            {/* 진입 결정 트리 */}
+            <div style={{ fontWeight: 700, color: '#8B5CF6', marginTop: 12, marginBottom: 6 }}>🌳 통합 진입 결정 트리</div>
+            <pre style={{ paddingLeft: 12, fontSize: 10, fontFamily: FONTS.mono, color: colors.textMuted, margin: 0, whiteSpace: 'pre-wrap' }}>{`시그널 발동 → 5개 지표 자동 측정
+   │
+   ├─ [가설 3] 함정 회피 우선 → 6대 조건 위반 시 진입 금지
+   │
+   ├─ [가설 1] 황금조합 (반복 5~9 + PBR 5~10 + 22일+)
+   │   → 적극 분할 매수 (알파 +62.34%, 양수 80%)
+   │
+   ├─ [가설 2] 시그널 D+0~D+3 + 패닉 아님
+   │   → 단기 진입 (알파 +6.15%) → 7거래일 청산
+   │
+   └─ [가설 4] 위 조건 모두 미해당 → 진입 대기`}</pre>
+
+            {/* 검증 데이터 */}
+            <div style={{ fontWeight: 700, color: '#8B5CF6', marginTop: 12, marginBottom: 6 }}>📈 3개월 검증 데이터 (232종)</div>
+            <div style={{ paddingLeft: 12 }}>
+              <b>시간 경과별 알파</b>: 1주 <b style={{ color: '#10B981' }}>+6.15%</b> → 2~3주 -15% → 4주 -8% → 5~6주 <b style={{ color: '#DC2626' }}>-34%</b> → 7~8주 -32%<br/>
+              <b>반복 횟수별 알파</b>: 1회 -27% / 2~4회 -24% / <b style={{ color: '#10B981' }}>5~9회 -0.76%</b> / 10회+ -35%<br/>
+              <b>PBR별 알파</b>: &lt;1 <b style={{ color: '#DC2626' }}>-33%</b> / 1~3 -26% / 3~5 -15% / <b style={{ color: '#10B981' }}>5~10 +0.63%</b> / 10+ +6%<br/>
+            </div>
+
+            <div style={{ marginTop: 12, fontSize: 10, color: colors.textMuted, fontStyle: 'italic' }}>
+              ※ 표본: 232종 (yfinance ^KS/^KQ 215종 매핑 + 우선주 8종 본주 대체 + 함정 9종 별도 분류) · 검증 기간: 2026/3/1~5/15 (76일) · 시장: KOSPI +23% 강세장
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginBottom: 12, padding: '8px 12px', background: dark ? 'rgba(139,92,246,0.1)' : 'rgba(139,92,246,0.06)', borderRadius: 6, fontSize: 11, color: colors.textMuted, lineHeight: 1.6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+        <div>
+          <div style={{ fontWeight: 700, color: '#8B5CF6', marginBottom: 4 }}>📡 오늘의 자동 분류 — 룰북 v{data.rulebook_version || '1.0'}</div>
+          <div>지난 {data.period_days}일 시그널 {data.total_signals}종 · 매일 KST 17:30 cron 갱신 · 신규 GOLDEN 시 Push 알림</div>
+        </div>
+        {/* 알림 활성화 버튼 */}
+        {pushStatus === 'unsubscribed' && (
+          <button onClick={handleEnablePush} style={{
+            padding: '6px 12px', fontSize: 11, fontWeight: 700,
+            background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}>🔔 알림 활성화</button>
+        )}
+        {pushStatus === 'subscribed' && (
+          <div style={{ fontSize: 10, color: '#10B981', fontWeight: 700, whiteSpace: 'nowrap' }}>✓ Push 활성</div>
+        )}
+        {pushStatus === 'unsupported' && (
+          <div style={{ fontSize: 10, color: colors.textMuted, whiteSpace: 'nowrap' }}>브라우저 미지원</div>
+        )}
+      </div>
+
+      {/* 카테고리 탭 */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+        {cats.map(c => {
+          const count = data.summary[`${c.key}_count`] || 0
+          const active = activeCat === c.key
+          return (
+            <button key={c.key} onClick={() => setActiveCat(c.key)} style={{
+              padding: '6px 12px', fontSize: 12, fontWeight: 700,
+              background: active ? c.color : 'transparent',
+              color: active ? '#fff' : c.color,
+              border: `1px solid ${c.color}`, borderRadius: 6, cursor: 'pointer',
+            }}>
+              {c.label} {count}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* 카테고리 설명 */}
+      <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 12, padding: '6px 8px', background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderRadius: 4 }}>
+        {activeCat === 'GOLDEN' && '반복 5~9회 + PBR 5~10 + 22일+ 경과 + 함정 회피 통과. 평균 알파 +62.34%, 양수 80%'}
+        {activeCat === 'SHORT_TERM' && '시그널 D+0~D+3 단기 진입. 7거래일 이내 청산 필수. 평균 알파 +6.15%'}
+        {activeCat === 'WATCH' && '반복 누적 부족 또는 황금영역 도달 대기. 5회 반복 + 22일 도달 시 GOLDEN 후보'}
+        {activeCat === 'AVOID' && '함정 6대 조건(자본잠식/패닉/과열/거래정지동반/특수종목) 위반. 진입 금지'}
+      </div>
+
+      {/* 종목 리스트 */}
+      {items.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted, fontSize: 13 }}>
+          {activeCat === 'GOLDEN' ? '현재 황금조합 종목 없음 — 새 시그널이 22일+ 누적 대기 중' : '종목 없음'}
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 6 }}>
+          {items.slice(0, 30).map(it => {
+            const m = it.market || {}
+            const strength = it.strength ?? 0
+            const sColor = strength >= 90 ? '#10B981' : strength >= 70 ? '#3B82F6' : strength >= 50 ? '#F59E0B' : strength >= 25 ? '#9CA3AF' : '#DC2626'
+            const consec = it.consecutive_days ?? 1
+            return (
+              <div key={it.code} style={{
+                padding: '10px 12px', borderRadius: 6,
+                background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                border: `1px solid ${sep}`,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {/* 강도 배지 */}
+                    <span title="시그널 강도 (0~100)" style={{
+                      display: 'inline-block', minWidth: 36, padding: '2px 6px',
+                      fontSize: 11, fontWeight: 700, fontFamily: FONTS.mono,
+                      background: sColor, color: '#fff', borderRadius: 4, textAlign: 'center',
+                    }}>{strength}</span>
+                    <span style={{ fontWeight: 700, color: colors.textPrimary, fontSize: 13 }}>{it.name}</span>
+                    <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono }}>{it.code}</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: colors.textMuted }}>
+                    {it.first_date} ({it.days_since}일 경과)
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 12, fontSize: 10, color: colors.textMuted, marginBottom: 4, flexWrap: 'wrap' }}>
+                  <span>반복 <b style={{ color: colors.textPrimary }}>{it.signal_count}회</b>{it.signal_count_weighted != null && it.signal_count_weighted !== it.signal_count ? <span style={{ color: '#8B5CF6' }}> (환산 {it.signal_count_weighted})</span> : null}{consec >= 3 ? <span style={{ color: '#10B981' }}> · 연속 {consec}일 ★</span> : consec >= 2 ? <span style={{ color: colors.textMuted }}> · 연속 {consec}일</span> : null}</span>
+                  <span>PBR <b style={{ color: colors.textPrimary }}>{m.pbr ?? '—'}</b></span>
+                  <span>시총 <b style={{ color: colors.textPrimary }}>{fmtCap(m.mcap)}</b></span>
+                  <span>외인 <b style={{ color: (m.foreign_ratio ?? 0) >= 20 ? '#10B981' : colors.textPrimary }}>{m.foreign_ratio ?? '—'}%</b>{(m.foreign_ratio ?? 0) >= 20 ? ' ★' : ''}</span>
+                </div>
+                {/* v1.2: TIER 분포 */}
+                {it.tier_breakdown && Object.keys(it.tier_breakdown).length > 0 && (
+                  <div style={{ display: 'flex', gap: 4, fontSize: 9, marginBottom: 4, flexWrap: 'wrap' }}>
+                    {Object.entries(it.tier_breakdown).sort().map(([tier, n]) => {
+                      const tierLabel = { TIER1: 'T1 상승+매수', TIER2: 'T2 매수관여', TIER3a: 'T3a 거래집중', TIER3b: 'T3b 소수지점', OTHER: '기타' }[tier] || tier
+                      const tierColor = { TIER1: '#3B82F6', TIER2: '#10B981', TIER3a: '#DC2626', TIER3b: '#9CA3AF', OTHER: '#6B7280' }[tier] || '#6B7280'
+                      return (
+                        <span key={tier} title={`${tierLabel} ${n}건`} style={{
+                          padding: '1px 5px', borderRadius: 3, fontFamily: FONTS.mono,
+                          background: `${tierColor}22`, color: tierColor, fontWeight: 700,
+                        }}>{tierLabel}×{n}</span>
+                      )
+                    })}
+                  </div>
+                )}
+                <div style={{ fontSize: 11, color: colors.textMuted }}>
+                  <b style={{ color: colors.textPrimary }}>{it.rule}</b> · {it.reason}
+                </div>
+                {/* 강도 기여 요소 (디버그용 작은 표시) */}
+                {it.strength_breakdown && Object.keys(it.strength_breakdown).length > 0 && (
+                  <div style={{ marginTop: 4, fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                    {Object.entries(it.strength_breakdown).map(([k, v]) => `${k}:${v}`).join(' · ')}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// 📡 매집 레이더 — 통합 매집 시그널 (소수계좌 + 대량보유, Phase 1 MVP)
+function CollectionRadarPanel({ colors, dark, sep }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [activeTier, setActiveTier] = useState('STRONG_MEDIUM')
+  const [filterMode, setFilterMode] = useState('all')  // 'all' | 'minority' | 'major' | 'both'
+
+  useEffect(() => {
+    fetch(`${API}/api/admin/collection-radar?days=30&limit=100`)
+      .then(r => r.json())
+      .then(d => setData(d))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>스캔 중...</div>
+  if (!data || data.error) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>데이터 없음</div>
+
+  const fmtMcap = (eok) => !eok ? '—' : eok >= 10000 ? (eok/10000).toFixed(1)+'조' : eok.toLocaleString()+'억'
+
+  // 필터링
+  let items = data.items || []
+  if (activeTier === 'STRONG_MEDIUM') items = items.filter(it => ['STRONG','MEDIUM'].includes(it.tier))
+  else if (activeTier !== 'ALL') items = items.filter(it => it.tier === activeTier)
+  if (filterMode === 'minority') items = items.filter(it => it.has_minority)
+  else if (filterMode === 'major') items = items.filter(it => it.has_major)
+  else if (filterMode === 'both') items = items.filter(it => it.has_minority && it.has_major)
+
+  const tierColor = {
+    STRONG: '#DC2626', MEDIUM: '#F59E0B', WEAK: '#3B82F6', NOISE: '#9CA3AF',
+  }
+  const reporterTypeColor = {
+    '연기금/공공': '#DC2626',
+    '외국인 기관': '#8B5CF6',
+    '자산운용': '#3B82F6',
+    'VC/사모': '#10B981',
+    '증권사': '#6B7280',
+    '개인 자연인': '#F59E0B',
+    '계열/모회사': '#9CA3AF',
+    '법인 기타': '#9CA3AF',
+    '자기 회사': '#9CA3AF',
+    '불명': '#D1D5DB',
+  }
+
+  return (
+    <div>
+      {/* 인사이트 헤더 */}
+      <div style={{ marginBottom: 16, padding: 16, background: dark ? 'linear-gradient(135deg, rgba(220,38,38,0.12), rgba(139,92,246,0.06))' : 'linear-gradient(135deg, rgba(220,38,38,0.08), rgba(139,92,246,0.04))', borderRadius: 8, border: `1px solid ${dark ? 'rgba(220,38,38,0.3)' : 'rgba(220,38,38,0.2)'}` }}>
+        <div style={{ fontWeight: 700, color: '#DC2626', fontSize: 15, marginBottom: 4 }}>
+          📡 통합 매집 레이더
+          <span style={{ fontSize: 10, color: '#10B981', marginLeft: 6, padding: '1px 5px', background: 'rgba(16,185,129,0.15)', borderRadius: 3 }}>Phase 1 MVP</span>
+        </div>
+        <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 10 }}>
+          {data.engine_version} · 지난 {data.period_days}일 매집 시그널 {data.total_stocks}종 합산
+        </div>
+        <div style={{ fontSize: 11, color: colors.textPrimary, lineHeight: 1.6, padding: 10, background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.6)', borderRadius: 6 }}>
+          <b>매집 강도 0~100</b> = 소수계좌 강도(룰북 v1.3, 0~50) + 대량보유 보고자 가중치(0~50) + 다중 진입 보너스<br/>
+          <b>보고자 유형</b>: 연기금 +20, 외국인 +20, 자산운용/VC +15, 개인 자연인 +12, 증권사 +8, 불명 +3 · 2종 유형 동시 +15, 3종+ +25
+        </div>
+      </div>
+
+      {/* 분포 요약 */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        {[
+          { key: 'STRONG_MEDIUM', label: '주요 (STRONG+MEDIUM)', count: data.summary.STRONG + data.summary.MEDIUM, color: '#DC2626' },
+          { key: 'STRONG', label: '🔴 STRONG ≥70', count: data.summary.STRONG, color: '#DC2626' },
+          { key: 'MEDIUM', label: '🟡 MEDIUM 50~69', count: data.summary.MEDIUM, color: '#F59E0B' },
+          { key: 'WEAK', label: '🔵 WEAK 25~49', count: data.summary.WEAK, color: '#3B82F6' },
+          { key: 'ALL', label: '전체 (≥10)', count: (data.items || []).length, color: '#6B7280' },
+        ].map(t => {
+          const active = activeTier === t.key
+          return (
+            <button key={t.key} onClick={() => setActiveTier(t.key)} style={{
+              padding: '6px 10px', fontSize: 11, fontWeight: 700,
+              background: active ? t.color : 'transparent',
+              color: active ? '#fff' : t.color,
+              border: `1px solid ${t.color}`, borderRadius: 6, cursor: 'pointer',
+            }}>{t.label} ({t.count})</button>
+          )
+        })}
+      </div>
+
+      {/* 시그널 종류 필터 */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12, fontSize: 11 }}>
+        <span style={{ color: colors.textMuted, alignSelf: 'center', marginRight: 4 }}>시그널:</span>
+        {[
+          { key: 'all', label: '전체' },
+          { key: 'both', label: 'M+B 동시 (최강)' },
+          { key: 'minority', label: '소수계좌만 (M)' },
+          { key: 'major', label: '대량보유만 (B)' },
+        ].map(f => (
+          <button key={f.key} onClick={() => setFilterMode(f.key)} style={{
+            padding: '3px 8px', fontSize: 10, fontWeight: 600,
+            background: filterMode === f.key ? colors.textPrimary : 'transparent',
+            color: filterMode === f.key ? (dark ? '#000' : '#fff') : colors.textMuted,
+            border: `1px solid ${sep}`, borderRadius: 4, cursor: 'pointer',
+          }}>{f.label}</button>
+        ))}
+      </div>
+
+      {/* 종목 리스트 */}
+      {items.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted, fontSize: 13 }}>
+          조건에 맞는 종목 없음
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {items.slice(0, 50).map(it => {
+            const tc = tierColor[it.tier]
+            const mh = it.major_holding
+            const m = it.minority
+            return (
+              <div key={it.code} style={{
+                padding: '12px 14px', borderRadius: 6,
+                background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                border: `1px solid ${sep}`, borderLeft: `3px solid ${tc}`,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {/* 매집 강도 배지 */}
+                    <span style={{
+                      minWidth: 40, padding: '3px 8px',
+                      fontSize: 13, fontWeight: 700, fontFamily: FONTS.mono,
+                      background: tc, color: '#fff', borderRadius: 4, textAlign: 'center',
+                    }}>{it.collection_strength}</span>
+                    <span style={{ fontWeight: 700, color: colors.textPrimary, fontSize: 14 }}>{it.name}</span>
+                    <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono }}>{it.code}</span>
+                    {/* 시그널 종류 마크 */}
+                    {it.has_minority && (
+                      <span title="소수계좌 시그널" style={{ fontSize: 9, padding: '1px 5px', background: 'rgba(139,92,246,0.15)', color: '#8B5CF6', borderRadius: 3, fontWeight: 700 }}>M</span>
+                    )}
+                    {it.has_major && (
+                      <span title="대량보유 보고서" style={{ fontSize: 9, padding: '1px 5px', background: 'rgba(220,38,38,0.15)', color: '#DC2626', borderRadius: 3, fontWeight: 700 }}>B</span>
+                    )}
+                    {it.has_minority && it.has_major && (
+                      <span style={{ fontSize: 9, padding: '1px 5px', background: '#DC2626', color: '#fff', borderRadius: 3, fontWeight: 700 }}>★ DOUBLE</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 10, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                    M{it.breakdown.minority_score} + B{it.breakdown.major_score}
+                  </div>
+                </div>
+
+                {/* 소수계좌 정보 */}
+                {m && (
+                  <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4, paddingLeft: 8, borderLeft: `2px solid rgba(139,92,246,0.4)` }}>
+                    <b style={{ color: '#8B5CF6' }}>[M]</b> 소수계좌 {m.minority_category} · raw {m.reps}/환산 {m.weighted} · 강도 원본 {m.raw_strength}{m.top_tier ? ` · top=${m.top_tier}` : ''}
+                  </div>
+                )}
+
+                {/* 대량보유 정보 */}
+                {mh && (
+                  <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4, paddingLeft: 8, borderLeft: `2px solid rgba(220,38,38,0.4)` }}>
+                    <b style={{ color: '#DC2626' }}>[B]</b> 대량보유 {mh.report_count}건 ·{' '}
+                    {Object.entries(mh.reporter_types).map(([t, n]) => (
+                      <span key={t} style={{ marginRight: 6, color: reporterTypeColor[t] || colors.textMuted, fontWeight: t !== '불명' ? 600 : 400 }}>
+                        {t}×{n}
+                      </span>
+                    ))}
+                    {mh.recent_reports && mh.recent_reports.length > 0 && (
+                      <div style={{ marginTop: 3, fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                        최근: {mh.recent_reports.slice(-3).map(r => `${r.date} ${r.flr_nm}`).join(' / ')}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 다중 진입 보너스 */}
+                {it.breakdown['다중 진입'] && (
+                  <div style={{ fontSize: 10, color: '#10B981', fontWeight: 600 }}>
+                    ⭐ {it.breakdown['다중 진입']}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {items.length > 50 && (
+        <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: colors.textMuted }}>
+          상위 50종 표시 · 전체 {items.length}종
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// 잠재력 TOP10 패널 — 매집 시그널 + 덜 오른 + 산업 수혜 종목
+function TopPicksPanel({ colors, dark, sep }) {
+  const [picks, setPicks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState(null)
+
+  useEffect(() => {
+    fetch(`${API}/api/admin/top-picks`)
+      .then(r => r.json())
+      .then(d => setPicks(d.picks || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+  }
+  if (!picks.length) {
+    return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted, fontSize: 13 }}>데이터 없음</div>
+  }
+
+  const formatCap = (eok) => {
+    if (!eok) return '—'
+    if (eok >= 10000) return (eok / 10000).toFixed(1) + '조'
+    return eok.toLocaleString() + '억'
+  }
+
+  const tierColor = (tier) => {
+    if (tier === 'STRONG') return '#DC2626'
+    if (tier === 'MEDIUM') return '#0D9488'
+    return '#A1A1AA'
+  }
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>
+        잠재력 TOP10 — 매집 시그널 + 52주 위치 ≤60% + 산업 슈퍼사이클 수혜
+      </div>
+      <div style={{ fontSize: 10, color: colors.textMuted, marginBottom: 16, fontStyle: 'italic' }}>
+        ※ 카드 클릭 시 진입 가이드·핵심 모멘텀 펼쳐 보기. 분할 진입 권장.
+      </div>
+
+      {picks.map((p) => {
+        const isOpen = expanded === p.rank
+        const changeColor = p.change > 0 ? '#DC2626' : p.change < 0 ? '#1E40AF' : colors.textMuted
+        const w52Color = p.w52_position > 60 ? '#9CA3AF' : '#16A34A'
+        return (
+          <div key={p.rank} style={{
+            marginBottom: 8,
+            border: `1px solid ${sep}`,
+            borderLeft: `3px solid ${tierColor(p.tier)}`,
+            borderRadius: 10,
+            background: dark ? '#141416' : '#fff',
+            overflow: 'hidden',
+            cursor: 'pointer',
+          }} onClick={() => setExpanded(isOpen ? null : p.rank)}>
+            <div style={{ padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <span style={{
+                    fontSize: 14, fontWeight: 800, padding: '2px 8px', borderRadius: 6,
+                    background: '#DC2626', color: '#fff',
+                    fontFamily: 'JetBrains Mono, monospace',
+                  }}>#{p.rank}</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: colors.textPrimary }}>{p.corp_name}</span>
+                  <span style={{ fontSize: 10, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>{p.stock_code}</span>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 4,
+                    background: tierColor(p.tier) + '22', color: tierColor(p.tier),
+                  }}>{p.tier}</span>
+                </div>
+                <span style={{ fontSize: 12, color: colors.textMuted, fontFamily: 'JetBrains Mono, monospace', flexShrink: 0 }}>
+                  {formatCap(p.market_cap)}
+                </span>
+              </div>
+
+              <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 6 }}>
+                {p.sector}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 11, marginBottom: 6 }}>
+                <span style={{ color: colors.textPrimary, fontFamily: 'JetBrains Mono, monospace' }}>
+                  {p.current_price ? p.current_price.toLocaleString() + '원' : '—'}
+                </span>
+                <span style={{ color: changeColor, fontWeight: 600 }}>
+                  {p.change > 0 ? '+' : ''}{p.change ? p.change.toFixed(2) : 0}%
+                </span>
+                {p.pbr != null && p.pbr > 0 && (
+                  <span style={{ color: p.pbr < 1 ? '#DC2626' : colors.textMuted, fontWeight: 600 }}>
+                    PBR {p.pbr.toFixed(2)}
+                  </span>
+                )}
+                {p.foreign_ratio > 0 && (
+                  <span style={{ color: colors.textMuted }}>외국인 {p.foreign_ratio.toFixed(1)}%</span>
+                )}
+                <span style={{ color: w52Color, fontWeight: 600 }}>
+                  52주 {p.w52_position.toFixed(0)}%
+                </span>
+              </div>
+
+              {/* 매집 시그널 배지 */}
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {p.signals && p.signals.map((s, i) => (
+                  <span key={i} style={{
+                    fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+                    background: '#FEF3C7', color: '#92400E',
+                  }}>{s}</span>
+                ))}
+              </div>
+
+              {/* 펼친 상태: thesis + guide */}
+              {isOpen && (
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${sep}` }}>
+                  <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>핵심 모멘텀</div>
+                  <div style={{ fontSize: 12, color: colors.textPrimary, lineHeight: 1.55, marginBottom: 8 }}>
+                    {p.thesis}
+                  </div>
+                  <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>진입 가이드</div>
+                  <div style={{ fontSize: 12, color: colors.textPrimary, lineHeight: 1.55 }}>
+                    {p.guide}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

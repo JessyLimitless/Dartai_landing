@@ -9,9 +9,10 @@ export default function BriefingPage() {
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // 로그인 체크 비활성화 — 전체 공개
-  // const user = (() => { try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null } })()
-  // if (!user) return <LoginGate dark={dark} colors={colors} />
+  // 베타: 로그인(구독자) 전용 — 비로그인은 게이트 (return은 훅 뒤에서)
+  const isLoggedIn = (() => {
+    try { return !!JSON.parse(localStorage.getItem('dart_user'))?.email } catch { return false }
+  })()
 
   useEffect(() => {
     fetch(`${API}/api/briefings`)
@@ -27,15 +28,17 @@ export default function BriefingPage() {
 
   const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
+  if (!isLoggedIn) return <LoginGate dark={dark} colors={colors} />
+
   return (
-    <div className="page-enter" style={{
+    <div className="page-enter briefing-page" style={{
       maxWidth: 640, margin: '0 auto',
       paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
       fontFamily: FONTS.body, backgroundColor: colors.bgPrimary,
     }}>
 
       {/* 헤더 */}
-      <div style={{ padding: '24px 24px 0' }}>
+      <div className="bp-pad" style={{ paddingTop: 24 }}>
         <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
           오늘의 브리핑
         </div>
@@ -44,16 +47,10 @@ export default function BriefingPage() {
         </div>
       </div>
 
-      {/* 미니 캘린더 */}
-      <BriefingCalendar
-        briefings={briefings}
-        selectedId={selected?.id}
-        onSelect={(b) => setSelected(b)}
-        dark={dark} colors={colors}
-      />
+      {/* 베타: 아카이브 캘린더 숨김 — 최신 1건만 노출 */}
 
       {/* 콘텐츠 */}
-      <div style={{ padding: '0 24px' }}>
+      <div className="bp-pad">
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '24px 0' }}>
             {[80, 100, 60, 90, 70].map((w, i) => (
@@ -120,7 +117,7 @@ export default function BriefingPage() {
 
       {/* 하단 여백 */}
       {!loading && (
-        <div style={{ padding: '0 24px 32px' }}>
+        <div className="bp-pad" style={{ paddingBottom: 32 }}>
           <div style={{ borderTop: `1px solid ${lineSep}`, paddingTop: 20 }}></div>
         </div>
       )}
@@ -132,7 +129,7 @@ export default function BriefingPage() {
 
 
 // ── 마크다운 렌더러 ──
-function MarkdownBody({ content, colors, dark }) {
+export function MarkdownBody({ content, colors, dark }) {
   if (!content) return null
 
   // 첫 번째 # 제목 + > 인용문은 헤더에서 이미 표시하므로 스킵
@@ -152,14 +149,42 @@ function MarkdownBody({ content, colors, dark }) {
   const renderInline = (text) => {
     const parts = []
     let idx = 0, lastEnd = 0
-    const re = /\*\*(.+?)\*\*/g
+    // 등락률 색상: +빨강 / -파랑 (한국 시장 관례)
+    const isPct = (s) => /^[+\-]\d[\d.,]*%$/.test((s || '').trim())
+    const pctColor = (s) => (s || '').trim().startsWith('-') ? '#2563EB' : '#DC2626'
+    // 일반 텍스트 안의 +N%/-N%도 색칠
+    const pushText = (str) => {
+      str.split(/([+\-]\d[\d.,]*%)/).forEach((s) => {
+        if (!s) return
+        if (isPct(s)) parts.push(<span key={`p${idx++}`} style={{ color: pctColor(s), fontWeight: 600, fontFamily: FONTS.mono }}>{s}</span>)
+        else parts.push(<span key={`t${idx++}`}>{s}</span>)
+      })
+    }
+    // [텍스트](url) | **굵게** | __밑줄 강조__ | *기울임*(별표 노출 방지)
+    const re = /(\[([^\]]+)\]\(([^)]+)\))|(\*\*(.+?)\*\*)|(__(.+?)__)|(\*(.+?)\*)/g
     let match
     while ((match = re.exec(text)) !== null) {
-      if (match.index > lastEnd) parts.push(<span key={`t${idx++}`}>{text.slice(lastEnd, match.index)}</span>)
-      parts.push(<strong key={`b${idx++}`} style={{ color: colors.textPrimary, fontWeight: 600 }}>{match[1]}</strong>)
+      if (match.index > lastEnd) pushText(text.slice(lastEnd, match.index))
+      if (match[2] !== undefined) {
+        // 마크다운 링크 — 긴 URL 숨기고 텍스트만 링크로
+        parts.push(<a key={`l${idx++}`} className="bp-link" href={match[3]} target="_blank" rel="noopener noreferrer">{match[2]}</a>)
+      } else if (match[5] !== undefined) {
+        parts.push(<strong key={`b${idx++}`} style={{ color: isPct(match[5]) ? pctColor(match[5]) : colors.textPrimary, fontWeight: 600 }}>{match[5]}</strong>)
+      } else if (match[7] !== undefined) {
+        // 밑줄 강조 — 굵게 + 강조색 밑줄 (등락률이면 빨강/파랑)
+        const pc = isPct(match[7]) ? pctColor(match[7]) : null
+        parts.push(<span key={`u${idx++}`} style={{
+          color: pc || colors.textPrimary, fontWeight: 700,
+          textDecoration: 'underline', textDecorationColor: pc || PREMIUM.accent,
+          textUnderlineOffset: '4px', textDecorationThickness: '2.5px',
+        }}>{match[7]}</span>)
+      } else {
+        // *기울임* — 은은한 보조 강조 (한글은 이탤릭 대신 색만 살짝)
+        parts.push(<span key={`i${idx++}`} style={{ color: colors.textPrimary, fontWeight: 500 }}>{match[9]}</span>)
+      }
       lastEnd = match.index + match[0].length
     }
-    if (lastEnd < text.length) parts.push(<span key={`t${idx++}`}>{text.slice(lastEnd)}</span>)
+    if (lastEnd < text.length) pushText(text.slice(lastEnd))
     return parts.length > 0 ? parts : text
   }
 
@@ -168,16 +193,17 @@ function MarkdownBody({ content, colors, dark }) {
       elements.push(
         <div key={`tbl-${elements.length}`} style={{
           overflowX: 'auto', margin: '18px 0',
-          borderRadius: 10, border: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
+          borderRadius: 14, border: `1px solid ${dark ? '#26262B' : '#ECECEF'}`,
+          boxShadow: dark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
         }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>{tableHeaders.map((h, i) => (
-                <th key={i} style={{
-                  padding: '10px 14px', textAlign: 'left',
-                  borderBottom: `2px solid ${dark ? '#333' : '#D4D4D8'}`,
-                  background: dark ? '#0F0F11' : '#FAFAFA',
-                  color: colors.textMuted, fontWeight: 600, fontSize: 12,
+                <th key={i} className="bp-th" style={{
+                  textAlign: 'left',
+                  borderBottom: `2px solid ${dark ? 'rgba(240,68,82,0.38)' : 'rgba(240,68,82,0.28)'}`,
+                  background: dark ? 'rgba(240,68,82,0.12)' : 'rgba(240,68,82,0.055)',
+                  color: dark ? '#FCA5A5' : '#C0334A', fontWeight: 700,
                   letterSpacing: '0.02em',
                 }}>{renderInline(h)}</th>
               ))}</tr>
@@ -185,10 +211,9 @@ function MarkdownBody({ content, colors, dark }) {
             <tbody>
               {tableRows.map((row, ri) => (
                 <tr key={ri}>{row.map((cell, ci) => (
-                  <td key={ci} style={{
-                    padding: '10px 14px',
-                    borderBottom: ri < tableRows.length - 1 ? `1px solid ${dark ? '#1E1E22' : '#F4F4F5'}` : 'none',
-                    color: colors.textSecondary, fontSize: 14, lineHeight: 1.6,
+                  <td key={ci} className="bp-td" style={{
+                    borderBottom: ri < tableRows.length - 1 ? `1px solid ${dark ? '#1C1C20' : '#F1F1F4'}` : 'none',
+                    color: colors.textSecondary,
                   }}>{renderInline(cell)}</td>
                 ))}</tr>
               ))}
@@ -214,22 +239,17 @@ function MarkdownBody({ content, colors, dark }) {
     } else if (inTable) { flushTable() }
 
     if (line.startsWith('# ')) {
-      elements.push(<h1 key={i} style={{
-        fontSize: 22, fontWeight: 800, fontFamily: FONTS.serif,
-        color: colors.textPrimary, margin: '32px 0 14px',
-        letterSpacing: -0.3, lineHeight: 1.3,
+      elements.push(<h1 key={i} className="bp-h1" style={{
+        fontWeight: 800, fontFamily: FONTS.serif, color: colors.textPrimary,
       }}>{clean(line.slice(2))}</h1>)
     } else if (line.startsWith('## ')) {
-      elements.push(<h2 key={i} style={{
-        fontSize: 18, fontWeight: 700, fontFamily: FONTS.serif,
-        color: colors.textPrimary, margin: '28px 0 12px',
-        paddingTop: 20, borderTop: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
-        lineHeight: 1.3,
+      elements.push(<h2 key={i} className="bp-h2" style={{
+        fontWeight: 700, fontFamily: FONTS.serif, color: colors.textPrimary,
+        borderTop: `1px solid ${dark ? '#27272A' : '#E4E4E7'}`,
       }}>{clean(line.slice(3))}</h2>)
     } else if (line.startsWith('### ')) {
-      elements.push(<h3 key={i} style={{
-        fontSize: 16, fontWeight: 700, color: colors.textPrimary,
-        margin: '20px 0 8px', lineHeight: 1.4,
+      elements.push(<h3 key={i} className="bp-h3" style={{
+        fontWeight: 700, color: colors.textPrimary,
       }}>{clean(line.slice(4))}</h3>)
     } else if (line.startsWith('> ')) {
       // 인용문 블록
@@ -240,9 +260,8 @@ function MarkdownBody({ content, colors, dark }) {
           background: dark ? 'rgba(220,38,38,0.04)' : 'rgba(220,38,38,0.03)',
           borderRadius: '0 8px 8px 0',
         }}>
-          <span style={{
-            fontSize: 14, color: colors.textPrimary, fontWeight: 500,
-            lineHeight: 1.7, fontStyle: 'italic',
+          <span className="bp-quote" style={{
+            color: colors.textPrimary, fontWeight: 500,
           }}>{renderInline(line.slice(2))}</span>
         </div>
       )
@@ -253,9 +272,8 @@ function MarkdownBody({ content, colors, dark }) {
       }} />)
     } else if (line.startsWith('- ')) {
       elements.push(
-        <div key={i} style={{
-          display: 'flex', gap: 10, padding: '4px 0',
-          fontSize: 15, color: colors.textSecondary, lineHeight: 1.8,
+        <div key={i} className="bp-li" style={{
+          display: 'flex', gap: 10, padding: '4px 0', color: colors.textSecondary,
         }}>
           <span style={{ color: PREMIUM.accent, flexShrink: 0, marginTop: 1 }}>•</span>
           <span>{renderInline(line.slice(2))}</span>
@@ -264,10 +282,8 @@ function MarkdownBody({ content, colors, dark }) {
     } else if (line.trim() === '') {
       elements.push(<div key={i} style={{ height: 10 }} />)
     } else {
-      elements.push(<p key={i} style={{
-        fontSize: 15, color: colors.textSecondary,
-        lineHeight: 1.9, margin: '6px 0',
-        wordBreak: 'keep-all',
+      elements.push(<p key={i} className="bp-p" style={{
+        color: colors.textSecondary, wordBreak: 'keep-all',
       }}>{renderInline(line)}</p>)
     }
   }
@@ -436,7 +452,7 @@ function BriefingCalendar({ briefings, selectedId, onSelect, dark, colors }) {
   )
 }
 
-function LoginGate({ dark, colors }) {
+export function LoginGate({ dark, colors }) {
   const btnRef = React.useRef(null)
   const [showBtn, setShowBtn] = React.useState(false)
 
@@ -500,10 +516,11 @@ function LoginGate({ dark, colors }) {
         </svg>
       </div>
       <div style={{ fontSize: 20, fontWeight: 700, color: colors.textPrimary, fontFamily: FONTS.serif, marginBottom: 8 }}>
-        로그인이 필요합니다
+        구독자 전용 콘텐츠
       </div>
-      <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 32, lineHeight: 1.6 }}>
-        브리핑과 딥분석은 로그인 후 이용할 수 있습니다.
+      <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 28, lineHeight: 1.6 }}>
+        공시 브리핑과 미국 시그널은 베타 구독자에게만 공개됩니다.<br/>
+        로그인하시면 바로 확인하실 수 있어요. <span style={{ color: '#B45309' }}>(6월 13일 베타 시작 · 한정 무료)</span>
       </div>
       {showBtn ? (
         <div ref={btnRef} style={{ display: 'inline-block' }} />
@@ -512,8 +529,13 @@ function LoginGate({ dark, colors }) {
           padding: '12px 36px', borderRadius: 10, border: 'none',
           background: '#DC2626', color: '#fff',
           fontSize: 15, fontWeight: 600, cursor: 'pointer',
-        }}>Google 로그인</button>
+        }}>Google로 시작하기</button>
       )}
+      <div style={{ marginTop: 18 }}>
+        <a href="/premium" style={{ fontSize: 13, color: colors.textMuted, textDecoration: 'underline' }}>
+          베타 구독 안내 보기 →
+        </a>
+      </div>
     </div>
   )
 }

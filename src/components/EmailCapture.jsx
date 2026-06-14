@@ -18,11 +18,18 @@ export default function EmailCapture() {
 
   if (!visible || done) return null
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email.includes('@')) return
     localStorage.setItem(STORAGE_KEY, email)
-    // TODO: POST to backend when endpoint is ready
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || ''
+      await fetch(`${API_URL}/api/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'banner' }),
+      })
+    } catch {}
     setDone(true)
     setTimeout(() => setVisible(false), 2000)
   }

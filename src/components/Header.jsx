@@ -1,19 +1,18 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import NotificationBell from './NotificationBell'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM, PREMIUM_GOLD } from '../constants/theme'
 import { isAdmin } from './AdminPage'
+import { useAuth } from '../contexts/AuthContext'
 
 const TABS = [
   { key: '/', label: '홈', mobileLabel: '홈', exact: true },
+  { key: '/today', label: '오늘의 공시', mobileLabel: '공시' },
   { key: '/briefing', label: '브리핑', mobileLabel: '브리핑' },
-  { key: '/today', label: '공시', mobileLabel: '공시' },
-  { key: '/signal', label: '시그널', mobileLabel: '시그널' },
-  { key: '/issues', label: '이슈', mobileLabel: '이슈' },
+  { key: '/us-beneficiary', label: '미국 시그널', mobileLabel: '미국' },
   { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
-  { key: '/dart-event', label: '일정', mobileLabel: '일정', desktopOnly: true },
-  { key: '/deep-dive', label: '기업카드', mobileLabel: '기업카드', desktopOnly: true },
+  { key: '/premium', label: '프리미엄', mobileLabel: '구독' },
 ]
 
 const TAB_ICONS = {
@@ -34,6 +33,12 @@ const TAB_ICONS = {
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
+  '/feedback': (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    </svg>
+  ),
   '/issues': (color, size = 18) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
@@ -47,6 +52,13 @@ const TAB_ICONS = {
   '/dart-view': (color, size = 18) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  ),
+  '/us-beneficiary': (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2 a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1 -4 10 15.3 15.3 0 0 1 -4-10 15.3 15.3 0 0 1 4-10z" />
     </svg>
   ),
   '/dart-event': (color, size = 18) => (
@@ -75,9 +87,16 @@ export default function Header({
   const { dark, toggle, colors } = useTheme()
   const googleBtnRef = useRef(null)
   const [showGoogleBtn, setShowGoogleBtn] = useState(false)
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
-  })
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const { user, login, logout } = useAuth()
+
+  // 외부 클릭 시 유저 메뉴 닫기
+  useEffect(() => {
+    if (!showUserMenu) return
+    const handler = () => setShowUserMenu(false)
+    window.addEventListener('click', handler)
+    return () => window.removeEventListener('click', handler)
+  }, [showUserMenu])
 
   const handleGoogleLogin = () => {
     if (window.google?.accounts?.id) {
@@ -94,8 +113,7 @@ export default function Header({
             if (res.ok) {
               const data = await res.json()
               if (data.user) {
-                setUser(data.user)
-                localStorage.setItem('dart_user', JSON.stringify(data.user))
+                login(data.user)
                 setShowGoogleBtn(false)
               }
             }
@@ -204,12 +222,46 @@ export default function Header({
         </nav>
 
         {/* Right: Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          {/* PREMIUM 버튼 — 결제 연동 후 아래 주석 해제
+          <button onClick={() => navigate('/premium')} className="desktop-nav" style={{
+            padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer',
+            background: location.pathname === '/premium'
+              ? (dark ? 'rgba(220,38,38,0.15)' : 'rgba(220,38,38,0.08)')
+              : (dark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.06)'),
+            color: '#DC2626', fontSize: 12, fontWeight: 700, letterSpacing: '0.02em',
+          }}>PREMIUM</button>
+          */}
+
           {user ? (
-            <div onClick={() => { localStorage.removeItem('dart_user'); setUser(null) }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 8px', borderRadius: 8 }}>
-              {user.picture && <img src={user.picture} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />}
-              <span className="desktop-nav" style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>{user.name?.split(' ')[0]}</span>
+            <div style={{ position: 'relative' }}>
+              <div onClick={(e) => { e.stopPropagation(); setShowUserMenu(v => !v) }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 8px', borderRadius: 8 }}>
+                {user.picture
+                  ? <img src={user.picture} alt="" style={{ width: 24, height: 24, borderRadius: '50%' }} />
+                  : <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700 }}>{user.name?.[0] || 'U'}</div>
+                }
+                <span className="desktop-nav" style={{ fontSize: 12, color: colors.textMuted, fontWeight: 500 }}>{user.name?.split(' ')[0]}</span>
+              </div>
+              {showUserMenu && (
+                <div onClick={e => e.stopPropagation()} style={{
+                  position: 'absolute', top: '100%', right: 0, marginTop: 4,
+                  background: dark ? '#1A1A1E' : '#FFFFFF',
+                  border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+                  borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                  minWidth: 180, zIndex: 200, overflow: 'hidden',
+                }}>
+                  <div style={{ padding: '12px 16px', borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{user.name}</div>
+                    <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>{user.email}</div>
+                  </div>
+                  <button onClick={() => { logout(); setShowUserMenu(false) }} style={{
+                    width: '100%', padding: '10px 16px', border: 'none', background: 'none',
+                    textAlign: 'left', cursor: 'pointer', fontSize: 13,
+                    color: '#DC2626', fontWeight: 500,
+                  }}>로그아웃</button>
+                </div>
+              )}
             </div>
           ) : (
             <button onClick={handleGoogleLogin} style={{

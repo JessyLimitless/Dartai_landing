@@ -3,15 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { FONTS, PREMIUM, GRADE_COLORS } from '../constants/theme'
 import { API } from '../lib/api'
 import { useLandingData } from '../hooks/useLandingData'
+import { useAuth } from '../contexts/AuthContext'
 
 const R = '#DC2626'
 
 export default function LandingPage() {
   const navigate = useNavigate()
   const { disclosures, stats, loading } = useLandingData()
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
-  })
+  const { user, login } = useAuth()
 
   const googleBtnRef = useRef(null)
   const [showGoogleBtn, setShowGoogleBtn] = useState(false)
@@ -31,8 +30,7 @@ export default function LandingPage() {
             if (res.ok) {
               const data = await res.json()
               if (data.user) {
-                setUser(data.user)
-                localStorage.setItem('dart_user', JSON.stringify(data.user))
+                login(data.user)
                 setShowGoogleBtn(false)
               }
             }
@@ -67,11 +65,15 @@ export default function LandingPage() {
 
   const recentDisclosures = useMemo(() => {
     if (!disclosures) return disclosures
-    const now = new Date()
-    const kstNow = new Date(now.getTime() + 9 * 3600000)
-    const kstHour = kstNow.getUTCHours()
-    const targetDate = kstHour < 9 ? new Date(kstNow.getTime() - 24 * 3600000) : kstNow
-    const targetStr = targetDate.toISOString().slice(0, 10)
+    // 백엔드가 as_of_date를 알려주면 그 날짜 우선 (주말/공휴일 폴백 = 직전 영업일)
+    let targetStr = stats?.as_of_date
+    if (!targetStr) {
+      const now = new Date()
+      const kstNow = new Date(now.getTime() + 9 * 3600000)
+      const kstHour = kstNow.getUTCHours()
+      const targetDate = kstHour < 9 ? new Date(kstNow.getTime() - 24 * 3600000) : kstNow
+      targetStr = targetDate.toISOString().slice(0, 10)
+    }
     const filtered = disclosures.filter(d => {
       if (!d.created_at) return false
       const dt = new Date(d.created_at)
@@ -79,7 +81,7 @@ export default function LandingPage() {
       return kst.toISOString().slice(0, 10) === targetStr
     })
     return filtered.length > 0 ? filtered : disclosures.slice(0, 8)
-  }, [disclosures])
+  }, [disclosures, stats?.as_of_date])
 
   const totalCount = stats?.today_count ?? 0
   const sCount = stats?.s_count ?? 0
@@ -107,8 +109,7 @@ export default function LandingPage() {
             DART <span style={{ color: R }}>Insight</span>
           </span>
           {user ? (
-            <div onClick={() => { localStorage.removeItem('dart_user'); setUser(null) }}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {user.picture && <img src={user.picture} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} />}
               <span style={{ fontSize: 13, color: '#18181B', fontWeight: 500 }}>{user.name?.split(' ')[0]}</span>
             </div>
@@ -153,7 +154,7 @@ export default function LandingPage() {
               marginBottom: 48,
             }}>
               {[
-                { label: '오늘 공시', value: totalCount, suffix: '건' },
+                { label: stats?.as_of_date ? `${stats.as_of_date.slice(5).replace('-', '/')} 공시` : '오늘 공시', value: totalCount, suffix: '건' },
                 { label: 'S등급', value: sCount, suffix: '건', accent: true },
                 { label: 'A등급', value: aCount, suffix: '건' },
               ].map((s, i) => (

@@ -8,6 +8,7 @@ import { useNotifications } from './hooks/useNotifications'
 import { useToastManager } from './hooks/useToastManager'
 import { useTheme } from './contexts/ThemeContext'
 import { ErrorProvider } from './contexts/ErrorContext'
+import { AuthProvider } from './contexts/AuthContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import LandingPage from './components/LandingPage'
 import { FONTS } from './constants/theme'
@@ -23,10 +24,13 @@ const SignalPage = lazy(() => import('./components/SignalPage'))
 const GlobalSignalPage = lazy(() => import('./components/GlobalSignalPage'))
 const LibraryPage = lazy(() => import('./components/LibraryPage'))
 const BriefingPage = lazy(() => import('./components/BriefingPage'))
+const FeedbackPage = lazy(() => import('./components/FeedbackPage'))
+const USBeneficiaryPage = lazy(() => import('./components/USBeneficiaryPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
 const DartViewPage = lazy(() => import('./components/DartViewPage'))
 const DartViewDetailLazy = lazy(() => import('./components/DartViewPage').then(m => ({ default: m.DartViewDetail })))
 const AdminPage = lazy(() => import('./components/AdminPage'))
+const BookViewer = lazy(() => import('./components/BookViewer'))
 const InquiryPage = lazy(() => import('./components/InquiryPage'))
 import BuffettChatPanel from './components/BuffettChat'
 import DisclosureModal from './components/DisclosureModal'
@@ -94,6 +98,7 @@ export default function App() {
   const isLanding = location.pathname === '/'
 
   return (
+    <AuthProvider>
     <ErrorProvider addToast={addToast}>
       <div style={{ minHeight: '100vh', backgroundColor: isLanding ? '#FFFFFF' : colors.bgPrimary, fontFamily: FONTS.body }}>
         <Header
@@ -118,6 +123,8 @@ export default function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/today" element={<TodayPage onViewCard={navigateToCard} />} />
               <Route path="/briefing" element={<BriefingPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} /> {/* 관리자 전용 — 네비에서 숨김, 관리자>시그널>픽 채점 메뉴로 접근 */}
+              <Route path="/us-beneficiary" element={<USBeneficiaryPage />} />
               <Route path="/history" element={<HistoryPage onViewCard={navigateToCard} />} />
               <Route path="/patterns" element={<PatternPage />} />
               <Route path="/ai-live" element={<Navigate to="/history" replace />} />
@@ -125,7 +132,7 @@ export default function App() {
               <Route path="/deep-dive/:corpCode" element={<DeepDiveWrapper onViewCard={navigateToCard} />} />
               <Route path="/deep-data" element={<DeepDataPage onViewCard={navigateToCard} />} />
               <Route path="/issues" element={<IssuePage />} />
-              <Route path="/signal" element={<SignalPage />} />
+              <Route path="/signal" element={<SignalPage />} /> {/* 관리자 전용 — 네비에서 숨김 */}
               <Route path="/global" element={<GlobalSignalPage />} />
               <Route path="/dart-view" element={<DartViewPage />} />
               <Route path="/dart-view/:stockCode" element={<DartViewDetailLazy />} />
@@ -133,6 +140,8 @@ export default function App() {
               <Route path="/library" element={<LibraryPage />} />
               <Route path="/premium" element={<PremiumPage />} />
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/book" element={<BookViewer />} />
+              <Route path="/admin/book/:partDir/:chapterFile" element={<BookViewer />} />
               <Route path="/inquiry" element={<InquiryPage />} />
               {/* Legacy redirects */}
               <Route path="/surge" element={<Navigate to="/today" replace />} />
@@ -190,5 +199,6 @@ export default function App() {
         )}
       </div>
     </ErrorProvider>
+    </AuthProvider>
   )
 }

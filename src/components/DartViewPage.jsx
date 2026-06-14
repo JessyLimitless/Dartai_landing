@@ -18,7 +18,7 @@ export default function DartViewPage() {
   // if (!user) return <LoginGate dark={dark} colors={colors} label="딥분석" />
 
   useEffect(() => {
-    fetch(`${API}/api/dart-view/ranking?limit=950`)
+    fetch(`${API}/api/dart-view/ranking?limit=2000`)
       .then(r => r.json())
       .then(d => setStocks(d.ranking || []))
       .catch(() => {})
@@ -180,6 +180,31 @@ export default function DartViewPage() {
                     {item.stock_code}
                   </div>
                 </div>
+
+                {/* AI DC 카테고리 배지 */}
+                {item.categories && item.categories.length > 0 && (
+                  <div style={{ display: 'flex', gap: 3, flexShrink: 0, flexWrap: 'nowrap' }}>
+                    {item.categories.includes('NVIDIA_수혜') && (
+                      <span style={{
+                        fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 4,
+                        background: 'rgba(118,185,0,0.15)', color: '#76B900', flexShrink: 0,
+                      }}>NVIDIA</span>
+                    )}
+                    {item.categories.filter(c => c !== 'NVIDIA_수혜').slice(0, 1).map(cat => {
+                      const label = {
+                        AI_DC_전력: '전력', AI_DC_냉각: '냉각', AI_DC_서버: '서버',
+                        AI_DC_반도체: '반도체', AI_DC_기판: '기판',
+                        AI_DC_네트워크: '네트워크', AI_SW: 'AI SW',
+                      }[cat] || cat.replace('AI_DC_', '')
+                      return (
+                        <span key={cat} style={{
+                          fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 4,
+                          background: 'rgba(59,130,246,0.12)', color: '#3B82F6', flexShrink: 0,
+                        }}>{label}</span>
+                      )
+                    })}
+                  </div>
+                )}
 
                 {/* 종합등급 */}
                 {item.grade && (

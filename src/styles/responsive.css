@@ -473,3 +473,49 @@ html { scroll-behavior: smooth; }
 @media (max-width: 768px) {
   .landing-buffett-grid { grid-template-columns: 1fr !important; }
 }
+
+/* ═══ 브리핑·피드백·미국수혜주 공통 본문 타이포 (MarkdownBody) ═══════ */
+/* 색·테마는 컴포넌트 인라인, 크기/여백만 클래스로 → 화면별 반응형 */
+.bp-pad   { padding-left: 24px; padding-right: 24px; }
+.bp-h1    { font-size: 22px; margin: 32px 0 14px; line-height: 1.3; letter-spacing: -0.3px; }
+.bp-h2    { font-size: 18px; margin: 28px 0 12px; padding-top: 20px; line-height: 1.3; }
+.bp-h3    { font-size: 16px; margin: 20px 0 8px; line-height: 1.4; }
+.bp-p     { font-size: 15px; line-height: 1.9; margin: 6px 0; }
+.bp-li    { font-size: 15px; line-height: 1.8; }
+.bp-quote { font-size: 14px; line-height: 1.7; }
+.bp-th    { font-size: 12px; padding: 10px 14px; }
+.bp-td    { font-size: 14px; line-height: 1.6; padding: 10px 14px; }
+
+@media (max-width: 768px) {
+  .bp-pad { padding-left: 18px; padding-right: 18px; }
+  .bp-h1  { font-size: 20px; }
+  .bp-h2  { font-size: 17px; }
+  .bp-p, .bp-li { font-size: 14.5px; }
+}
+@media (max-width: 480px) {
+  .bp-pad   { padding-left: 14px; padding-right: 14px; }
+  .bp-h1    { font-size: 18.5px; margin: 24px 0 10px; }
+  .bp-h2    { font-size: 15.5px; margin: 22px 0 10px; padding-top: 16px; }
+  .bp-h3    { font-size: 14.5px; margin: 16px 0 6px; }
+  .bp-p     { font-size: 14px; line-height: 1.75; }
+  .bp-li    { font-size: 14px; line-height: 1.7; }
+  .bp-quote { font-size: 12.5px; line-height: 1.6; }
+  .bp-th    { font-size: 11px; padding: 8px 9px; }
+  .bp-td    { font-size: 12.5px; line-height: 1.5; padding: 8px 9px; }
+}
+
+/* 긴 영문/URL이 폭을 넘겨 모바일이 줌아웃되는 것 방지 */
+.bp-p, .bp-li, .bp-quote, .bp-td, .bp-th { overflow-wrap: anywhere; word-break: break-word; }
+.bp-li { min-width: 0; }
+.bp-li > span { min-width: 0; overflow-wrap: anywhere; }
+.bp-link { color: #3182F6; text-decoration: none; overflow-wrap: anywhere; }
+
+/* 확실한 줄바꿈 강제 — 어떤 후손 텍스트도 폭을 못 넘기게 (+ 안전망) */
+.bp-pad { overflow-x: hidden; }
+.bp-pad * { overflow-wrap: anywhere !important; word-break: break-word !important; min-width: 0 !important; }
+.bp-pad table { table-layout: fixed; }
+
+/* 표 시각화 — 줄무늬 + 행 라벨 강조 (금융앱 느낌) */
+.bp-pad table tbody tr:nth-of-type(even) td { background: rgba(127,127,127,0.055); }
+.bp-pad table tbody tr:hover td { background: rgba(220,38,38,0.05); }
+.bp-pad table td:first-child { font-weight: 600; }
