@@ -7,7 +7,7 @@ import { useDisclosures } from '../hooks/useDisclosures'
 import { FONTS, GRADE_COLORS, PREMIUM } from '../constants/theme'
 import { useTheme } from '../contexts/ThemeContext'
 import { API } from '../lib/api'
-import { getSignalTag, SIGNAL_ORDER, SIGNAL_COLORS } from '../lib/signalTags'
+import { GUIDE_GRADES, GUIDE_SIGNALS, GUIDE_DISCLAIMER } from '../lib/signalGuide'
 
 export default function TodayPage({ onViewCard }) {
   const { colors, dark } = useTheme()
@@ -15,6 +15,7 @@ export default function TodayPage({ onViewCard }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchOpen, setSearchOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const [guideOpen, setGuideOpen] = useState(false)
   const [globalFilings, setGlobalFilings] = useState([])
   const [globalLoading, setGlobalLoading] = useState(false)
   const [globalPopup, setGlobalPopup] = useState(null)
@@ -27,10 +28,11 @@ export default function TodayPage({ onViewCard }) {
   } = useDisclosures()
 
   useEffect(() => {
-    // 시그널 필터 딥링크 (?signal=소수계좌). 구버전 ?grade= 링크는 무시하고 초기화.
-    const urlSignal = searchParams.get('signal')
-    if (urlSignal && SIGNAL_ORDER.includes(urlSignal)) setGradeFilter(urlSignal)
-    if (searchParams.get('grade') || urlSignal) setSearchParams({}, { replace: true })
+    const urlGrade = searchParams.get('grade')
+    if (urlGrade && ['S', 'A', 'D'].includes(urlGrade)) {
+      setGradeFilter(urlGrade)
+      setSearchParams({}, { replace: true })
+    }
   }, [])
 
   // Global 탭 선택 시 SEC 데이터 fetch
@@ -74,10 +76,11 @@ export default function TodayPage({ onViewCard }) {
   }, [disclosures, targetStr])
 
   const todayCounts = useMemo(() => {
-    const c = { total: 0 }
+    const c = { S: 0, A: 0, D: 0, total: 0 }
     todayDisclosures.forEach(d => {
-      const k = getSignalTag(d).key
-      c[k] = (c[k] || 0) + 1
+      if (d.grade === 'S') c.S++
+      else if (d.grade === 'A') c.A++
+      else if (d.grade === 'D') c.D++
       c.total++
     })
     return c
@@ -85,7 +88,7 @@ export default function TodayPage({ onViewCard }) {
 
   const filtered = useMemo(() => {
     let list = todayDisclosures
-    if (gradeFilter && gradeFilter !== 'GLOBAL') list = list.filter(d => getSignalTag(d).key === gradeFilter)
+    if (gradeFilter) list = list.filter(d => d.grade === gradeFilter)
     if (search) {
       const q = search.toLowerCase()
       list = list.filter(d =>
@@ -203,6 +206,9 @@ export default function TodayPage({ onViewCard }) {
         )}
       </div>
 
+      {/* ── 공시 가이드 (접기/펼치기, 기본 접힘) ── */}
+      <GuideBanner open={guideOpen} onToggle={() => setGuideOpen(v => !v)} dark={dark} colors={colors} />
+
       {/* ── 히어로 픽 ── */}
       {risers.length > 0 && gradeFilter !== 'GLOBAL' && (
         <RiserCarousel risers={risers} dark={dark} colors={colors} onTap={setModalRceptNo} />
@@ -217,10 +223,11 @@ export default function TodayPage({ onViewCard }) {
           <div style={{ width: 24, flexShrink: 0 }} />
           {[
             { key: null, label: '전체', count: todayCounts.total },
-            ...SIGNAL_ORDER
-              .filter(k => todayCounts[k] > 0)
-              .map(k => ({ key: k, label: k, count: todayCounts[k], color: SIGNAL_COLORS[k] })),
-          ].map(t => {
+            { key: 'S', label: 'S', count: todayCounts.S, color: GRADE_COLORS.S.bg },
+            { key: 'A', label: 'A', count: todayCounts.A, color: GRADE_COLORS.A.bg },
+            { key: 'D', label: 'D', count: todayCounts.D, color: GRADE_COLORS.D.bg },
+            // { key: 'GLOBAL', label: 'Global', count: 0, color: '#3182F6' },
+          ].filter(t => t.key === null || t.key === 'GLOBAL' || t.count > 0).map(t => {
             const active = gradeFilter === t.key
             return (
               <button key={t.label} className="touch-press"
@@ -368,7 +375,7 @@ export default function TodayPage({ onViewCard }) {
         ) : (
           <>
             {visibleItems.map((d, i) => {
-              const sig = getSignalTag(d)
+              const gc = GRADE_COLORS[d.grade] || { bg: '#94A3B8', color: '#fff' }
               const pd = prices[d.stock_code]
               const currentPrice = pd?.price || 0
               const bp = d.base_price
@@ -392,14 +399,14 @@ export default function TodayPage({ onViewCard }) {
                     padding: '18px 0',
                   }}>
                   <span className="today-rank" style={{
-                    fontWeight: 700, fontFamily: FONTS.mono, color: sig.color, textAlign: 'right',
+                    fontWeight: 700, fontFamily: FONTS.mono, color: gc.bg, textAlign: 'right',
                   }}>{i + 1}</span>
-                  <div className="today-sigchip" style={{
-                    flexShrink: 0, borderRadius: 8,
-                    background: sig.color + '14', color: sig.color,
+                  <div className="today-badge" style={{
+                    borderRadius: '50%', flexShrink: 0,
+                    background: gc.bg, color: gc.color,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 700, whiteSpace: 'nowrap',
-                  }}>{sig.label}</div>
+                    fontWeight: 800, fontFamily: FONTS.mono,
+                  }}>{d.grade}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span className="today-corp" style={{
@@ -424,8 +431,32 @@ export default function TodayPage({ onViewCard }) {
                     <div className="today-sub" style={{
                       color: colors.textMuted, marginTop: 3,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      display: 'flex', alignItems: 'center', gap: 4,
                     }}>
-                      {d.report_nm}
+                      {/소수계좌|소수지점/.test(d.report_nm) && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
+                          background: 'rgba(220,38,38,0.1)', color: '#DC2626', flexShrink: 0,
+                          letterSpacing: -0.3,
+                        }}>소수계좌</span>
+                      )}
+                      {/투자경고/.test(d.report_nm) && !/소수/.test(d.report_nm) && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
+                          background: 'rgba(234,88,12,0.1)', color: '#EA580C', flexShrink: 0,
+                          letterSpacing: -0.3,
+                        }}>투자경고</span>
+                      )}
+                      {/투자위험|매매거래정지/.test(d.report_nm) && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 4,
+                          background: 'rgba(127,29,29,0.1)', color: '#991B1B', flexShrink: 0,
+                          letterSpacing: -0.3,
+                        }}>거래정지</span>
+                      )}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {d.report_nm}
+                      </span>
                     </div>
                   </div>
                   <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -489,7 +520,7 @@ export default function TodayPage({ onViewCard }) {
         .today-section-title { font-size: 20px; }
         .today-row { gap: 16px; }
         .today-rank { font-size: 17px; min-width: 24px; display: inline-block; }
-        .today-sigchip { min-width: 60px; height: 30px; padding: 0 8px; font-size: 12px; }
+        .today-badge { width: 48px; height: 48px; font-size: 16px; }
         .today-corp { font-size: 17px; }
         .today-sub { font-size: 14px; }
         .today-right-num { font-size: 17px; }
@@ -500,7 +531,7 @@ export default function TodayPage({ onViewCard }) {
           .today-section-title { font-size: 18px; }
           .today-row { gap: 10px; }
           .today-rank { font-size: 14px; min-width: 18px; }
-          .today-sigchip { min-width: 54px; height: 28px; padding: 0 7px; font-size: 11px; }
+          .today-badge { width: 40px; height: 40px; font-size: 14px; }
           .today-corp { font-size: 15px; }
           .today-sub { font-size: 13px; }
           .today-right-num { font-size: 15px; }
@@ -509,7 +540,7 @@ export default function TodayPage({ onViewCard }) {
         @media (max-width: 360px) {
           .today-pad { padding-left: 12px; padding-right: 12px; }
           .today-rank { display: none; }
-          .today-sigchip { min-width: 48px; height: 26px; padding: 0 6px; font-size: 10px; }
+          .today-badge { width: 36px; height: 36px; font-size: 13px; }
           .today-corp { font-size: 14px; }
           .today-sub { font-size: 12px; }
           .today-right-num { font-size: 14px; }
@@ -782,6 +813,67 @@ function LiveRiserWidget({ risers, dark, colors, onOpenModal }) {
   )
 }
 
+
+// ══ 공시 가이드 (접기/펼치기, 기본 접힘) ══
+function GuideBanner({ open, onToggle, dark, colors }) {
+  const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  return (
+    <div className="today-pad" style={{ marginTop: 12 }}>
+      <div style={{
+        borderRadius: 14, overflow: 'hidden',
+        border: `1px solid ${open ? (dark ? 'rgba(255,255,255,0.08)' : '#ECECEF') : 'transparent'}`,
+        background: open ? (dark ? '#141416' : '#FFFFFF') : (dark ? 'rgba(255,255,255,0.04)' : '#EDEEF0'),
+        transition: 'background 0.2s',
+      }}>
+        <button className="touch-press" onClick={onToggle} style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+          padding: '11px 14px', border: 'none', background: 'transparent',
+          cursor: 'pointer', color: colors.textPrimary, minHeight: 46,
+        }}>
+          <span style={{ fontSize: 15 }}>📖</span>
+          <span style={{ fontSize: 14, fontWeight: 700, flex: 1, textAlign: 'left' }}>공시 가이드 — S·A·D가 뭐고 어떻게 보나</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted}
+            strokeWidth="2" strokeLinecap="round"
+            style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+
+        {open && (
+          <div style={{ padding: '4px 16px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, margin: '4px 0 8px' }}>등급 보는 법</div>
+            {GUIDE_GRADES.map(({ g, desc }) => {
+              const gc = GRADE_COLORS[g] || { bg: '#94A3B8' }
+              return (
+                <div key={g} style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 7 }}>
+                  <span style={{
+                    flexShrink: 0, width: 22, height: 22, borderRadius: '50%',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    background: gc.bg, color: '#fff', fontSize: 11, fontWeight: 800, fontFamily: FONTS.mono,
+                  }}>{g}</span>
+                  <span style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.5 }}>{desc}</span>
+                </div>
+              )
+            })}
+
+            <div style={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, margin: '14px 0 8px' }}>핵심 시그널 빠른 해석</div>
+            {GUIDE_SIGNALS.map((s, i) => (
+              <div key={i} style={{ marginBottom: 7, lineHeight: 1.5 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary }}>{s.name}</span>
+                <span style={{ fontSize: 13, color: colors.textMuted }}> — {s.desc}</span>
+              </div>
+            ))}
+
+            <div style={{
+              fontSize: 11, color: colors.textMuted, lineHeight: 1.5,
+              borderTop: `1px solid ${lineSep}`, marginTop: 12, paddingTop: 10,
+            }}>{GUIDE_DISCLAIMER}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function SearchBar({ search, setSearch, colors, dark, onClose }) {
   const [val, setVal] = useState(search || '')
