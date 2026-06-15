@@ -113,6 +113,7 @@ export default function AdminPage() {
             { key: 'watch', label: `소수계좌 ${watchData ? (watchData.total_active || 0) : 0}` },
             { key: 'cb', label: `CB발행 ${cbDisclosures.length}` },
             { key: 'users', label: `유저 ${userTotal}` },
+            { key: 'subscribers', label: '✉️ 구독자' },
             { key: 'ranking', label: `시총` },
             { key: 'disclosures', label: `공시 ${disclosures.length}` },
             { key: 'inquiries', label: `문의 ${inquiries.length}` },
@@ -167,6 +168,8 @@ export default function AdminPage() {
         <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
       ) : tab === 'top10' ? (
         <TopPicksPanel colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'subscribers' ? (
+        <SubscribersPanel colors={colors} dark={dark} sep={sep} />
       ) : tab === 'screener' ? (
         <MinorityScreenerPanel colors={colors} dark={dark} sep={sep} />
       ) : tab === 'radar' ? (
@@ -4224,6 +4227,153 @@ function AiDcPanel({ colors, dark, sep }) {
 
 
 // 집중관심 종목 패널 — 반도체·광통신·전력 그룹 표시
+function SubscribersPanel({ colors, dark, sep }) {
+  const [subs, setSubs] = useState([])
+  const [counts, setCounts] = useState({ total: 0, active: 0 })
+  const [loading, setLoading] = useState(true)
+  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [showInactive, setShowInactive] = useState(false)
+
+  const load = useCallback(() => {
+    setLoading(true)
+    fetch(`${API}/api/admin/subscribers`)
+      .then(r => r.json())
+      .then(d => {
+        setSubs(d.subscribers || [])
+        setCounts({ total: d.total || 0, active: d.active || 0 })
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const addSub = async () => {
+    const e = email.trim().toLowerCase()
+    if (!e.includes('@')) { setMsg('올바른 이메일을 입력하세요'); return }
+    setBusy(true); setMsg('')
+    try {
+      const r = await fetch(`${API}/api/admin/subscribers/add`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: e, name: name.trim() }),
+      })
+      const d = await r.json()
+      if (d.ok) { setEmail(''); setName(''); setMsg('추가됨'); load() }
+      else setMsg(d.error || '추가 실패')
+    } catch { setMsg('네트워크 오류') }
+    finally { setBusy(false) }
+  }
+
+  const unsub = async (e) => {
+    if (!window.confirm(`${e} 구독을 해지할까요?`)) return
+    setBusy(true)
+    try {
+      await fetch(`${API}/api/admin/subscribers/unsubscribe`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: e }),
+      })
+      load()
+    } catch {}
+    finally { setBusy(false) }
+  }
+
+  const exportCsv = () => {
+    const rows = [['email', 'name', 'active', 'source', 'created_at']]
+    subs.forEach(s => rows.push([s.email, s.name || '', s.active ? '1' : '0', s.source || '', s.created_at || '']))
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `subscribers_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+  }
+
+  const inputStyle = {
+    flex: 1, minWidth: 140, padding: '9px 11px', borderRadius: 8, fontSize: 13,
+    border: `1px solid ${sep}`, background: dark ? '#09090B' : '#F8F8FA',
+    color: colors.textPrimary, outline: 'none', fontFamily: FONTS.body,
+  }
+  const visible = showInactive ? subs : subs.filter(s => s.active)
+  const fmtDate = (s) => (s ? s.slice(0, 10) : '—')
+
+  return (
+    <div>
+      {/* 통계 */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+        <div style={{ flex: 1, padding: '12px 14px', borderRadius: 10, background: dark ? '#141416' : '#fff', border: `1px solid ${sep}` }}>
+          <div style={{ fontSize: 11, color: colors.textMuted }}>활성 구독자</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#DC2626', fontFamily: 'JetBrains Mono, monospace' }}>{counts.active}</div>
+        </div>
+        <div style={{ flex: 1, padding: '12px 14px', borderRadius: 10, background: dark ? '#141416' : '#fff', border: `1px solid ${sep}` }}>
+          <div style={{ fontSize: 11, color: colors.textMuted }}>전체 (해지 포함)</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, fontFamily: 'JetBrains Mono, monospace' }}>{counts.total}</div>
+        </div>
+      </div>
+
+      {/* 직접 추가 */}
+      <div style={{ padding: 14, borderRadius: 10, background: dark ? '#141416' : '#fff', border: `1px solid ${sep}`, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: colors.textPrimary, marginBottom: 10 }}>구독자 직접 추가</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" style={inputStyle} />
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="이름(선택)" style={{ ...inputStyle, flex: 'none', width: 110, minWidth: 90 }} />
+          <button onClick={addSub} disabled={busy} style={{
+            padding: '9px 18px', borderRadius: 8, border: 'none', cursor: busy ? 'default' : 'pointer',
+            background: '#DC2626', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0,
+          }}>추가</button>
+        </div>
+        {msg && <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 8 }}>{msg}</div>}
+      </div>
+
+      {/* 컨트롤 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <label style={{ fontSize: 11, color: colors.textMuted, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+          <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} /> 해지자 포함
+        </label>
+        <button onClick={exportCsv} style={{
+          padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+          background: dark ? '#27272A' : '#E4E4E7', color: colors.textPrimary, fontSize: 12, fontWeight: 600,
+        }}>CSV 내보내기</button>
+      </div>
+
+      {/* 목록 */}
+      {visible.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 40, color: colors.textMuted, fontSize: 13 }}>구독자 없음</div>
+      ) : visible.map((s) => (
+        <div key={s.email} style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '11px 14px', borderRadius: 10, marginBottom: 6,
+          background: dark ? '#141416' : '#fff', border: `1px solid ${sep}`, opacity: s.active ? 1 : 0.5,
+        }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {s.email}{!s.active && <span style={{ fontSize: 10, color: '#9AA1AC', marginLeft: 6 }}>(해지)</span>}
+            </div>
+            <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 2 }}>
+              {s.name ? s.name + ' · ' : ''}{s.source || 'web'} · {fmtDate(s.created_at)}
+            </div>
+          </div>
+          {s.active && (
+            <button onClick={() => unsub(s.email)} disabled={busy} style={{
+              fontSize: 11, color: '#9AA1AC', background: 'none', border: 'none',
+              cursor: 'pointer', flexShrink: 0, textDecoration: 'underline',
+            }}>해지</button>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+
 function FocusStocksPanel({ colors, dark, sep }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)

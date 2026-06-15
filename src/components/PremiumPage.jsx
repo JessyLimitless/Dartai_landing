@@ -64,6 +64,40 @@ const FAQ = [
   },
 ]
 
+function SubscribeForm({ done, email, setEmail, handleSubscribe, dark, colors, border }) {
+  if (done) {
+    return (
+      <div style={{
+        display: 'inline-block', padding: '14px 28px', borderRadius: 12,
+        background: dark ? 'rgba(220,38,38,0.1)' : 'rgba(220,38,38,0.06)',
+        fontSize: 14, fontWeight: 600, color: R,
+      }}>
+        신청 완료 — 매일 핵심 콘텐츠를 메일로 보내드릴게요
+      </div>
+    )
+  }
+  return (
+    <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: 8, maxWidth: 380, margin: '0 auto' }}>
+      <input
+        type="email" value={email} onChange={e => setEmail(e.target.value)}
+        placeholder="이메일 주소" required
+        style={{
+          flex: 1, height: 50, padding: '0 16px', borderRadius: 12,
+          border: `1px solid ${border}`, background: dark ? '#111113' : '#F8F8FA',
+          color: colors.textPrimary, fontSize: 15, outline: 'none', fontFamily: FONTS.body,
+        }}
+        onFocus={e => { e.target.style.borderColor = R }}
+        onBlur={e => { e.target.style.borderColor = border }}
+      />
+      <button type="submit" style={{
+        height: 50, padding: '0 24px', borderRadius: 12, border: 'none',
+        background: R, color: '#fff', fontSize: 15, fontWeight: 700,
+        cursor: 'pointer', flexShrink: 0, letterSpacing: '-0.01em',
+      }}>구독 신청</button>
+    </form>
+  )
+}
+
 export default function PremiumPage() {
   const { colors, dark } = useTheme()
   const { user } = useAuth()
@@ -85,35 +119,7 @@ export default function PremiumPage() {
   }
 
   const border = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
-
-  const SubscribeForm = () => done ? (
-    <div style={{
-      display: 'inline-block', padding: '14px 28px', borderRadius: 12,
-      background: dark ? 'rgba(220,38,38,0.1)' : 'rgba(220,38,38,0.06)',
-      fontSize: 14, fontWeight: 600, color: R,
-    }}>
-      신청 완료 — 매일 핵심 콘텐츠를 메일로 보내드릴게요
-    </div>
-  ) : (
-    <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: 8, maxWidth: 380, margin: '0 auto' }}>
-      <input
-        type="email" value={email} onChange={e => setEmail(e.target.value)}
-        placeholder="이메일 주소" required
-        style={{
-          flex: 1, height: 50, padding: '0 16px', borderRadius: 12,
-          border: `1px solid ${border}`, background: dark ? '#111113' : '#F8F8FA',
-          color: colors.textPrimary, fontSize: 15, outline: 'none', fontFamily: FONTS.body,
-        }}
-        onFocus={e => { e.target.style.borderColor = R }}
-        onBlur={e => { e.target.style.borderColor = border }}
-      />
-      <button type="submit" style={{
-        height: 50, padding: '0 24px', borderRadius: 12, border: 'none',
-        background: R, color: '#fff', fontSize: 15, fontWeight: 700,
-        cursor: 'pointer', flexShrink: 0, letterSpacing: '-0.01em',
-      }}>구독 신청</button>
-    </form>
-  )
+  const formProps = { done, email, setEmail, handleSubscribe, dark, colors, border }
 
   return (
     <div className="page-enter" style={{
@@ -156,7 +162,7 @@ export default function PremiumPage() {
           </div>
         </div>
 
-        <SubscribeForm />
+        <SubscribeForm {...formProps} />
         <p style={{ fontSize: 12, color: colors.textMuted, marginTop: 12 }}>
           스팸 없음 · 언제든 해지 가능
         </p>
@@ -231,7 +237,7 @@ export default function PremiumPage() {
           <p style={{ fontSize: 13, color: colors.textMuted, margin: '0 0 20px' }}>
             이메일만 남기면 내일 아침부터 핵심 콘텐츠를 보내드려요
           </p>
-          <SubscribeForm />
+          <SubscribeForm {...formProps} />
         </div>
       )}
 
