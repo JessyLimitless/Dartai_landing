@@ -231,22 +231,23 @@ function CompanyHeader({ header, market, corpCode }) {
         </div>
       )}
 
-      {/* ── 액션: 3버튼 한 줄 ── */}
+      {/* ── 액션: AI 기업소개 ── */}
       {corpCode && (
-        <div style={{ display: 'flex', gap: 6, padding: '10px 14px' }}>
+        <div style={{ padding: '10px 14px' }}>
           <button className="touch-press" onClick={(e) => {
-            e.stopPropagation()
             e.stopPropagation()
             window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: corpCode }))
           }} style={{
-            flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            padding: '10px', borderRadius: 10, border: 'none',
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+            padding: '12px', borderRadius: 12, border: 'none',
             background: PREMIUM.accent, color: '#fff',
-            fontSize: 13, fontWeight: 700, cursor: 'pointer', minHeight: 42,
+            fontSize: 13.5, fontWeight: 700, cursor: 'pointer', minHeight: 44, letterSpacing: '-0.01em',
           }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10z" />
+            </svg>
             AI 기업소개
           </button>
-          <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
         </div>
       )}
 
@@ -303,23 +304,22 @@ function TossStyleHeader({ header, market, corpCode, colors, dark }) {
         </span>
       </div>
 
-      {/* 액션 버튼 — 한 줄 */}
+      {/* 액션 버튼 */}
       {corpCode && (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="touch-press" onClick={(e) => {
-            e.stopPropagation()
-            e.stopPropagation()
-            window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: corpCode }))
-          }} style={{
-            flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            padding: '11px', borderRadius: 10, border: 'none',
-            background: PREMIUM.accent, color: '#fff',
-            fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 44,
-          }}>
-            AI 기업소개
-          </button>
-          <WatchlistButton corpCode={corpCode} dark={dark} colors={colors} />
-        </div>
+        <button className="touch-press" onClick={(e) => {
+          e.stopPropagation()
+          window.dispatchEvent(new CustomEvent('open-buffett-chat-corp', { detail: corpCode }))
+        }} style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+          padding: '13px', borderRadius: 12, border: 'none',
+          background: PREMIUM.accent, color: '#fff',
+          fontSize: 14, fontWeight: 700, cursor: 'pointer', minHeight: 46, letterSpacing: '-0.01em',
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10z" />
+          </svg>
+          AI 기업소개
+        </button>
       )}
     </div>
   )
@@ -2004,60 +2004,6 @@ function CardListView({ onSelectCard }) {
         @keyframes card-spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
-  )
-}
-
-
-// ── 관심 종목 버튼 ─────────────────────────────────────────────
-
-function WatchlistButton({ corpCode, dark, colors }) {
-  const [watching, setWatching] = React.useState(false)
-  const user = React.useMemo(() => {
-    try { return JSON.parse(localStorage.getItem('dart_user')) } catch { return null }
-  }, [])
-
-  // 서버에서 관심종목 확인
-  React.useEffect(() => {
-    if (!user?.email || !corpCode) return
-    fetch(`${API}/api/watchlist?email=${encodeURIComponent(user.email)}`)
-      .then(r => r.json())
-      .then(d => {
-        const found = (d.items || []).some(i => i.corp_code === corpCode || i.stock_code === corpCode)
-        setWatching(found)
-      })
-      .catch(() => {})
-  }, [user?.email, corpCode])
-
-  const toggle = async () => {
-    if (!user?.email) {
-      alert('로그인이 필요합니다')
-      return
-    }
-    const endpoint = watching ? '/api/watchlist/remove' : '/api/watchlist/add'
-    try {
-      await fetch(`${API}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, stock_code: corpCode, corp_code: corpCode }),
-      })
-      setWatching(!watching)
-    } catch {}
-  }
-
-  return (
-    <button className="touch-press" onClick={toggle} style={{
-      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-      padding: '10px', borderRadius: 10, minHeight: 44,
-      border: `1px solid ${watching ? PREMIUM.accent : (dark ? '#27272A' : '#E4E4E7')}`,
-      background: watching ? `${PREMIUM.accent}10` : 'transparent',
-      color: watching ? PREMIUM.accent : colors.textSecondary,
-      fontSize: 13, fontWeight: 600, cursor: 'pointer',
-    }}>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill={watching ? PREMIUM.accent : 'none'} stroke={watching ? PREMIUM.accent : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-      </svg>
-      {watching ? '관심 등록됨' : '관심 종목'}
-    </button>
   )
 }
 
