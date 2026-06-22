@@ -9,7 +9,8 @@ import { useAuth } from '../contexts/AuthContext'
 const TABS = [
   { key: '/', label: '홈', mobileLabel: '홈', exact: true },
   { key: '/today', label: '오늘의 공시', mobileLabel: '공시' },
-  { key: '/dart-pick', label: 'DART 픽', mobileLabel: '픽' },
+  // DART 픽: 매일 픽이 쌓이기 전까지 네비 숨김(라우트는 App.jsx 유지). 공급 안정화 시 이 줄 복구로 재노출.
+  // { key: '/dart-pick', label: 'DART 픽', mobileLabel: '픽' },
   { key: '/briefing', label: '브리핑', mobileLabel: '브리핑' },
   { key: '/us-beneficiary', label: '미국장 브리핑', mobileLabel: '미국' },
   // 재무분석(/dart-view): 미완성이라 정식 서비스에서 숨김. 라우트는 App.jsx에 유지 — 완성 시 이 줄 복구로 재노출.
