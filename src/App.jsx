@@ -24,6 +24,7 @@ const SignalPage = lazy(() => import('./components/SignalPage'))
 const GlobalSignalPage = lazy(() => import('./components/GlobalSignalPage'))
 const LibraryPage = lazy(() => import('./components/LibraryPage'))
 const BriefingPage = lazy(() => import('./components/BriefingPage'))
+const DartPickPage = lazy(() => import('./components/DartPickPage'))
 const FeedbackPage = lazy(() => import('./components/FeedbackPage'))
 const USBeneficiaryPage = lazy(() => import('./components/USBeneficiaryPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
@@ -123,6 +124,7 @@ export default function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/today" element={<TodayPage onViewCard={navigateToCard} />} />
               <Route path="/briefing" element={<BriefingPage />} />
+              <Route path="/dart-pick" element={<DartPickPage />} />
               <Route path="/feedback" element={<FeedbackPage />} /> {/* 관리자 전용 — 네비에서 숨김, 관리자>시그널>픽 채점 메뉴로 접근 */}
               <Route path="/us-beneficiary" element={<USBeneficiaryPage />} />
               <Route path="/history" element={<HistoryPage onViewCard={navigateToCard} />} />

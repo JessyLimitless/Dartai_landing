@@ -9,8 +9,9 @@ import { useAuth } from '../contexts/AuthContext'
 const TABS = [
   { key: '/', label: '홈', mobileLabel: '홈', exact: true },
   { key: '/today', label: '오늘의 공시', mobileLabel: '공시' },
+  { key: '/dart-pick', label: 'DART 픽', mobileLabel: '픽' },
   { key: '/briefing', label: '브리핑', mobileLabel: '브리핑' },
-  { key: '/us-beneficiary', label: '미국 시그널', mobileLabel: '미국' },
+  { key: '/us-beneficiary', label: '미국장 브리핑', mobileLabel: '미국' },
   // 재무분석(/dart-view): 미완성이라 정식 서비스에서 숨김. 라우트는 App.jsx에 유지 — 완성 시 이 줄 복구로 재노출.
   // { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
   { key: '/premium', label: '프리미엄', mobileLabel: '구독' },
@@ -20,6 +21,11 @@ const TAB_ICONS = {
   '/': (color, size = 18) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  ),
+  '/dart-pick': (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="0.6" fill={color} />
     </svg>
   ),
   '/briefing': (color, size = 18) => (

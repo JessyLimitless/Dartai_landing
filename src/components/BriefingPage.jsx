@@ -47,7 +47,16 @@ export default function BriefingPage() {
         </div>
       </div>
 
-      {/* 베타: 아카이브 캘린더 숨김 — 최신 1건만 노출 */}
+      {/* 아카이브 캘린더 — 6/15부터 일자별 누적 */}
+      {!loading && briefings.length > 1 && (
+        <BriefingCalendar
+          briefings={briefings}
+          selectedId={selected?.id}
+          onSelect={setSelected}
+          dark={dark}
+          colors={colors}
+        />
+      )}
 
       {/* 콘텐츠 */}
       <div className="bp-pad">
@@ -519,7 +528,7 @@ export function LoginGate({ dark, colors }) {
         구독자 전용 콘텐츠
       </div>
       <div style={{ fontSize: 14, color: colors.textMuted, marginBottom: 28, lineHeight: 1.6 }}>
-        공시 브리핑과 미국 시그널은 베타 구독자에게만 공개됩니다.<br/>
+        공시 브리핑과 미국장 브리핑은 베타 구독자에게만 공개됩니다.<br/>
         로그인하시면 바로 확인하실 수 있어요. <span style={{ color: '#B45309' }}>(6월 13일 베타 시작 · 한정 무료)</span>
       </div>
       {showBtn ? (

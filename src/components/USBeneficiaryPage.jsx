@@ -40,14 +40,33 @@ export default function USBeneficiaryPage() {
       {/* 헤더 */}
       <div className="bp-pad" style={{ paddingTop: 24 }}>
         <div style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, letterSpacing: -0.5 }}>
-          미국 시그널
+          미국장 브리핑
         </div>
         <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
-          미국 시그널 → 한국 수혜주 인과 사슬 카드 (매일 오전 발행)
+          美 신호 → 韓 수혜주 · 매일 오전 발행
         </div>
       </div>
 
-      {/* 베타: 아카이브 날짜칩 숨김 — 최신 1건만 노출 */}
+      {/* 아카이브 날짜칩 — 6/15부터 일자별 누적 */}
+      {!loading && cards.length > 1 && (
+        <div className="bp-pad" style={{
+          display: 'flex', gap: 8, overflowX: 'auto', paddingTop: 16, paddingBottom: 4,
+        }}>
+          {cards.map((c) => {
+            const isSel = selected?.id === c.id
+            return (
+              <button key={c.id} onClick={() => setSelected(c)} style={{
+                flexShrink: 0, padding: '6px 14px', borderRadius: 20,
+                border: `1px solid ${isSel ? '#DC2626' : lineSep}`,
+                background: isSel ? '#DC2626' : 'transparent',
+                color: isSel ? '#fff' : colors.textMuted,
+                fontSize: 12, fontWeight: 600, fontFamily: FONTS.mono,
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}>{c.date_label}</button>
+            )
+          })}
+        </div>
+      )}
 
       {/* 콘텐츠 */}
       <div className="bp-pad">
