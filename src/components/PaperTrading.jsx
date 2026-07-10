@@ -60,9 +60,9 @@ export default function PaperTrading({ data, colors, dark, lineSep, defaultOpen 
         <div style={{ paddingTop: 12 }}>
           <div style={{ fontSize: 12, color: colors.textMuted, lineHeight: 1.6, marginBottom: 14 }}>
             선정된 픽을 종목당 <b style={{ color: colors.textSecondary }}>1,000만원</b>씩
-            <b style={{ color: colors.textSecondary }}> 선정일 다음 거래일 시가</b>에 매수(상한가 잠김이면 풀릴 때까지 대기)하고,
+            <b style={{ color: colors.textSecondary }}> 선정일 시가</b>에 매수(상한가 잠김이면 풀릴 때까지 대기)하고,
             <b style={{ color: colors.textSecondary }}> 고점 대비 -12%</b> 이탈 시 트레일링 청산합니다.
-            공시는 대개 장 마감 후 나와 당일엔 못 사기에, 갭·상한가를 감안한 현실적 진입만 기록합니다.
+            픽은 장 시작 전(07:30)에 발송돼 당일 시가에 담을 수 있습니다. 실제 트랙레코드입니다.
           </div>
 
           {/* 요약 카드 */}
