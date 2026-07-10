@@ -2,18 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
 import { API } from '../lib/api'
-import { MarkdownBody, LoginGate } from './BriefingPage'
+import { MarkdownBody } from './BriefingPage'
 
 export default function USBeneficiaryPage() {
   const { colors, dark } = useTheme()
   const [cards, setCards] = useState([])
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
-
-  // 베타: 로그인(구독자) 전용
-  const isLoggedIn = (() => {
-    try { return !!JSON.parse(localStorage.getItem('dart_user'))?.email } catch { return false }
-  })()
 
   useEffect(() => {
     fetch(`${API}/api/us-beneficiary/cards`)
@@ -28,8 +23,6 @@ export default function USBeneficiaryPage() {
   }, [])
 
   const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-
-  if (!isLoggedIn) return <LoginGate dark={dark} colors={colors} />
 
   return (
     <div className="page-enter" style={{

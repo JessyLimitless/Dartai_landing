@@ -109,9 +109,8 @@ export default function DartEventPage() {
             const active = selectedId === event.id
             const tc = TAG_COLORS[event.tag] || TAG_COLORS['GLOBAL EVENT']
             return (
-              <div key={event.id} className="touch-press"
+              <div key={event.id} className="touch-press event-card"
                 onClick={() => setSelectedId(event.id)}
-                className="event-card"
                 style={{
                   padding: 16, borderRadius: 14, cursor: 'pointer',
                   border: `1px solid ${active ? PREMIUM.accent : c.sep}`,

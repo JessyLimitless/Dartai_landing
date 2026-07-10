@@ -3,6 +3,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
 import { API } from '../lib/api'
 import { MarkdownBody } from './BriefingPage'
+import PickScorecard from './PickScorecard'
 
 // 공시 피드백(채점) 코너 — 어제 브리핑 메뉴를 다음 장 시세로 채점.
 // 브리핑과 별도 엔드포인트(/api/feedback)·별도 날짜 슬롯이라 같은 날에 공존.
@@ -11,6 +12,7 @@ export default function FeedbackPage() {
   const [cards, setCards] = useState([])
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [pickScores, setPickScores] = useState(null)
 
   useEffect(() => {
     fetch(`${API}/api/feedback`)
@@ -22,6 +24,10 @@ export default function FeedbackPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
+    // DART 픽 성적표 — 선정 후 시세 추적 + 요인 분해 (키움 실측)
+    fetch(`${API}/api/pick/feedback`).then(r => r.json())
+      .then(d => setPickScores(d && Array.isArray(d.picks) ? d : null))
+      .catch(() => setPickScores(null))
   }, [])
 
   const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
@@ -42,6 +48,13 @@ export default function FeedbackPage() {
           어제 브리핑 메뉴, 다음 장에서 맞았나 — 매일 시세로 직접 채점
         </div>
       </div>
+
+      {/* DART 픽 성적표 — 선정 후 시세 추적 + 요인 분해 */}
+      {pickScores && pickScores.picks && pickScores.picks.length > 0 && (
+        <div className="bp-pad">
+          <PickScorecard data={pickScores} colors={colors} dark={dark} lineSep={lineSep} defaultOpen={true} />
+        </div>
+      )}
 
       {/* 날짜 탭 (가로 스크롤) */}
       {cards.length > 0 && (

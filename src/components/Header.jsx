@@ -9,8 +9,7 @@ import { useAuth } from '../contexts/AuthContext'
 const TABS = [
   { key: '/', label: '홈', mobileLabel: '홈', exact: true },
   { key: '/today', label: '오늘의 공시', mobileLabel: '공시' },
-  // DART 픽: 매일 픽이 쌓이기 전까지 네비 숨김(라우트는 App.jsx 유지). 공급 안정화 시 이 줄 복구로 재노출.
-  // { key: '/dart-pick', label: 'DART 픽', mobileLabel: '픽' },
+  { key: '/dart-pick', label: 'DART 픽', mobileLabel: '픽', premium: true },
   { key: '/briefing', label: '브리핑', mobileLabel: '브리핑' },
   { key: '/us-beneficiary', label: '미국장 브리핑', mobileLabel: '미국' },
   // 재무분석(/dart-view): 미완성이라 정식 서비스에서 숨김. 라우트는 App.jsx에 유지 — 완성 시 이 줄 복구로 재노출.
@@ -225,6 +224,14 @@ export default function Header({
                 }}
               >
                 {tab.label}
+                {tab.premium && (
+                  <span style={{
+                    marginLeft: 5, fontSize: 9, fontWeight: 900, letterSpacing: '0.06em',
+                    color: '#3A2C00', background: PREMIUM_GOLD.gradient,
+                    padding: '2px 5px', borderRadius: 4, verticalAlign: 'middle',
+                    boxShadow: `0 0 6px ${PREMIUM_GOLD.glow}`, fontFamily: FONTS.body,
+                  }}>PRO</span>
+                )}
                 {active && <div style={{
                   position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)',
                   width: 16, height: 2, borderRadius: 1, background: accentColor,
@@ -347,7 +354,18 @@ export default function Header({
                 background: 'transparent', minWidth: 56,
                 transition: 'all 0.15s',
               }}>
-              {IconFn && IconFn(iconColor, 20)}
+              <span style={{ position: 'relative', display: 'inline-flex' }}>
+                {IconFn && IconFn(iconColor, 20)}
+                {tab.premium && (
+                  <span style={{
+                    position: 'absolute', top: -4, right: -9,
+                    fontSize: 7, fontWeight: 900, letterSpacing: '0.02em',
+                    color: '#3A2C00', background: PREMIUM_GOLD.gradient,
+                    padding: '0 3px', borderRadius: 3, lineHeight: 1.5,
+                    boxShadow: `0 0 4px ${PREMIUM_GOLD.glow}`,
+                  }}>PRO</span>
+                )}
+              </span>
               <span style={{
                 fontSize: 10, fontWeight: active ? 700 : 500,
                 color: iconColor, letterSpacing: '0.02em',

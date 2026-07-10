@@ -27,6 +27,7 @@ const BriefingPage = lazy(() => import('./components/BriefingPage'))
 const DartPickPage = lazy(() => import('./components/DartPickPage'))
 const FeedbackPage = lazy(() => import('./components/FeedbackPage'))
 const USBeneficiaryPage = lazy(() => import('./components/USBeneficiaryPage'))
+const MarketPressPage = lazy(() => import('./components/MarketPressPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
 const DartViewPage = lazy(() => import('./components/DartViewPage'))
 const DartViewDetailLazy = lazy(() => import('./components/DartViewPage').then(m => ({ default: m.DartViewDetail })))
@@ -35,7 +36,6 @@ const BookViewer = lazy(() => import('./components/BookViewer'))
 const InquiryPage = lazy(() => import('./components/InquiryPage'))
 import BuffettChatPanel from './components/BuffettChat'
 import DisclosureModal from './components/DisclosureModal'
-import EmailCapture from './components/EmailCapture'
 import PwaInstallBanner from './components/PwaInstallBanner'
 
 function FilingsCorpRedirect() {
@@ -97,21 +97,25 @@ export default function App() {
 
   const location = useLocation()
   const isLanding = location.pathname === '/'
+  // KOREA MARKET PRESS — 독립 신문 형태(앱 크롬 숨김)
+  const isPress = location.pathname.startsWith('/market-press')
 
   return (
     <AuthProvider>
     <ErrorProvider addToast={addToast}>
       <div style={{ minHeight: '100vh', backgroundColor: isLanding ? '#FFFFFF' : colors.bgPrimary, fontFamily: FONTS.body }}>
-        <Header
-          notifications={notifications}
-          unreadCount={unreadCount}
-          loading={loading}
-          onRead={markAsRead}
-          onMarkAllRead={markAllAsRead}
-          onSelectNotification={handleSelectNotification}
-          hiddenTopBar={isLanding}
-        />
-        {!isLanding && (
+        {!isPress && (
+          <Header
+            notifications={notifications}
+            unreadCount={unreadCount}
+            loading={loading}
+            onRead={markAsRead}
+            onMarkAllRead={markAllAsRead}
+            onSelectNotification={handleSelectNotification}
+            hiddenTopBar={isLanding}
+          />
+        )}
+        {!isLanding && !isPress && (
           <>
             <PwaInstallBanner />
           </>
@@ -127,6 +131,8 @@ export default function App() {
               <Route path="/dart-pick" element={<DartPickPage />} />
               <Route path="/feedback" element={<FeedbackPage />} /> {/* 관리자 전용 — 네비에서 숨김, 관리자>시그널>픽 채점 메뉴로 접근 */}
               <Route path="/us-beneficiary" element={<USBeneficiaryPage />} />
+              <Route path="/market-press" element={<MarketPressPage />} />
+              <Route path="/market-press/:date" element={<MarketPressPage />} />
               <Route path="/history" element={<HistoryPage onViewCard={navigateToCard} />} />
               <Route path="/patterns" element={<PatternPage />} />
               <Route path="/ai-live" element={<Navigate to="/history" replace />} />
@@ -180,8 +186,6 @@ export default function App() {
         {/* 버핏 챗 플로팅 패널 (프리미엄 + 기업카드 페이지) */}
         {(location.pathname === '/premium' || location.pathname.startsWith('/deep-dive')) && <BuffettChatPanel />}
 
-        {/* 이메일 수집 배너 (랜딩 제외) */}
-        {!isLanding && <EmailCapture />}
 
         {/* 알림 → 공시 모달 (rcept_no 있는 경우) */}
         {notifRceptNo && (

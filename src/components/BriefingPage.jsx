@@ -9,11 +9,6 @@ export default function BriefingPage() {
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // 베타: 로그인(구독자) 전용 — 비로그인은 게이트 (return은 훅 뒤에서)
-  const isLoggedIn = (() => {
-    try { return !!JSON.parse(localStorage.getItem('dart_user'))?.email } catch { return false }
-  })()
-
   useEffect(() => {
     fetch(`${API}/api/briefings`)
       .then(r => r.json())
@@ -27,8 +22,6 @@ export default function BriefingPage() {
   }, [])
 
   const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-
-  if (!isLoggedIn) return <LoginGate dark={dark} colors={colors} />
 
   return (
     <div className="page-enter briefing-page" style={{

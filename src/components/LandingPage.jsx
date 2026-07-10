@@ -87,8 +87,41 @@ export default function LandingPage() {
   const sCount = stats?.s_count ?? 0
   const aCount = stats?.a_count ?? 0
 
+  // 우리가 매일 발행하는 콘텐츠 라인업 (랜딩에서 한눈에)
+  const lineup = [
+    { title: '오늘의 공시', desc: '하루 800건 중 주가를 움직이는 S·A 시그널만 실시간으로 골라냅니다.', tag: '무료', tagColor: '#0D9488', route: '/today', accent: '#DC2626' },
+    { title: '일일 브리핑', desc: '매일 저녁, 핵심 공시 5건을 5단계 프레임으로 쉽게 해석합니다.', tag: '무료', tagColor: '#0D9488', route: '/briefing', accent: '#DC2626' },
+    { title: '미국 수혜주 편지', desc: '밤사이 뉴욕장을 읽고, 오늘 움직일 한국 수혜주로 매핑합니다.', tag: '무료', tagColor: '#0D9488', route: '/us-beneficiary', accent: '#2563EB' },
+    { title: 'DART 픽', desc: '매일 아침, 강도 임계를 넘은 상승 시그널 종목을 선정합니다.', tag: '프리미엄', tagColor: '#7C3AED', route: '/dart-pick', accent: '#7C3AED' },
+  ]
+
   return (
     <div style={{ fontFamily: FONTS.body, overflowX: 'hidden', background: '#FFFFFF' }}>
+
+      {/* ━━━ 0. KOREA MARKET PRESS 상단 리본 (슬림·에디토리얼) ━━━ */}
+      <div
+        onClick={() => navigate('/market-press')}
+        style={{
+          cursor: 'pointer', background: '#12100C', color: '#EDE8DC',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 12, flexWrap: 'wrap',
+          padding: '8px 16px', fontSize: 12.5, textAlign: 'center',
+          lineHeight: 1.5, letterSpacing: '0.02em',
+        }}
+      >
+        <span style={{
+          fontFamily: "'Georgia',serif", fontStyle: 'italic',
+          color: '#C9A96A', fontSize: 12,
+        }}>Now in English</span>
+        <span style={{
+          fontFamily: "'Georgia',serif", fontWeight: 700, letterSpacing: '0.01em',
+        }}>Korea Market Press</span>
+        <span style={{ color: '#B0A992', fontWeight: 300 }}>— on Samsung &amp; SK&nbsp;Hynix</span>
+        <span style={{
+          whiteSpace: 'nowrap', fontWeight: 600,
+          borderBottom: '1px solid #C9A96A', paddingBottom: 1,
+        }}>Read →</span>
+      </div>
 
       {/* ━━━ 1. 히어로 ━━━ */}
       <section style={{
@@ -190,6 +223,90 @@ export default function LandingPage() {
               <svg width="24" height="24" viewBox="0 0 16 16" fill="none" style={{ display: 'block', margin: '0 auto' }}>
                 <path d="M4 6L8 10L12 6" stroke="#18181B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ━━━ 1.2 KOREA MARKET PRESS 마스트헤드 (뉴스프린트 신문 지면) ━━━ */}
+      <section
+        onClick={() => navigate('/market-press')}
+        style={{
+          cursor: 'pointer', background: '#F6F3EA', color: '#1A1712',
+          borderTop: '4px double #1A1712', borderBottom: '4px double #1A1712',
+        }}
+      >
+        <div style={{
+          maxWidth: 920, margin: '0 auto',
+          padding: 'clamp(26px,4.5vw,46px) clamp(20px,5vw,40px)', textAlign: 'center',
+        }}>
+          {/* 데이트라인 — 좌우 헤어라인 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 16 }}>
+            <span style={{ flex: 1, height: 1, background: '#CDC3A9', maxWidth: 84 }} />
+            <span style={{ fontSize: 10.5, letterSpacing: '0.32em', textTransform: 'uppercase', color: '#8A7F66', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              In English · Seoul Edition
+            </span>
+            <span style={{ flex: 1, height: 1, background: '#CDC3A9', maxWidth: 84 }} />
+          </div>
+          {/* 마스트헤드 네임플레이트 */}
+          <div style={{
+            fontFamily: "'Georgia','Times New Roman',serif", fontWeight: 700,
+            fontSize: 'clamp(30px,6.2vw,60px)', lineHeight: 1, letterSpacing: '-0.015em',
+          }}>
+            Korea Market Press
+          </div>
+          {/* 데크 */}
+          <div style={{ fontFamily: "'Georgia',serif", fontStyle: 'italic', fontSize: 'clamp(13px,1.9vw,17px)', color: '#6B6250', marginTop: 15 }}>
+            The daily brief on Samsung Electronics &amp; SK&nbsp;Hynix, for global investors.
+          </div>
+          {/* CTA */}
+          <div style={{ marginTop: 22 }}>
+            <span style={{
+              fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700,
+              borderBottom: '1.5px solid #C9A96A', paddingBottom: 5, color: '#1A1712',
+            }}>
+              Read Today&apos;s Edition →
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ━━━ 1.3 콘텐츠 라인업 — 우리가 매일 발행하는 것 ━━━ */}
+      <section style={{ borderTop: '1px solid #F4F4F5' }}>
+        <div style={{ maxWidth: 1040, margin: '0 auto', padding: 'clamp(64px, 8vh, 96px) clamp(20px, 5vw, 40px)' }}>
+          <Reveal>
+            <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>WHAT WE PUBLISH</p>
+            <h2 style={{
+              fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, fontFamily: FONTS.serif,
+              color: '#18181B', textAlign: 'center', margin: '0 0 14px', letterSpacing: '-0.02em',
+            }}>
+              매일 아침, 시장을 읽는 네 개의 시선
+            </h2>
+            <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 auto 44px', lineHeight: 1.65, maxWidth: 540 }}>
+              공시 시그널부터 미국장의 흐름까지,<br />
+              하나의 맥락으로 이어 오늘 필요한 것만 전합니다.
+            </p>
+          </Reveal>
+          <Reveal d={100}>
+            <div className="ln-lineup">
+              {lineup.map((c, i) => (
+                <div key={i} onClick={() => navigate(c.route)} className="ln-card"
+                  onMouseEnter={e => { e.currentTarget.style.background = `${c.accent}0A`; e.currentTarget.style.boxShadow = `inset 0 3px 0 ${c.accent}` }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.boxShadow = 'none' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <span style={{ width: 30, height: 30, borderRadius: 9, background: `${c.accent}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ width: 11, height: 11, borderRadius: 3, background: c.accent }} />
+                    </span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: c.tagColor, padding: '3px 10px', borderRadius: 20, background: `${c.tagColor}12`, whiteSpace: 'nowrap' }}>{c.tag}</span>
+                  </div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: '#18181B', marginBottom: 7, letterSpacing: '-0.01em' }}>{c.title}</div>
+                  <div style={{ fontSize: 13.5, color: '#71717A', lineHeight: 1.6, flex: 1 }}>{c.desc}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: c.accent, marginTop: 18, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    바로가기 <span style={{ fontSize: 15, lineHeight: 1 }}>→</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </Reveal>
         </div>
@@ -830,6 +947,33 @@ export default function LandingPage() {
       <style>{`
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        /* 콘텐츠 라인업 — 하나의 프레임 안에 헤어라인으로 나뉜 4개 셀 (에디토리얼 인덱스) */
+        .ln-lineup {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1px;
+          background: #ECECEF;
+          border: 1px solid #ECECEF;
+          border-radius: 18px;
+          overflow: hidden;
+          box-shadow: 0 1px 2px rgba(24,24,27,0.03);
+        }
+        .ln-card {
+          display: flex;
+          flex-direction: column;
+          padding: 26px 22px 24px;
+          border: 0;
+          border-radius: 0;
+          background: #FFFFFF;
+          cursor: pointer;
+          transition: background 0.2s ease, box-shadow 0.2s ease;
+        }
+        @media (max-width: 900px) {
+          .ln-lineup { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 560px) {
+          .ln-lineup { grid-template-columns: 1fr; }
+        }
       `}</style>
     </div>
   )
