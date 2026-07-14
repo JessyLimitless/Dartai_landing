@@ -7,6 +7,7 @@ import { FONTS } from '../constants/theme'
 export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen)
   const [tab, setTab] = useState('signal')
+  const [cmpOpen, setCmpOpen] = useState(false)
   const UP = '#E8364E', DOWN = '#2563EB'
 
   const rows = (data && Array.isArray(data.picks)) ? data.picks : []
@@ -15,6 +16,7 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
   const overall = data.overall || {}
   const breakdown = data.breakdown || {}
   const best = data.best, worst = data.worst
+  const rc = data.rule_compare
 
   const colorOf = (v) => (typeof v !== 'number') ? colors.textMuted : v > 0 ? UP : v < 0 ? DOWN : colors.textMuted
   const fmt = (v, digits = 1) => {
@@ -275,6 +277,95 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* 룰 비교 — 청산룰별 백테스트 (접이식) */}
+          {rc && Array.isArray(rc.rows) && rc.rows.length > 0 && (
+            <div style={{ marginTop: 18 }}>
+              <button
+                onClick={() => setCmpOpen(o => !o)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  padding: '10px 0 8px', borderTop: `1px solid ${lineSep}`, textAlign: 'left',
+                }}
+              >
+                <span style={{
+                  fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
+                  background: 'rgba(37,99,235,0.12)', color: DOWN, letterSpacing: '0.03em',
+                }}>룰 비교</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: colors.textSecondary }}>
+                  청산룰별 백테스트
+                </span>
+                <span style={{ fontSize: 11.5, color: colors.textMuted }}>왜 트레일링 -12%인가</span>
+                <span style={{
+                  marginLeft: 'auto', fontSize: 11, color: colors.textMuted,
+                  transform: cmpOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s',
+                }}>▾</span>
+              </button>
+
+              {cmpOpen && (
+                <>
+                  <div style={{ fontSize: 10.5, color: colors.textMuted, margin: '4px 0 8px', lineHeight: 1.5 }}>
+                    같은 조건(<b style={{ color: colors.textSecondary }}>선정일 시가 진입 · 전체 {rc.universe || ''}건 매매</b>)에서 청산룰만 바꿔 비교. 평균 순.
+                  </div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ ...th, textAlign: 'left' }}>청산룰</th>
+                          <th style={th}>평균</th>
+                          <th style={th}>중앙값</th>
+                          <th style={th}>승률</th>
+                          <th style={th}>최고</th>
+                          <th style={th}>최저</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rc.rows.map((r, i) => (
+                          <tr key={i} style={r.current ? { background: dark ? 'rgba(34,197,94,0.08)' : 'rgba(34,197,94,0.06)' } : undefined}>
+                            <td style={{ ...td, textAlign: 'left', fontFamily: FONTS.body, color: colors.textPrimary, fontWeight: r.current ? 800 : 600 }}>
+                              {r.label}
+                              {r.current && (
+                                <span style={{
+                                  fontSize: 9, fontWeight: 800, color: '#16A34A', marginLeft: 5,
+                                  border: '1px solid rgba(34,197,94,0.4)', borderRadius: 3, padding: '0 4px',
+                                }}>현행</span>
+                              )}
+                            </td>
+                            <td style={{ ...td, color: colorOf(r.avg), fontWeight: r.current ? 800 : 700 }}>{fmt(r.avg)}</td>
+                            <td style={{ ...td, color: colors.textSecondary }}>{fmt(r.med)}</td>
+                            <td style={{ ...td, color: colors.textSecondary }}>{typeof r.win === 'number' ? `${r.win.toFixed(0)}%` : '–'}</td>
+                            <td style={{ ...td, color: colorOf(r.best) }}>{fmt(r.best)}</td>
+                            <td style={{ ...td, color: colorOf(r.worst) }}>{fmt(r.worst)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {rc.apparent_best && (
+                    <div style={{
+                      marginTop: 10, padding: '9px 11px', borderRadius: 10,
+                      border: `1px solid ${lineSep}`, background: dark ? '#141416' : '#FAFAFA',
+                    }}>
+                      <div style={{ fontSize: 10.5, color: colors.textMuted, marginBottom: 3 }}>겉보기 최고 조합 (동일조건 아님)</div>
+                      <div style={{ fontSize: 12, color: colors.textPrimary, fontWeight: 600 }}>
+                        {rc.apparent_best.label}
+                        <span style={{ fontFamily: FONTS.mono, color: colorOf(rc.apparent_best.avg), fontWeight: 800, marginLeft: 8 }}>
+                          {fmt(rc.apparent_best.avg)}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 10.5, color: colors.textMuted, marginTop: 3 }}>
+                        단, {rc.apparent_best.n}건만 매매(<b style={{ color: DOWN }}>{rc.apparent_best.skip}건 스킵</b>) · 최고 {fmt(rc.apparent_best.best)}에 상단 제한
+                      </div>
+                    </div>
+                  )}
+                  {rc.note && (
+                    <div style={{ fontSize: 10.5, color: colors.textMuted, marginTop: 8, lineHeight: 1.55 }}>{rc.note}</div>
+                  )}
+                </>
+              )}
             </div>
           )}
 
