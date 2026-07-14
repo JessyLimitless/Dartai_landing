@@ -68,8 +68,45 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
 
       {open && (
         <>
-          {/* 요약: 현재 평균 / 최고점 평균 / 승률 */}
-          <div style={{ display: 'flex', gap: 8, margin: '14px 0', flexWrap: 'wrap' }}>
+          {/* 대표 성과: 청산룰(선정일 시가 진입 + 트레일링 -12%) 적용 실현손익 */}
+          {overall.trail && (
+            <div style={{ margin: '14px 0 6px' }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: colors.textSecondary, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: 'rgba(34,197,94,0.14)', color: '#16A34A', letterSpacing: '0.03em' }}>룰 적용</span>
+                우리 매매룰대로 했으면
+                <span style={{ fontWeight: 500, color: colors.textMuted }}>· {overall.trail.rule}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {[
+                  ['실현 평균', overall.trail.avg, false],
+                  ['중앙값', overall.trail.med, false],
+                  ['승률', overall.trail.win, true],
+                  ['손실 제한', overall.trail.worst, false],
+                ].map(([label, val, isWin]) => (
+                  <div key={label} style={{
+                    flex: '1 1 0', minWidth: 82, padding: '10px 12px', borderRadius: 12,
+                    border: `1px solid ${lineSep}`, background: dark ? '#141416' : '#FFF',
+                  }}>
+                    <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>{label}</div>
+                    <div style={{
+                      fontSize: 17, fontWeight: 800, fontFamily: FONTS.mono,
+                      color: isWin ? colors.textPrimary : colorOf(val),
+                    }}>
+                      {typeof val !== 'number' ? '–' : isWin ? `${val.toFixed(0)}%` : fmt(val)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 10.5, color: colors.textMuted, marginTop: 6, lineHeight: 1.55 }}>
+                {overall.trail.n}건(청산 완료 {overall.trail.closed} · 보유중 {overall.trail.open}).
+                {data.sample_note ? ` ${data.sample_note}` : ''}
+              </div>
+            </div>
+          )}
+
+          {/* 참고: 룰 미적용 원자료 — 종목이 실제로 어떻게 움직였나 */}
+          <div style={{ fontSize: 10.5, color: colors.textMuted, margin: '12px 0 5px', fontWeight: 600 }}>참고 · 실제 추이(룰 미적용)</div>
+          <div style={{ display: 'flex', gap: 8, margin: '0 0 6px', flexWrap: 'wrap' }}>
             {[
               ['현재 평균', overall.latest?.avg, overall.latest?.n],
               ['최고점 평균', overall.peak?.avg, overall.peak?.n],
@@ -103,6 +140,7 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
                   <th style={th}>현재가</th>
                   <th style={th}>최고↑</th>
                   <th style={th}>최저↓</th>
+                  <th style={th} title="선정일 시가 진입 + 트레일링 -12% 실현손익">룰 실현</th>
                 </tr>
               </thead>
               <tbody>
@@ -155,6 +193,14 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
                       </td>
                       <td style={{ ...td, verticalAlign: 'top' }}>
                         <span style={{ color: colorOf(r.mdd?.pct), fontWeight: 700 }}>{fmt(r.mdd?.pct)}</span>
+                      </td>
+                      <td style={{ ...td, verticalAlign: 'top' }}>
+                        <span style={{ color: colorOf(r.trail?.pct), fontWeight: 800 }}>{fmt(r.trail?.pct)}</span>
+                        {r.trail && (
+                          <div style={{ fontSize: 9.5, color: colors.textMuted, marginTop: 2, fontFamily: FONTS.body }}>
+                            {r.trail.closed ? `청산·${r.trail.hold}일` : '보유중'}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )
@@ -234,7 +280,10 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
 
           <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 12, lineHeight: 1.6 }}>
             기준가 = <b style={{ color: colors.textSecondary }}>선정일 전 영업일(D-1) 종가</b>. “현재”는 장중 라이브(🟢)·없으면 최신 종가,
-            “최고↑/최저↓”는 선정일 이후 최대 상승·하락폭입니다. 소수계좌 알파는 <b style={{ color: colors.textSecondary }}>T+10~25일</b>에 나오니 최고점 도달률을 함께 보세요.
+            “최고↑/최저↓”는 선정일 이후 최대 상승·하락폭입니다.
+            “<b style={{ color: colors.textSecondary }}>룰 실현</b>”은 <b style={{ color: colors.textSecondary }}>선정일 시가에 진입</b>해
+            고점 대비 <b style={{ color: colors.textSecondary }}>-12% 트레일링</b>으로 청산했을 때의 손익입니다(진입가 기준이라 분모가 기준가와 다름).
+            소수계좌 알파는 <b style={{ color: colors.textSecondary }}>T+10~25일</b>에 나오니 최고점 도달률도 함께 보세요.
             시세는 키움 API 실측값입니다.
           </div>
         </>
