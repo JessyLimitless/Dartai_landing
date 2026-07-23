@@ -103,6 +103,42 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
                 {overall.trail.n}건(청산 완료 {overall.trail.closed} · 보유중 {overall.trail.open}).
                 {data.sample_note ? ` ${data.sample_note}` : ''}
               </div>
+
+              {/* 실현(청산 확정) vs 미실현(보유중) 분리 — 평균 하나로 섞어 보이지 않게 */}
+              {(overall.trail_realized || overall.trail_unrealized) && (
+                <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                  {[
+                    ['실현 · 청산 확정', overall.trail_realized],
+                    ['미실현 · 보유중', overall.trail_unrealized],
+                  ].map(([label, agg]) => (
+                    <div key={label} style={{
+                      flex: '1 1 0', minWidth: 148, padding: '10px 12px', borderRadius: 12,
+                      border: `1px solid ${lineSep}`,
+                      background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                    }}>
+                      <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>
+                        {label}{agg ? ` · ${agg.n}건` : ''}
+                      </div>
+                      {agg ? (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 17, fontWeight: 800, fontFamily: FONTS.mono, color: colorOf(agg.avg) }}>
+                            {fmt(agg.avg)}
+                          </span>
+                          <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>
+                            중앙 {fmt(agg.med)} · 승률 {typeof agg.win === 'number' ? `${agg.win.toFixed(0)}%` : '–'}
+                          </span>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 15, fontWeight: 700, color: colors.textMuted }}>해당 없음</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 5, lineHeight: 1.5 }}>
+                관측 모드라 실제 매도는 없습니다. ‘실현’은 관측된 가격경로에서 트레일링 룰이 발동한 지점으로 계산한 값이고,
+                ‘미실현’은 아직 룰이 발동하지 않은 보유중 픽의 현재 평가손익입니다.
+              </div>
             </div>
           )}
 

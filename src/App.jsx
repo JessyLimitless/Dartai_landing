@@ -27,6 +27,7 @@ const BriefingPage = lazy(() => import('./components/BriefingPage'))
 const DartPickPage = lazy(() => import('./components/DartPickPage'))
 const FeedbackPage = lazy(() => import('./components/FeedbackPage'))
 const USBeneficiaryPage = lazy(() => import('./components/USBeneficiaryPage'))
+const USMarketPage = lazy(() => import('./components/USMarketPage'))
 const MarketPressPage = lazy(() => import('./components/MarketPressPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
 const DartViewPage = lazy(() => import('./components/DartViewPage'))
@@ -130,6 +131,7 @@ export default function App() {
               <Route path="/briefing" element={<BriefingPage />} />
               <Route path="/dart-pick" element={<DartPickPage />} />
               <Route path="/feedback" element={<FeedbackPage />} /> {/* 관리자 전용 — 네비에서 숨김, 관리자>시그널>픽 채점 메뉴로 접근 */}
+              <Route path="/us-market" element={<USMarketPage />} />
               <Route path="/us-beneficiary" element={<USBeneficiaryPage />} />
               <Route path="/market-press" element={<MarketPressPage />} />
               <Route path="/market-press/:date" element={<MarketPressPage />} />
