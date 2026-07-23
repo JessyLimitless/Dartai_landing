@@ -22,6 +22,8 @@ export default function DartPickPage() {
   const [pick, setPick] = useState(null)
   const [extraPicks, setExtraPicks] = useState([])
   const [noPick, setNoPick] = useState(false)
+  // 결측(파이프라인 미실행) — "분석했고 임계 미달"인 noPick과 의미가 정반대다
+  const [unrecorded, setUnrecorded] = useState(false)
   const [note, setNote] = useState('')
   const [archive, setArchive] = useState([])
   const [scores, setScores] = useState(null)
@@ -43,6 +45,7 @@ export default function DartPickPage() {
         setPick(picks[0] || null)
         setExtraPicks(picks.slice(1))
         setNoPick(!!(today && today.no_pick))
+        setUnrecorded(!!(today && today.unrecorded))
         setNote((today && today.note) || '')
         const all = (list && Array.isArray(list.picks)) ? list.picks : []
         // 오늘(featured) 픽과 같은 날짜는 아카이브에서 제외
@@ -98,7 +101,11 @@ export default function DartPickPage() {
             ))}
           </div>
         ) : !pick ? (
-          noPick ? <NoPickState colors={colors} note={note} lineSep={lineSep} dark={dark} /> : <EmptyState colors={colors} />
+          unrecorded
+            ? <UnrecordedState colors={colors} note={note} lineSep={lineSep} dark={dark} />
+            : noPick
+              ? <NoPickState colors={colors} note={note} lineSep={lineSep} dark={dark} />
+              : <EmptyState colors={colors} />
         ) : (
           <div>
             {extraPicks.length > 0 && (
@@ -458,6 +465,32 @@ function NoPickState({ colors, note, lineSep, dark }) {
       <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.7, maxWidth: 420, margin: '0 auto' }}>
         {note || '기준 강도를 넘는 상승 시그널이 없어, 억지로 종목을 고르지 않았습니다. 신호가 약한 날은 쉬는 것도 전략입니다.'}
       </div>
+    </div>
+  )
+}
+
+// 파이프라인 미실행 → 결측. "분석했는데 미달"이 아니라 "그날은 분석 자체를 안 했다"는 뜻.
+// 사후에 결과를 보고 채우면 look-ahead bias라 비워둔 채로 정직하게 표기한다.
+function UnrecordedState({ colors, note, lineSep, dark }) {
+  return (
+    <div style={{
+      marginTop: 20, padding: '28px 20px', textAlign: 'center',
+      borderRadius: 16, border: `1px dashed ${lineSep}`,
+      background: dark ? '#141416' : '#FAFAFA',
+    }}>
+      <div style={{ fontSize: 16, fontWeight: 800, color: colors.textPrimary, marginBottom: 8 }}>
+        이 날은 픽 기록이 없습니다
+      </div>
+      <div style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.7, maxWidth: 440, margin: '0 auto' }}>
+        선정 파이프라인이 실행되지 않은 <b style={{ color: colors.textSecondary }}>결측</b>일입니다.
+        강도가 미달이라 쉬어간 날과는 다릅니다. 지나간 날을 결과를 보고 채우면
+        성적이 부풀려지기 때문에, <b style={{ color: colors.textSecondary }}>비워둔 채로 남깁니다.</b>
+      </div>
+      {note && (
+        <div style={{ fontSize: 12, color: colors.textMuted, lineHeight: 1.6, marginTop: 12, opacity: 0.8 }}>
+          {note}
+        </div>
+      )}
     </div>
   )
 }
