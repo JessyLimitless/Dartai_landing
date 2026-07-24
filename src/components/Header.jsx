@@ -106,6 +106,7 @@ export default function Header({
   const googleBtnRef = useRef(null)
   const [showGoogleBtn, setShowGoogleBtn] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showLoginNotice, setShowLoginNotice] = useState(false)
   const { user, login, logout } = useAuth()
 
   // 외부 클릭 시 유저 메뉴 닫기
@@ -290,11 +291,17 @@ export default function Header({
               )}
             </div>
           ) : (
-            <button onClick={handleGoogleLogin} style={{
+            <button onClick={() => setShowLoginNotice(true)} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
               background: 'none', border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
               color: colors.textMuted, fontSize: 12, fontWeight: 500,
               padding: '5px 12px', borderRadius: 6, cursor: 'pointer',
-            }}>로그인</button>
+            }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              로그인
+            </button>
           )}
           <button onClick={toggle} aria-label={dark ? 'Light' : 'Dark'}
             style={{
@@ -313,6 +320,65 @@ export default function Header({
           />
         </div>
       </header>}
+
+      {/* 로그인 = 프리미엄 회원 전용 안내 모달 */}
+      {showLoginNotice && (
+        <div onClick={() => setShowLoginNotice(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 10000,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: dark ? '#1A1A1E' : '#FFFFFF', borderRadius: 18, padding: '30px 26px',
+            textAlign: 'center', boxShadow: '0 16px 48px rgba(0,0,0,0.24)',
+            maxWidth: 360, width: '100%',
+          }}>
+            {/* 자물쇠 */}
+            <div style={{
+              width: 56, height: 56, borderRadius: 16, margin: '0 auto 18px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.07)',
+            }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+
+            <span style={{
+              display: 'inline-block', fontSize: 10, fontWeight: 900, letterSpacing: '0.06em',
+              color: '#3A2C00', background: PREMIUM_GOLD.gradient,
+              padding: '3px 8px', borderRadius: 5, marginBottom: 12,
+              boxShadow: `0 0 6px ${PREMIUM_GOLD.glow}`,
+            }}>PREMIUM</span>
+
+            <p style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, margin: '0 0 8px', fontFamily: FONTS.serif, letterSpacing: '-0.01em' }}>
+              로그인은 프리미엄 회원 전용이에요
+            </p>
+            <p style={{ fontSize: 13.5, color: colors.textMuted, lineHeight: 1.7, margin: '0 0 22px' }}>
+              로그인 계정은 <b style={{ color: colors.textSecondary }}>유료 회원</b>에게만 발급돼요.
+              공시·브리핑·미국장은 로그인 없이 무료로 이용하실 수 있어요.
+            </p>
+
+            <button onClick={() => { setShowLoginNotice(false); navigate('/inquiry?type=premium') }} style={{
+              width: '100%', padding: '13px', borderRadius: 12, border: 'none',
+              background: '#DC2626', color: '#fff', fontSize: 14.5, fontWeight: 700, cursor: 'pointer',
+            }}>
+              프리미엄 문의하기
+            </button>
+            <button onClick={() => { setShowLoginNotice(false); handleGoogleLogin() }} style={{
+              width: '100%', marginTop: 10, padding: '11px', borderRadius: 12,
+              border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : '#E4E4E7'}`, background: 'transparent',
+              color: colors.textSecondary, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+            }}>
+              이미 프리미엄 회원이에요 · Google 로그인
+            </button>
+            <button onClick={() => setShowLoginNotice(false)} style={{
+              marginTop: 12, background: 'none', border: 'none', cursor: 'pointer',
+              color: colors.textMuted, fontSize: 12.5,
+            }}>닫기</button>
+          </div>
+        </div>
+      )}
 
       {/* Google 로그인 폴백 모달 */}
       {showGoogleBtn && (
