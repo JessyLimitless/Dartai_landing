@@ -30,6 +30,7 @@ const USBeneficiaryPage = lazy(() => import('./components/USBeneficiaryPage'))
 const USMarketPage = lazy(() => import('./components/USMarketPage'))
 const MarketPressPage = lazy(() => import('./components/MarketPressPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
+const DividendPage = lazy(() => import('./components/DividendPage'))
 const DartViewPage = lazy(() => import('./components/DartViewPage'))
 const DartViewDetailLazy = lazy(() => import('./components/DartViewPage').then(m => ({ default: m.DartViewDetail })))
 const AdminPage = lazy(() => import('./components/AdminPage'))
@@ -135,6 +136,11 @@ export default function App() {
               <Route path="/us-beneficiary" element={<USBeneficiaryPage />} />
               <Route path="/market-press" element={<MarketPressPage />} />
               <Route path="/market-press/:date" element={<MarketPressPage />} />
+              <Route path="/dividend" element={<DividendPage />} />
+              {/* PRD의 서브메뉴 경로는 탭 쿼리로 흡수 — 링크 호환을 위해 리다이렉트 */}
+              <Route path="/dividend/screener" element={<Navigate to="/dividend" replace />} />
+              <Route path="/dividend/calendar" element={<Navigate to="/dividend?tab=calendar" replace />} />
+              <Route path="/dividend/capture" element={<Navigate to="/dividend?tab=capture" replace />} />
               <Route path="/history" element={<HistoryPage onViewCard={navigateToCard} />} />
               <Route path="/patterns" element={<PatternPage />} />
               <Route path="/ai-live" element={<Navigate to="/history" replace />} />

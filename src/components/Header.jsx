@@ -12,6 +12,7 @@ const TABS = [
   { key: '/dart-pick', label: 'DART 픽', mobileLabel: '픽', premium: true },
   { key: '/briefing', label: '브리핑', mobileLabel: '브리핑' },
   { key: '/us-market', label: '미국장', mobileLabel: '미국장' },
+  { key: '/dividend', label: '배당', mobileLabel: '배당' },
   // 재무분석(/dart-view): 미완성이라 정식 서비스에서 숨김. 라우트는 App.jsx에 유지 — 완성 시 이 줄 복구로 재노출.
   // { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
   { key: '/premium', label: '프리미엄', mobileLabel: '구독' },
@@ -59,6 +60,13 @@ const TAB_ICONS = {
   '/signal': (color, size = 18) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  ),
+  '/dividend': (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M14.8 9.2a3 3 0 0 0-2.8-1.7c-1.5 0-2.6.9-2.6 2.1 0 2.9 5.6 1.5 5.6 4.5 0 1.3-1.2 2.2-2.8 2.2a3.1 3.1 0 0 1-2.9-1.8" />
+      <line x1="12" y1="6" x2="12" y2="18" />
     </svg>
   ),
   '/dart-view': (color, size = 18) => (
