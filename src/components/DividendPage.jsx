@@ -42,6 +42,12 @@ const fmtDate = (s) => (s && s.length === 8 ? `${s.slice(4, 6)}.${s.slice(6, 8)}
 
 // ── 원자 컴포넌트 ────────────────────────────────────────────────
 
+/**
+ * 등급 칩 — 글자가 아니라 '말'로 쓴다.
+ * 같은 앱의 공시 등급은 S가 빨강인데 여기 S는 청록이라, 같은 글자에 다른 색이
+ * 붙어 서로를 오염시켰다. 배당 쪽을 '최우수/우수…' 라벨로 바꾸면 충돌 자체가 없다.
+ * 채도도 낮춘다 — 행마다 반복되는 요소를 솔리드로 칠하면 잉크만 늘고 서열은 안 읽힌다.
+ */
 function GradeBadge({ grade, size = 'md' }) {
   const { dark } = useTheme()
   const g = DIV_GRADE[grade] || DIV_GRADE.D
@@ -49,29 +55,34 @@ function GradeBadge({ grade, size = 'md' }) {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      minWidth: sm ? 20 : 24, height: sm ? 20 : 24, padding: '0 6px',
-      borderRadius: 6, fontSize: sm ? 11 : 12, fontWeight: 700,
-      fontFamily: FONTS.mono, letterSpacing: '0.02em',
-      background: g.solid, color: '#fff',
-      boxShadow: dark ? 'none' : `0 1px 3px ${g.solid}33`,
-    }}>{grade}</span>
+      height: sm ? 19 : 22, padding: sm ? '0 7px' : '0 9px',
+      borderRadius: 5, fontSize: sm ? 11 : 11.5, fontWeight: 700,
+      letterSpacing: '-0.01em', whiteSpace: 'nowrap',
+      background: dark ? `${g.solid}1F` : g.light,
+      color: dark ? g.darkText : g.text,
+      border: `1px solid ${dark ? `${g.solid}40` : `${g.solid}2E`}`,
+    }}>{g.label}</span>
   )
 }
 
-/** 안전점수 게이지 — 숫자와 막대를 함께 보여 한눈에 서열이 읽히게 한다 */
-function ScoreGauge({ score, grade, width = 92 }) {
+/**
+ * 안전점수 = 숫자 + 막대 + 등급 라벨을 한 셀에 묶는다.
+ * 등급은 점수를 요약한 값이므로 종목명 앞이 아니라 점수 옆에 있는 게 맞다.
+ * 행 맨 앞을 비우면 시선이 기업명부터 잡혀 위계가 산다.
+ */
+function ScoreGauge({ score, grade, width = 56 }) {
   const { dark } = useTheme()
   const g = DIV_GRADE[grade] || DIV_GRADE.D
   const pct = Math.max(0, Math.min(100, score || 0))
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
       <span style={{
-        fontFamily: FONTS.mono, fontSize: 14, fontWeight: 700, minWidth: 34,
+        fontFamily: FONTS.mono, fontSize: 14, fontWeight: 700, minWidth: 30,
         textAlign: 'right', color: dark ? g.darkText : g.text,
         fontVariantNumeric: 'tabular-nums',
       }}>{score ?? '—'}</span>
       <div style={{
-        width, height: 6, borderRadius: 3, overflow: 'hidden',
+        width, height: 5, borderRadius: 3, overflow: 'hidden', flexShrink: 0,
         background: dark ? 'rgba(255,255,255,0.08)' : '#EFEFF1',
       }}>
         <div style={{
@@ -79,6 +90,10 @@ function ScoreGauge({ score, grade, width = 92 }) {
           background: g.solid, transition: 'width .35s ease',
         }} />
       </div>
+      <span style={{
+        fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+        color: dark ? g.darkText : g.text, opacity: 0.85,
+      }}>{g.label}</span>
     </div>
   )
 }
@@ -111,7 +126,8 @@ function DpsSpark({ dps }) {
   )
 }
 
-function Stat({ label, value, sub, accent }) {
+/** 스탯 — primary는 한 줄에 하나만. 전부 같은 크기면 아무것도 강조되지 않는다. */
+function Stat({ label, value, sub, accent, primary }) {
   const { colors, dark } = useTheme()
   return (
     <div style={{ minWidth: 0 }}>
@@ -120,11 +136,15 @@ function Stat({ label, value, sub, accent }) {
         letterSpacing: '0.02em', marginBottom: 4, whiteSpace: 'nowrap',
       }}>{label}</div>
       <div style={{
-        fontFamily: FONTS.mono, fontSize: 19, fontWeight: 700, lineHeight: 1.1,
+        fontFamily: FONTS.mono, fontSize: primary ? 28 : 17, fontWeight: 700,
+        lineHeight: 1.05, letterSpacing: primary ? '-0.02em' : 0,
         color: accent ? (dark ? '#5EEAD4' : '#0F766E') : colors.textPrimary,
         fontVariantNumeric: 'tabular-nums',
       }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: colors.textMuted, marginTop: 3 }}>{sub}</div>}
+      {sub && <div style={{
+        fontSize: 11, color: colors.textMuted, marginTop: primary ? 5 : 3,
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+      }}>{sub}</div>}
     </div>
   )
 }
@@ -216,6 +236,24 @@ function ExpandedDetail({ row }) {
       background: dark ? 'rgba(255,255,255,0.022)' : '#FBFBFC',
       borderTop: `1px solid ${dark ? '#1E1E22' : '#F0F0F2'}`,
     }}>
+      {/* 수익률을 못 낸 종목은 왜 못 냈는지를 펼침 첫 줄에 밝힌다.
+          숫자를 감춘 채 '—'만 두면 사용자는 데이터가 없는 줄 안다. */}
+      {row.yield_block && (
+        <div style={{
+          marginBottom: 14, padding: '9px 12px', borderRadius: 8,
+          background: dark ? 'rgba(217,119,6,.09)' : '#FFFBEB',
+          border: `1px solid ${dark ? 'rgba(217,119,6,.22)' : '#FDE68A'}`,
+          fontSize: 12, lineHeight: 1.6, color: dark ? '#FCD34D' : '#B45309',
+        }}>
+          <b>수익률 산출 제외</b> · {row.yield_block_label}
+          {row.live_yield_raw != null && (
+            <span style={{ opacity: 0.8 }}>
+              {' '}(계산값 {row.live_yield_raw.toFixed(2)}% — 신뢰할 수 없어 표시하지 않습니다)
+            </span>
+          )}
+        </div>
+      )}
+
       <FactorBars factors={row.factors} />
 
       <div style={{
@@ -264,40 +302,73 @@ function ExpandedDetail({ row }) {
 function ScreenerTab() {
   const { colors, dark } = useTheme()
   const [preset, setPreset] = useState('all')
-  const [sort, setSort] = useState('score')
+  // 기본 정렬을 수익률로 둔다. 안전점수 순으로 세우면 상위 60행의 점수가
+  // 100/97 두 값뿐이라 게이지·등급·연속연수 세 칸이 전부 상수가 된다 —
+  // 화면이 비어 보이는 진짜 원인이 색이 아니라 이 정보량 0이었다.
+  const [sort, setSort] = useState('yield')
   const [basis, setBasis] = useState('live')
+  const [activeOnly, setActiveOnly] = useState(false)
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(null)
 
   const params = useMemo(() => ({
     ...(PRESETS.find((p) => p.key === preset)?.params || {}),
     sort, yield_basis: basis, limit: 60, q: q.trim() || undefined,
-  }), [preset, sort, basis, q])
+    active_only: activeOnly || undefined,
+  }), [preset, sort, basis, q, activeOnly])
 
   const { data, loading, error } = useDividend('screener', params)
   const s = data?.summary
   const items = data?.items || []
   const ykey = basis === 'live' ? 'live_yield' : 'dart_yield'
 
+  const blocked = s ? Object.values(s.yield_blocked || {}).reduce((a, b) => a + b, 0) : 0
+  const activePct = s?.universe ? Math.round((s.active_count / s.universe) * 100) : null
+
   return (
     <div>
-      {/* 요약 스트립 */}
-      <div style={{
+      {/* 요약 스트립 — 앞의 하나만 크게. '유니버스 2,352'를 헤드라인으로 쓰면
+          그중 976종이 3년 창에 배당이 0이라는 사실이 가려진다. */}
+      <div className="dv-stats" style={{
         ...getBoxStyle(dark, 'section'), padding: '16px 18px', marginBottom: 14,
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(112px, 1fr))', gap: 16,
       }}>
-        <Stat label="배당 유니버스" value={s ? `${s.universe.toLocaleString()}` : '—'} sub="종목" />
-        <Stat label="추천 등급 (A+)" value={s ? `${s.recommended_count.toLocaleString()}` : '—'} sub="65점 이상" accent />
-        <Stat label="평균 안전점수" value={s?.avg_score ?? '—'} sub="100점 만점" />
-        <Stat label="중앙 배당수익률" value={s ? fmtPct(s.med_yield) : '—'} sub={basis === 'live' ? '현재가 기준' : 'DART 시가배당률'} />
-        <Stat label="조건 충족" value={s ? `${s.matched.toLocaleString()}` : '—'} sub="종목" />
+        <div className="dv-stat-lead" style={{
+          paddingRight: 20, borderRight: `1px solid ${dark ? '#1E1E22' : '#F0F0F2'}`,
+        }}>
+          <Stat
+            primary accent
+            label="현역 배당주"
+            value={s ? s.active_count.toLocaleString() : '—'}
+            sub={s ? `전체 ${s.universe.toLocaleString()}종 중 ${activePct}% · 최근 3년 배당 기록` : ''}
+          />
+        </div>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: 16,
+        }}>
+          <Stat label="조건 충족" value={s ? s.matched.toLocaleString() : '—'} sub="현재 필터" />
+          <Stat label="중앙 배당수익률" value={s ? fmtPct(s.med_yield) : '—'}
+            sub={basis === 'live' ? '현재가 기준' : 'DART 시가배당률'} />
+          <Stat label="평균 안전점수" value={s?.avg_score ?? '—'} sub="100점 만점" />
+          <Stat label="수익률 산출 제외" value={blocked ? blocked.toLocaleString() : '—'}
+            sub="기준 불일치·기록 노후" />
+        </div>
       </div>
 
-      {s?.stale_count > 0 && (
-        <Notice tone="warn" title="가격 기준일 안내">
-          전체 {s.universe.toLocaleString()}종 중 <b>{s.stale_count.toLocaleString()}종</b>은 일봉 수집이 밀려
-          최신 거래일({fmtDate(s.price_as_of)})보다 오래된 종가로 수익률을 계산했습니다.
-          종목을 펼치면 각 종목의 기준 종가와 지연 일수를 확인할 수 있습니다.
+      {(s?.stale_count > 0 || blocked > 0) && (
+        <Notice tone="warn" title="이 수치를 그대로 믿기 전에">
+          {blocked > 0 && (
+            <div>
+              <b>{blocked.toLocaleString()}종</b>은 배당 기록이 오래됐거나 주가와 기준이 어긋나
+              수익률을 <b>산출하지 않았습니다</b>. 배당을 끊었다는 뜻이 아니라 <b>우리가 모른다</b>는 뜻이며,
+              해당 행에는 사유를 표시했습니다.
+            </div>
+          )}
+          {s?.stale_count > 0 && (
+            <div style={{ marginTop: blocked > 0 ? 5 : 0 }}>
+              <b>{s.stale_count.toLocaleString()}종</b>은 일봉 수집이 밀려 최신 거래일({fmtDate(s.price_as_of)})보다
+              오래된 종가를 썼습니다. 종목을 펼치면 기준 종가와 지연 일수가 보입니다.
+            </div>
+          )}
         </Notice>
       )}
 
@@ -338,6 +409,19 @@ function ScreenerTab() {
           ]} />
 
           <Segmented value={sort} onChange={setSort} options={SORTS} />
+
+          {/* 배당이 끊긴(또는 기록이 멈춘) 종목을 걷어내는 스위치.
+              안전점수 정렬에서 특히 필요하다 — 휴면 종목이 만점권에 섞여 올라온다. */}
+          <button onClick={() => { setActiveOnly((v) => !v); setOpen(null) }}
+            className="dv-chip"
+            style={{
+              padding: '7px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 12.5,
+              fontWeight: activeOnly ? 700 : 500,
+              border: `1px solid ${activeOnly ? PREMIUM.accent : (dark ? '#27272A' : '#E4E4E7')}`,
+              background: 'transparent',
+              color: activeOnly ? PREMIUM.accent : colors.textSecondary,
+              transition: 'all .18s ease',
+            }}>{activeOnly ? '✓ ' : ''}현역만</button>
         </div>
       </div>
 
@@ -377,16 +461,30 @@ function ScreenerTab() {
                   background: expanded ? (dark ? 'rgba(255,255,255,0.03)' : '#FAFAFB') : 'transparent',
                   transition: 'background .15s ease',
                 }}>
-                <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <GradeBadge grade={r.grade} size="sm" />
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{
+                <div style={{ minWidth: 0 }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 6, minWidth: 0,
+                  }}>
+                    <span style={{
                       fontSize: 13.5, fontWeight: 600, color: colors.textPrimary,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    }}>{r.corp_name}</div>
-                    <div style={{
-                      fontSize: 10.5, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 1,
-                    }}>{r.stock_code} · {r.consecutive_years}년 연속</div>
+                    }}>{r.corp_name}</span>
+                    {/* '휴면'은 기업이 배당을 끊었다는 단정이 아니라 최근 3년 창에
+                        기록이 없다는 뜻이다. 문구를 그렇게만 쓴다. */}
+                    {!r.dividend_active && (
+                      <span title="최근 3년 창에 배당 기록이 없습니다" style={{
+                        flexShrink: 0, fontSize: 10, fontWeight: 700, padding: '1px 5px',
+                        borderRadius: 4, color: dark ? '#A1A1AA' : '#71717A',
+                        background: dark ? 'rgba(255,255,255,0.06)' : '#F4F4F5',
+                      }}>휴면</span>
+                    )}
+                  </div>
+                  <div style={{
+                    fontSize: 10.5, color: colors.textMuted, fontFamily: FONTS.mono, marginTop: 1,
+                  }}>
+                    {r.stock_code} · {r.dividend_active
+                      ? `${r.consecutive_years}년 연속`
+                      : r.last_paid_year ? `최종 ${r.last_paid_year}년` : '배당 이력 없음'}
                   </div>
                 </div>
 
@@ -396,7 +494,16 @@ function ScreenerTab() {
                   textAlign: 'right', fontFamily: FONTS.mono, fontSize: 14, fontWeight: 700,
                   color: y >= 5 ? (dark ? '#5EEAD4' : '#0F766E') : colors.textPrimary,
                   fontVariantNumeric: 'tabular-nums',
-                }}>{fmtPct(y)}</div>
+                }}>
+                  {y == null && r.yield_block ? (
+                    <span title={r.yield_block_label} style={{
+                      fontFamily: FONTS.body, fontSize: 10.5, fontWeight: 600,
+                      padding: '2px 6px', borderRadius: 4, cursor: 'help',
+                      color: dark ? '#FCD34D' : '#B45309',
+                      background: dark ? 'rgba(217,119,6,.12)' : '#FFFBEB',
+                    }}>산출 제외</span>
+                  ) : fmtPct(y)}
+                </div>
 
                 <div className="dv-c-dps" style={{
                   textAlign: 'right', fontFamily: FONTS.mono, fontSize: 13,
@@ -466,8 +573,18 @@ function CalendarTab() {
 
   const buckets = data?.buckets || []
   const bmap = Object.fromEntries(buckets.map((b) => [b.month, b]))
-  const maxCount = Math.max(1, ...buckets.map((b) => b.count))
   const sel = data?.selected_month
+
+  // 12월 결산이 전체의 90%대라 선형 축에서는 나머지 11개월이 전부 바닥에 깔린다.
+  // 최댓값이 2위의 3배를 넘으면 축을 2위에 맞추고 그 막대만 잘라 표시한다 —
+  // 잘랐다는 사실을 눈에 보이게 두어야 축소를 왜곡으로 읽지 않는다.
+  const counts = buckets.map((b) => b.count).sort((a, b) => b - a)
+  const topCount = counts[0] || 1
+  const secondCount = counts[1] || 0
+  const clipped = topCount > Math.max(secondCount, 1) * 3
+  const scaleMax = Math.max(1, clipped ? secondCount : topCount)
+  const totalCount = buckets.reduce((a, b) => a + b.count, 0)
+  const domMonth = clipped ? buckets.find((b) => b.count === topCount) : null
 
   return (
     <div>
@@ -482,6 +599,21 @@ function CalendarTab() {
           fontSize: 12.5, fontWeight: 700, color: colors.textPrimary, marginBottom: 12,
         }}>결산월 분포 <span style={{ fontWeight: 400, color: colors.textMuted }}>· 막대를 눌러 해당 월 기업 보기</span></div>
 
+        {domMonth && (
+          <div style={{
+            fontSize: 12, lineHeight: 1.6, color: colors.textSecondary, marginBottom: 12,
+            paddingBottom: 12, borderBottom: `1px dashed ${dark ? '#232328' : '#EAEAEC'}`,
+          }}>
+            <b style={{ color: colors.textPrimary }}>{domMonth.label}</b>에
+            <b style={{ color: colors.textPrimary }}> {domMonth.count.toLocaleString()}종</b>
+            {totalCount ? ` (${Math.round((domMonth.count / totalCount) * 100)}%)` : ''}이 몰려 있습니다.
+            <span style={{ color: colors.textMuted }}>
+              {' '}이 막대를 그대로 그리면 나머지 달이 전부 바닥에 깔려서, 축을 2위 월에 맞추고
+              12월만 잘라 표시했습니다.
+            </span>
+          </div>
+        )}
+
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 5, alignItems: 'end',
           height: 110,
@@ -489,7 +621,8 @@ function CalendarTab() {
           {MONTHS.map((m) => {
             const b = bmap[m]
             const cnt = b?.count || 0
-            const h = cnt ? Math.max(6, (cnt / maxCount) * 76) : 3
+            const over = cnt > scaleMax
+            const h = cnt ? Math.max(6, Math.min(1, cnt / scaleMax) * 76) : 3
             const active = sel === m
             return (
               <button key={m} onClick={() => setMonth(m)} title={b ? `${b.label} ${cnt}종` : '해당 없음'}
@@ -504,10 +637,17 @@ function CalendarTab() {
                   color: active ? PREMIUM.accent : colors.textMuted,
                   opacity: cnt ? 1 : 0.35,
                 }}>{cnt || ''}</span>
+                {/* 잘린 막대는 위를 톱니로 끊어 '축을 넘었다'는 걸 눈으로 알린다.
+                    매끈하게 끝나면 2위 월과 같은 값으로 오독된다. */}
                 <div style={{
-                  width: '100%', height: h, borderRadius: '4px 4px 0 0',
+                  width: '100%', height: h,
+                  borderRadius: over ? '0 0 0 0' : '4px 4px 0 0',
                   background: active ? PREMIUM.accent : cnt ? (dark ? '#3F3F46' : '#D4D4D8') : (dark ? '#1E1E22' : '#EFEFF1'),
                   transition: 'background .18s ease, height .3s ease',
+                  ...(over ? {
+                    WebkitMaskImage: 'linear-gradient(#000 0 0)',
+                    clipPath: 'polygon(0 6%, 12% 0, 25% 6%, 38% 0, 50% 6%, 62% 0, 75% 6%, 88% 0, 100% 6%, 100% 100%, 0 100%)',
+                  } : null),
                 }} />
                 <span style={{
                   fontSize: 10.5, fontFamily: FONTS.mono,
@@ -731,7 +871,21 @@ export default function DividendPage() {
   return (
     <div>
       <style>{`
-        .dv-head, .dv-row { grid-template-columns: minmax(0,2.3fr) 148px 96px 96px 88px 64px; }
+        /* 종목 칸만 fr을 갖고 있으면 남는 폭을 전부 흡수해 이름과 숫자 사이에
+           빈 골이 생긴다. 모든 칸에 fr을 나눠 여유를 고르게 퍼뜨린다. */
+        .dv-head, .dv-row {
+          grid-template-columns:
+            minmax(0,268px) minmax(150px,1fr) minmax(94px,0.78fr)
+            minmax(98px,0.82fr) minmax(88px,0.72fr) minmax(64px,0.5fr);
+        }
+        .dv-stats { display: grid; grid-template-columns: minmax(176px, auto) 1fr; gap: 20px; align-items: center; }
+        @media (max-width: 720px) {
+          .dv-stats { grid-template-columns: 1fr; gap: 14px; }
+          .dv-stat-lead {
+            border-right: none !important; padding-right: 0 !important;
+            padding-bottom: 14px; border-bottom: 1px solid ${dark ? '#1E1E22' : '#F0F0F2'};
+          }
+        }
         .dv-cap-head, .dv-row.dv-cap { grid-template-columns: minmax(0,2.3fr) 108px 78px 96px 60px; }
         .dv-cal-grid { grid-template-columns: 1fr 1fr; }
         .dv-row:hover { background: ${dark ? 'rgba(255,255,255,0.028)' : '#FAFAFB'} !important; }
