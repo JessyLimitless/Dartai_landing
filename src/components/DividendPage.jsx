@@ -618,9 +618,16 @@ function CaptureTab() {
         <div>
           대신 <b>배당 결정 공시일 이후 시장(전종목 중앙값) 대비 초과수익</b>을 실측했습니다.
           공시가 주가를 올렸다는 뜻이 아니라 <b>공시 전후의 흐름</b>일 뿐입니다.
+          {/* 겹침 비율이 낮은데 "몰려 있다"고 쓰면 데이터가 부정하는 말을 하게 된다 —
+              과장된 경고도 부정확한 표기다. 문장을 실측 비율에서 갈라 쓴다. */}
           {data?.shock_overlap?.pct != null && (
-            <> 특히 표본의 <b>{data.shock_overlap.pct}%</b>가 {data.shock_overlap.window} 구간에 걸쳐 있어
-            시장 충격과 분리되지 않습니다.</>
+            data.shock_overlap.pct >= 30 ? (
+              <> 특히 표본의 <b>{data.shock_overlap.pct}%</b>가 {data.shock_overlap.window} 구간에 몰려 있어
+              시장 충격과 분리되지 않습니다.</>
+            ) : (
+              <> 표본의 <b>{data.shock_overlap.pct}%</b>는 {data.shock_overlap.window} 구간에 속하며,
+              그만큼은 시장 충격과 분리되지 않습니다.</>
+            )
           )}
         </div>
       </Notice>
