@@ -15,7 +15,10 @@ const TABS = [
   { key: '/dividend', label: '배당', mobileLabel: '배당' },
   // 재무분석(/dart-view): 미완성이라 정식 서비스에서 숨김. 라우트는 App.jsx에 유지 — 완성 시 이 줄 복구로 재노출.
   // { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
-  { key: '/premium', label: '프리미엄', mobileLabel: '구독' },
+  // 프리미엄은 하단 탭에서 뺀다. 375px에서 탭 7개(minWidth 56)는 폭을 넘겨
+  // 마지막 칸이 화면 밖으로 잘렸다 — 그래서 모바일에서 안 보였다.
+  // 대신 상단 헤더에 상시 노출되는 PRO 칩으로 올린다(아래 mobile-only).
+  { key: '/premium', label: '프리미엄', mobileLabel: '구독', mobileHidden: true },
 ]
 
 const TAB_ICONS = {
@@ -258,6 +261,23 @@ export default function Header({
 
         {/* Right: Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          {/* 모바일 전용 프리미엄 진입점 — 하단 탭에서 뺀 자리를 여기서 받는다.
+              결제 페이지가 아니라 안내 페이지라 상단 상시 노출로 충분하다. */}
+          {/* 글자 'PRO'로 두면 로고 바로 옆이라 'DART Insight PRO'라는 상품명으로
+              읽힌다. 아이콘 버튼으로 두면 옆의 테마·알림 버튼과 같은 문법이 된다. */}
+          <button onClick={() => navigate('/premium')} className="mobile-only" aria-label="프리미엄"
+            style={{
+              alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none',
+              width: 30, height: 30, borderRadius: 8, padding: 0,
+              background: location.pathname === '/premium'
+                ? (dark ? 'rgba(212,175,55,0.22)' : 'rgba(212,175,55,0.20)')
+                : 'transparent',
+            }}>
+            {TAB_ICONS['/premium'](
+              location.pathname === '/premium' ? '#D4AF37' : (dark ? '#C9A227' : '#A98A22'), 18
+            )}
+          </button>
+
           {/* PREMIUM 버튼 — 결제 연동 후 아래 주석 해제
           <button onClick={() => navigate('/premium')} className="desktop-nav" style={{
             padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer',
@@ -421,7 +441,7 @@ export default function Header({
         backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
         borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
       }}>
-        {TABS.filter(tab => !tab.desktopOnly).map((tab) => {
+        {TABS.filter(tab => !tab.desktopOnly && !tab.mobileHidden).map((tab) => {
           const active = isActive(tab.key)
           const iconColor = active ? accentColor : '#94A3B8'
           const IconFn = TAB_ICONS[tab.key]
@@ -461,9 +481,11 @@ export default function Header({
       <style>{`
         .desktop-nav { display: flex; }
         .bottom-tab-bar { display: none !important; }
+        .mobile-only { display: none !important; }
         @media (max-width: 768px) {
           .desktop-nav { display: none !important; }
           .bottom-tab-bar { display: flex !important; }
+          .mobile-only { display: inline-flex !important; }
         }
       `}</style>
     </>
