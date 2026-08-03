@@ -107,6 +107,7 @@ export default function AdminPage() {
             { key: 'top10', label: '🔥 TOP10' },
             { key: 'screener', label: '🎯 시그널 룰북' },
             { key: 'radar', label: '📡 매집 레이더' },
+            { key: 'credit', label: '⚠️ 신용리스크' },
             { key: 'focus', label: '집중관심' },
             { key: 'watchlist', label: '주목종목' },
             { key: 'ss', label: `SS급 ${ssItems.length}` },
@@ -174,6 +175,8 @@ export default function AdminPage() {
         <MinorityScreenerPanel colors={colors} dark={dark} sep={sep} />
       ) : tab === 'radar' ? (
         <CollectionRadarPanel colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'credit' ? (
+        <CreditRiskPanel colors={colors} dark={dark} sep={sep} />
       ) : tab === 'focus' ? (
         <FocusStocksPanel colors={colors} dark={dark} sep={sep} />
       ) : tab === 'watchlist' ? (
@@ -4956,6 +4959,209 @@ function CollectionRadarPanel({ colors, dark, sep }) {
       {items.length > 50 && (
         <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: colors.textMuted }}>
           상위 50종 표시 · 전체 {items.length}종
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// 신용 반대매매 위험 모니터 (주간) — credit_monitor.py 산출물
+// ⚠️ 확률이 아니라 노출도 랭킹이고, 매수가 아니라 회피 리스트다.
+function CreditRiskPanel({ colors, dark, sep }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [cohort, setCohort] = useState('trigger_near')
+  const [onlyNew, setOnlyNew] = useState(false)
+  const [sortByScore, setSortByScore] = useState(false)
+
+  useEffect(() => {
+    fetch(`${API}/api/admin/credit-risk`)
+      .then(r => r.json())
+      .then(d => setData(d))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>불러오는 중...</div>
+  if (!data || data.error) {
+    return (
+      <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted, fontSize: 13 }}>
+        {data?.error || '데이터 없음'}
+      </div>
+    )
+  }
+
+  const scoreColor = (s) => s >= 70 ? '#DC2626' : s >= 50 ? '#F97316' : s >= 35 ? '#F59E0B' : '#6B7280'
+  const fmtDate = (d) => d && d.length === 8 ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6)}` : '—'
+
+  const cohorts = data.cohorts || {}
+  const active = cohorts[cohort] || { items: [], count: 0, new_count: 0, label: '', desc: '' }
+  const newKey = cohort === 'high_ratio' ? 'new_high' : 'new_trigger'
+
+  let items = active.items || []
+  if (onlyNew) items = items.filter(it => it[newKey])
+  if (sortByScore) items = [...items].sort((a, b) => b.score - a.score)
+
+  const stale = data.stale_days
+  const staleWarn = stale != null && stale > 9  // 주간 배치 + T+1 지연 → 9일 넘으면 밀린 것
+
+  return (
+    <div>
+      {/* 헤더 */}
+      <div style={{
+        marginBottom: 12, padding: 16, borderRadius: 8,
+        background: dark ? 'rgba(220,38,38,0.10)' : 'rgba(220,38,38,0.05)',
+        border: `1px solid ${dark ? 'rgba(220,38,38,0.28)' : 'rgba(220,38,38,0.18)'}`,
+      }}>
+        <div style={{ fontWeight: 700, color: '#DC2626', fontSize: 15, marginBottom: 4 }}>
+          ⚠️ 신용 반대매매 위험 모니터
+          <span style={{ fontSize: 10, color: colors.textMuted, marginLeft: 6, padding: '1px 5px', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', borderRadius: 3 }}>주간</span>
+        </div>
+        <div style={{ fontSize: 11, color: colors.textMuted }}>
+          기준일 {fmtDate(data.as_of)} · 유니버스 {data.universe?.toLocaleString()}종 · 잔고율 중앙값 {data.median_remn_rt}%
+          {staleWarn && <span style={{ color: '#F97316', fontWeight: 700 }}> · {stale}일 지남 (배치 확인 필요)</span>}
+        </div>
+      </div>
+
+      {/* 읽는 법 — 확률 아님을 화면에서 못 놓치게 */}
+      <div style={{
+        fontSize: 11, color: colors.textPrimary, lineHeight: 1.7, padding: 12, marginBottom: 12,
+        background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+        border: `1px solid ${sep}`, borderRadius: 6,
+      }}>
+        <b>잔고율</b> = 신용융자 잔고 ÷ 상장주식. 터졌을 때 쏟아질 물량의 크기.{' '}
+        <b>낙폭</b> = 20일 고점 대비. 담보 트리거 근접도.{' '}
+        <b>소진</b> = 최근 5일 상환 ÷ 현재 잔고. 이미 빠져나가는 중인지.
+        <div style={{ marginTop: 6, color: colors.textMuted }}>
+          위험도는 <b>확률이 아니라 노출도 순위</b>다 — 종목별 반대매매 실적은 공표되지 않아 정답 라벨이 없고,
+          담보유지비율은 계좌 단위라 종목으로 분해되지 않는다.
+        </div>
+        <div style={{ marginTop: 4, color: '#DC2626', fontWeight: 600 }}>
+          매수 후보가 아니라 회피 리스트다 — 급락+신용소진 코호트의 +5d 시장초과 중앙값은 -2.94%로
+          소진 없는 급락(-0.05%)보다 나빴다(전수 실증).
+        </div>
+      </div>
+
+      {/* 코호트 선택 */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+        {[
+          { key: 'trigger_near', color: '#DC2626' },
+          { key: 'high_ratio', color: '#F59E0B' },
+        ].map(c => {
+          const co = cohorts[c.key]
+          if (!co) return null
+          const on = cohort === c.key
+          return (
+            <button key={c.key} onClick={() => { setCohort(c.key); setOnlyNew(false) }} style={{
+              padding: '7px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              background: on ? c.color : 'transparent', color: on ? '#fff' : c.color,
+              border: `1px solid ${c.color}`, borderRadius: 6,
+            }}>
+              {co.label} {co.count}종
+              {co.new_count > 0 && <span style={{ marginLeft: 4, opacity: 0.85 }}>· 신규 {co.new_count}</span>}
+            </button>
+          )
+        })}
+      </div>
+
+      <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 10 }}>{active.desc}</div>
+
+      {/* 보조 필터 */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+        {[
+          { on: onlyNew, set: () => setOnlyNew(v => !v), label: `이번 주 신규만 (${active.new_count || 0})` },
+          { on: sortByScore, set: () => setSortByScore(v => !v), label: '위험도순 정렬' },
+        ].map((f, i) => (
+          <button key={i} onClick={f.set} style={{
+            padding: '4px 9px', fontSize: 10, fontWeight: 600, cursor: 'pointer',
+            background: f.on ? colors.textPrimary : 'transparent',
+            color: f.on ? (dark ? '#000' : '#fff') : colors.textMuted,
+            border: `1px solid ${sep}`, borderRadius: 4,
+          }}>{f.label}</button>
+        ))}
+      </div>
+
+      {/* 리스트 */}
+      {items.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted, fontSize: 13 }}>조건에 맞는 종목 없음</div>
+      ) : (
+        <div>
+          {/* 헤더행 */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '38px 1fr 62px 62px 58px 52px',
+            gap: 6, padding: '0 10px 6px', fontSize: 10, color: colors.textMuted, fontWeight: 600,
+          }}>
+            <div>위험</div><div>종목</div>
+            <div style={{ textAlign: 'right' }}>현재가</div>
+            <div style={{ textAlign: 'right' }}>잔고율</div>
+            <div style={{ textAlign: 'right' }}>20일낙폭</div>
+            <div style={{ textAlign: 'right' }}>소진</div>
+          </div>
+
+          <div style={{ display: 'grid', gap: 4 }}>
+            {items.slice(0, 60).map(it => {
+              const sc = scoreColor(it.score)
+              const isNew = it[newKey]
+              const delta = it.remn_rt_delta
+              return (
+                <div key={it.code} style={{
+                  display: 'grid', gridTemplateColumns: '38px 1fr 62px 62px 58px 52px',
+                  gap: 6, alignItems: 'center', padding: '9px 10px', borderRadius: 6,
+                  background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                  border: `1px solid ${sep}`, borderLeft: `3px solid ${sc}`,
+                }}>
+                  <div style={{
+                    fontSize: 13, fontWeight: 700, fontFamily: FONTS.mono, color: sc, textAlign: 'center',
+                  }}>{it.score}</div>
+
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{
+                        fontSize: 13, fontWeight: 700, color: colors.textPrimary,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>{it.name || it.code}</span>
+                      {isNew && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
+                          background: '#DC2626', color: '#fff', flexShrink: 0,
+                        }}>NEW</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 9, color: colors.textMuted, fontFamily: FONTS.mono }}>{it.code}</div>
+                  </div>
+
+                  <div style={{ textAlign: 'right', fontSize: 11, fontFamily: FONTS.mono, color: colors.textSecondary }}>
+                    {it.price?.toLocaleString()}
+                  </div>
+
+                  <div style={{ textAlign: 'right', fontFamily: FONTS.mono }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: colors.textPrimary }}>{it.remn_rt}%</div>
+                    {delta != null && delta !== 0 && (
+                      <div style={{ fontSize: 9, color: delta > 0 ? '#DC2626' : '#10B981' }}>
+                        {delta > 0 ? '+' : ''}{delta}
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{
+                    textAlign: 'right', fontSize: 12, fontFamily: FONTS.mono, fontWeight: 600,
+                    color: it.dd20 <= -25 ? '#DC2626' : it.dd20 <= -15 ? '#F97316' : colors.textSecondary,
+                  }}>{it.dd20}%</div>
+
+                  <div style={{ textAlign: 'right', fontSize: 11, fontFamily: FONTS.mono, color: colors.textMuted }}>
+                    {it.churn5}%
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {items.length > 60 && (
+            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: colors.textMuted }}>
+              상위 60종 표시 · 조건 충족 {items.length}종
+            </div>
+          )}
         </div>
       )}
     </div>
