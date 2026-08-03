@@ -4973,6 +4973,7 @@ function CreditRiskPanel({ colors, dark, sep }) {
   const [loading, setLoading] = useState(true)
   const [cohort, setCohort] = useState('trigger_near')
   const [onlyNew, setOnlyNew] = useState(false)
+  const [onlyPending, setOnlyPending] = useState(false)
   const [sortByScore, setSortByScore] = useState(false)
 
   useEffect(() => {
@@ -5001,7 +5002,16 @@ function CreditRiskPanel({ colors, dark, sep }) {
 
   let items = active.items || []
   if (onlyNew) items = items.filter(it => it[newKey])
+  if (onlyPending) items = items.filter(it => it.pending)
   if (sortByScore) items = [...items].sort((a, b) => b.score - a.score)
+
+  // 집행 시차 — 급락일 D 기준 D+2가 순감소 봉우리(실측)
+  const lagStyle = (age) => {
+    if (age == null) return { text: '—', color: colors.textMuted, bg: 'transparent' }
+    if (age <= 1) return { text: `D+${age}`, color: '#fff', bg: '#DC2626' }        // 집행 전
+    if (age <= 3) return { text: `D+${age}`, color: '#fff', bg: '#F97316' }        // 피크 구간
+    return { text: `D+${age}`, color: colors.textMuted, bg: 'transparent' }        // 지나감
+  }
 
   const stale = data.stale_days
   const staleWarn = stale != null && stale > 9  // 주간 배치 + T+1 지연 → 9일 넘으면 밀린 것
@@ -5030,9 +5040,20 @@ function CreditRiskPanel({ colors, dark, sep }) {
         background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
         border: `1px solid ${sep}`, borderRadius: 6,
       }}>
-        <b>잔고율</b> = 신용융자 잔고 ÷ 상장주식. 터졌을 때 쏟아질 물량의 크기.{' '}
-        <b>낙폭</b> = 20일 고점 대비. 담보 트리거 근접도.{' '}
-        <b>소진</b> = 최근 5일 상환 ÷ 현재 잔고. 이미 빠져나가는 중인지.
+        <b>잔고율</b> = 신용융자 잔고 ÷ 상장주식(물량 크기).{' '}
+        <b>20일낙폭</b> = 고점 대비(트리거 근접도).{' '}
+        <b>잔고20일</b> = 신용잔고 증감(방향 — 양수면 소진이 아니라 재장전).{' '}
+        <b>5일회전</b> = 최근 5일 상환 ÷ 현재 잔고(속도). 분자는 흐름·분모는 재고라 100%를 넘을 수 있다.
+        <div style={{ marginTop: 6 }}>
+          <b>D+n</b> = 최근 급락(-8%↓)일로부터 경과 거래일.{' '}
+          실측상 잔고 순감소는 <b>D+2에 봉우리</b>·D+3까지 지속·D+4부터 평시 복귀
+          (전수 -1.16% / 잔고율3%+ -2.05% / -12%급락&3%+ -3.17%, 평시 -0.2~-0.8%).
+          <span style={{ color: '#DC2626', fontWeight: 600 }}> 빨강 D+0~1 = 집행 전(앞으로 옴)</span>,
+          <span style={{ color: '#F97316', fontWeight: 600 }}> 주황 D+2~3 = 피크 구간</span>.
+        </div>
+        <div style={{ marginTop: 4, color: colors.textMuted }}>
+          ⚠️ 주간 배치라 금요일 급락만 예고 창에 걸린다 — 주중 급락은 다음 리포트에서 이미 지나가 있다.
+        </div>
         <div style={{ marginTop: 6, color: colors.textMuted }}>
           위험도는 <b>확률이 아니라 노출도 순위</b>다 — 종목별 반대매매 실적은 공표되지 않아 정답 라벨이 없고,
           담보유지비율은 계좌 단위라 종목으로 분해되지 않는다.
@@ -5070,6 +5091,7 @@ function CreditRiskPanel({ colors, dark, sep }) {
       {/* 보조 필터 */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
         {[
+          { on: onlyPending, set: () => setOnlyPending(v => !v), label: `집행 전 D+0~1 (${active.pending_count || 0})` },
           { on: onlyNew, set: () => setOnlyNew(v => !v), label: `이번 주 신규만 (${active.new_count || 0})` },
           { on: sortByScore, set: () => setSortByScore(v => !v), label: '위험도순 정렬' },
         ].map((f, i) => (
@@ -5089,14 +5111,16 @@ function CreditRiskPanel({ colors, dark, sep }) {
         <div>
           {/* 헤더행 */}
           <div style={{
-            display: 'grid', gridTemplateColumns: '38px 1fr 62px 62px 58px 52px',
-            gap: 6, padding: '0 10px 6px', fontSize: 10, color: colors.textMuted, fontWeight: 600,
+            display: 'grid', gridTemplateColumns: '38px 1fr 58px 58px 54px 54px 42px 50px',
+            gap: 5, padding: '0 10px 6px', fontSize: 10, color: colors.textMuted, fontWeight: 600,
           }}>
             <div>위험</div><div>종목</div>
             <div style={{ textAlign: 'right' }}>현재가</div>
             <div style={{ textAlign: 'right' }}>잔고율</div>
             <div style={{ textAlign: 'right' }}>20일낙폭</div>
-            <div style={{ textAlign: 'right' }}>소진</div>
+            <div style={{ textAlign: 'right' }}>잔고20일</div>
+            <div style={{ textAlign: 'center' }}>D+n</div>
+            <div style={{ textAlign: 'right' }}>5일회전</div>
           </div>
 
           <div style={{ display: 'grid', gap: 4 }}>
@@ -5104,10 +5128,11 @@ function CreditRiskPanel({ colors, dark, sep }) {
               const sc = scoreColor(it.score)
               const isNew = it[newKey]
               const delta = it.remn_rt_delta
+              const lag = lagStyle(it.drop_age)
               return (
                 <div key={it.code} style={{
-                  display: 'grid', gridTemplateColumns: '38px 1fr 62px 62px 58px 52px',
-                  gap: 6, alignItems: 'center', padding: '9px 10px', borderRadius: 6,
+                  display: 'grid', gridTemplateColumns: '38px 1fr 58px 58px 54px 54px 42px 50px',
+                  gap: 5, alignItems: 'center', padding: '9px 10px', borderRadius: 6,
                   background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
                   border: `1px solid ${sep}`, borderLeft: `3px solid ${sc}`,
                 }}>
@@ -5148,6 +5173,21 @@ function CreditRiskPanel({ colors, dark, sep }) {
                     textAlign: 'right', fontSize: 12, fontFamily: FONTS.mono, fontWeight: 600,
                     color: it.dd20 <= -25 ? '#DC2626' : it.dd20 <= -15 ? '#F97316' : colors.textSecondary,
                   }}>{it.dd20}%</div>
+
+                  {/* 방향 — 음수라야 진짜 소진, 양수면 재장전 */}
+                  <div style={{
+                    textAlign: 'right', fontSize: 11, fontFamily: FONTS.mono, fontWeight: 600,
+                    color: it.burn20 <= -20 ? '#10B981' : it.burn20 >= 20 ? '#DC2626' : colors.textMuted,
+                  }}>{it.burn20 > 0 ? '+' : ''}{it.burn20}%</div>
+
+                  {/* 시차 */}
+                  <div style={{ textAlign: 'center' }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, fontFamily: FONTS.mono,
+                      padding: lag.bg === 'transparent' ? 0 : '2px 5px', borderRadius: 3,
+                      background: lag.bg, color: lag.color,
+                    }}>{lag.text}</span>
+                  </div>
 
                   <div style={{ textAlign: 'right', fontSize: 11, fontFamily: FONTS.mono, color: colors.textMuted }}>
                     {it.churn5}%
