@@ -51,6 +51,8 @@ const fmtAxis = (unit) => (v) => {
 function SeriesTooltip({ active, payload, label, unit, pctKeys = [] }) {
   const { colors, dark } = useTheme()
   if (!active || !payload || payload.length === 0) return null
+  // 축은 "2Q"로 줄였지만 툴팁엔 연도까지 온전히 보여준다.
+  const full = payload[0]?.payload?.label || label
   return (
     <div style={{
       backgroundColor: dark ? '#27272A' : '#fff',
@@ -59,7 +61,7 @@ function SeriesTooltip({ active, payload, label, unit, pctKeys = [] }) {
       minWidth: 168,
     }}>
       <div style={{ fontWeight: 700, fontSize: 11, marginBottom: 6, color: colors.textSecondary }}>
-        {label}
+        {full}
       </div>
       {payload.map((e, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
@@ -82,6 +84,30 @@ function SeriesTooltip({ active, payload, label, unit, pctKeys = [] }) {
     </div>
   )
 }
+
+// ── X축 눈금 ─────────────────────────────────────────────────────
+// 12분기를 한 줄에 넣으면 좁은 화면에서 슬롯이 ~26px라 "23.1Q"(5글자)가 옆 눈금과
+// 겹친다. 분기는 윗줄에 2글자로, 연도는 바뀌는 지점에만 아랫줄에 따로 찍는다.
+function QuarterTick({ x, y, payload, rows, colors }) {
+  const d = rows[payload?.index]
+  if (!d) return null
+  const prev = rows[payload.index - 1]
+  const showYear = !prev || prev.year !== d.year
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} dy={11} textAnchor="middle" fontSize={10} fill={colors.textMuted}>
+        {d.quarter}Q
+      </text>
+      {showYear && (
+        <text x={0} dy={24} textAnchor="middle" fontSize={10} fontWeight={700}
+          fill={colors.textSecondary}>
+          {`'${String(d.year).slice(2)}`}
+        </text>
+      )}
+    </g>
+  )
+}
+
 
 // ── 차트 껍데기 ───────────────────────────────────────────────────
 function ChartBlock({ title, caption, children }) {
@@ -141,7 +167,17 @@ export default function FinancialSeriesModal({ corpCode, corpName, onClose }) {
     }
   }, [onClose])
 
-  const quarters = data?.quarters || []
+  // X축 눈금: 12분기를 -45° 회전시키면 끝 라벨이 잘린다.
+  // 연도는 바뀌는 지점에만 붙이고 나머지는 "2Q"로 줄여 눕힌 채로 넣는다.
+  const quarters = React.useMemo(() => {
+    const qs = data?.quarters || []
+    return qs.map((q, i) => ({
+      ...q,
+      tick: (i === 0 || q.year !== qs[i - 1].year)
+        ? `${String(q.year).slice(2)}.${q.quarter}Q`
+        : `${q.quarter}Q`,
+    }))
+  }, [data])
   const hasFlow = quarters.some((q) => q.revenue != null)
   // 값이 전부 없는 시리즈는 그리지도, 범례에 올리지도 않는다.
   // (시가총액은 키움 조회 실패 시 통째로 비는데, 범례만 남으면 유령 시리즈가 된다)
@@ -174,7 +210,9 @@ export default function FinancialSeriesModal({ corpCode, corpName, onClose }) {
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
         backgroundColor: dark ? 'rgba(0,0,0,0.72)' : 'rgba(24,24,27,0.45)',
-        display: 'flex', justifyContent: 'center',
+        // alignItems 기본값 stretch면 안쪽 패널이 뷰포트 높이에 고정돼
+        // 배경만 거기서 끊기고 내용은 계속 흘러 마지막 차트가 패널 밖으로 나간다.
+        display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
         overflowY: 'auto', padding: '0',
       }}
     >
@@ -268,8 +306,9 @@ export default function FinancialSeriesModal({ corpCode, corpName, onClose }) {
                       <ResponsiveContainer width="100%" height={280}>
                         <ComposedChart data={quarters} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                           <CartesianGrid {...chartGrid(dark)} />
-                          <XAxis dataKey="label" {...chartAxis(colors)} interval={0}
-                            angle={-45} textAnchor="end" height={44} />
+                          <XAxis dataKey="tick" {...chartAxis(colors)} interval={0}
+                            height={34} minTickGap={0}
+                            tick={<QuarterTick rows={quarters} colors={colors} />} />
                           <YAxis yAxisId="left" {...chartAxis(colors)} tickFormatter={fmtAxis(isUnit)} />
                           <YAxis yAxisId="right" orientation="right" {...chartAxis(colors)}
                             tickFormatter={fmtAxis(isUnit)} hide={!has('market_cap')} />
@@ -317,8 +356,9 @@ export default function FinancialSeriesModal({ corpCode, corpName, onClose }) {
                     <ResponsiveContainer width="100%" height={280}>
                       <ComposedChart data={quarters} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                         <CartesianGrid {...chartGrid(dark)} />
-                        <XAxis dataKey="label" {...chartAxis(colors)} interval={0}
-                          angle={-45} textAnchor="end" height={44} />
+                        <XAxis dataKey="tick" {...chartAxis(colors)} interval={0}
+                          height={34} minTickGap={0}
+                          tick={<QuarterTick rows={quarters} colors={colors} />} />
                         <YAxis yAxisId="left" {...chartAxis(colors)} tickFormatter={fmtAxis(bsUnit)} />
                         <YAxis yAxisId="right" orientation="right" {...chartAxis(colors)}
                           tickFormatter={(v) => `${v}%`} />
@@ -349,8 +389,9 @@ export default function FinancialSeriesModal({ corpCode, corpName, onClose }) {
                       <ResponsiveContainer width="100%" height={280}>
                         <ComposedChart data={quarters} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                           <CartesianGrid {...chartGrid(dark)} />
-                          <XAxis dataKey="label" {...chartAxis(colors)} interval={0}
-                            angle={-45} textAnchor="end" height={44} />
+                          <XAxis dataKey="tick" {...chartAxis(colors)} interval={0}
+                            height={34} minTickGap={0}
+                            tick={<QuarterTick rows={quarters} colors={colors} />} />
                           <YAxis {...chartAxis(colors)} tickFormatter={fmtAxis(cfUnit)} />
                           <Tooltip content={<SeriesTooltip unit={cfUnit} />}
                             cursor={{ fill: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }} />
