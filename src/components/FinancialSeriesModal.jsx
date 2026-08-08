@@ -322,7 +322,9 @@ export default function FinancialSeriesModal({ corpCode, corpName, onClose }) {
                   {hasFlow && !hasStack && hasOp && (
                     <ChartBlock
                       title="실적"
-                      caption={`분기 영업이익 (단위 ${isUnit.suffix}원)`}
+                      caption={has('revenue')
+                        ? `분기 영업수익·영업이익 (단위 ${isUnit.suffix}원)`
+                        : `분기 영업이익 (단위 ${isUnit.suffix}원)`}
                     >
                       <ResponsiveContainer width="100%" height={250}>
                         <ComposedChart data={quarters} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
