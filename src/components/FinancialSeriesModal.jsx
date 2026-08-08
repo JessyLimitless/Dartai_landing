@@ -178,7 +178,16 @@ export default function FinancialSeriesModal({ corpCode, corpName, onClose }) {
         : `${q.quarter}Q`,
     }))
   }, [data])
-  const hasFlow = quarters.some((q) => q.revenue != null)
+  // 유량(손익·현금흐름)을 하나라도 산출했는가. 하나도 없으면 반기·사업보고서만
+  // 내는 기업이라 차분 자체가 불가능한 경우다.
+  const hasFlow = quarters.some(
+    (q) => q.revenue != null || q.operating_profit != null || q.operating_cf != null,
+  )
+  // 증권·은행은 매출 총계 계정도 매출원가도 아예 없다(2026-08-08 실측).
+  // 원가 스택은 못 그리지만 영업이익은 있으므로 스택 대신 영업이익만 보여준다.
+  const hasStack = quarters.some((q) => q.cogs != null)
+  const hasOp = quarters.some((q) => q.operating_profit != null)
+  const hasCf = quarters.some((q) => q.operating_cf != null)
   // 값이 전부 없는 시리즈는 그리지도, 범례에 올리지도 않는다.
   // (시가총액은 키움 조회 실패 시 통째로 비는데, 범례만 남으면 유령 시리즈가 된다)
   // 전부 0인 시리즈도 제외한다 — 막대는 안 보이는데 범례만 남는다.
@@ -294,11 +303,54 @@ export default function FinancialSeriesModal({ corpCode, corpName, onClose }) {
                 </div>
               )}
 
+              {hasFlow && !hasStack && (
+                <div style={{
+                  backgroundColor: dark ? 'rgba(37,99,235,0.10)' : '#EFF6FF',
+                  border: `1px solid ${dark ? 'rgba(37,99,235,0.25)' : '#BFDBFE'}`,
+                  borderRadius: 10, padding: '11px 13px', marginBottom: 18,
+                  fontSize: 12, color: colors.textSecondary, lineHeight: 1.6,
+                }}>
+                  금융업은 매출원가 개념이 없어 원가 구성 막대를 그릴 수 없어요.
+                  영업이익만 표시합니다.
+                </div>
+              )}
+
               {showTable ? (
                 <SeriesTable quarters={quarters} colors={colors} dark={dark} />
               ) : (
                 <>
-                  {hasFlow && (
+                  {hasFlow && !hasStack && hasOp && (
+                    <ChartBlock
+                      title="실적"
+                      caption={`분기 영업이익 (단위 ${isUnit.suffix}원)`}
+                    >
+                      <ResponsiveContainer width="100%" height={250}>
+                        <ComposedChart data={quarters} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
+                          <CartesianGrid {...chartGrid(dark)} />
+                          <XAxis dataKey="tick" {...chartAxis(colors)} interval={0}
+                            height={34} minTickGap={0}
+                            tick={<QuarterTick rows={quarters} colors={colors} />} />
+                          <YAxis {...chartAxis(colors)} tickFormatter={fmtAxis(isUnit)} />
+                          <Tooltip content={<SeriesTooltip unit={isUnit} />}
+                            cursor={{ fill: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }} />
+                          <Legend wrapperStyle={legendStyle(colors)} iconType="circle" iconSize={7} itemSorter={null}
+                            payload={legendOf([
+                              ...(has('revenue') ? [['영업수익', C.s1]] : []),
+                              ['영업이익', C.s3],
+                            ])} />
+                          <ReferenceLine y={0} stroke={dark ? '#383835' : '#C3C2B7'} strokeWidth={1} />
+                          {has('revenue') && (
+                            <Bar dataKey="revenue" name="영업수익" fill={C.s1}
+                              stroke={surface} strokeWidth={1} maxBarSize={26} radius={[4, 4, 0, 0]} />
+                          )}
+                          <Bar dataKey="operating_profit" name="영업이익" fill={C.s3}
+                            stroke={surface} strokeWidth={1} maxBarSize={26} radius={[4, 4, 0, 0]} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </ChartBlock>
+                  )}
+
+                  {hasStack && (
                     <ChartBlock
                       title="실적"
                       caption={`매출원가 + 판매관리비 + 영업이익 = 매출액 (단위 ${isUnit.suffix}원)`}
@@ -381,7 +433,7 @@ export default function FinancialSeriesModal({ corpCode, corpName, onClose }) {
                     </ResponsiveContainer>
                   </ChartBlock>
 
-                  {hasFlow && (
+                  {hasCf && (
                     <ChartBlock
                       title="현금흐름"
                       caption={`막대는 잉여현금흐름(영업CF − CAPEX), 선은 활동별 현금흐름 (단위 ${cfUnit.suffix}원)`}
