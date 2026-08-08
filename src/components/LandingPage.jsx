@@ -98,32 +98,10 @@ export default function LandingPage() {
   return (
     <div style={{ fontFamily: FONTS.body, overflowX: 'hidden', background: '#FFFFFF' }}>
 
-      {/* ━━━ 0. KOREA MARKET PRESS 상단 리본 (슬림·에디토리얼) ━━━ */}
-      <div
-        onClick={() => navigate('/market-press')}
-        style={{
-          cursor: 'pointer', background: '#12100C', color: '#EDE8DC',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: 12, flexWrap: 'wrap',
-          padding: '8px 16px', fontSize: 12.5, textAlign: 'center',
-          lineHeight: 1.5, letterSpacing: '0.02em',
-        }}
-      >
-        <span style={{
-          fontFamily: "'Georgia',serif", fontStyle: 'italic',
-          color: '#C9A96A', fontSize: 12,
-        }}>Now in English</span>
-        <span style={{
-          fontFamily: "'Georgia',serif", fontWeight: 700, letterSpacing: '0.01em',
-        }}>Korea Market Press</span>
-        <span style={{ color: '#B0A992', fontWeight: 300 }}>— on Samsung &amp; SK&nbsp;Hynix</span>
-        <span style={{
-          whiteSpace: 'nowrap', fontWeight: 600,
-          borderBottom: '1px solid #C9A96A', paddingBottom: 1,
-        }}>Read →</span>
-      </div>
-
       {/* ━━━ 1. 히어로 ━━━ */}
+      {/* 상단 KOREA MARKET PRESS 리본 삭제(2026-08-08):
+          바로 아래 1.2 마스트헤드 섹션이 같은 목적지·같은 메시지를 더 잘 전달하는 중복이었고,
+          다크 리본이 DART Insight 로고보다 위에 와서 브랜드 위계가 뒤집혀 있었다. */}
       <section style={{
         minHeight: '100dvh', display: 'flex', flexDirection: 'column',
         justifyContent: 'center', alignItems: 'center',
