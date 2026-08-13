@@ -109,11 +109,11 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
           </tr></thead>
           <tbody>
             {[
-              ['완숙 실현분', '22', '0.597', '≈ 14.9%p', '15%p 미만 효과엔 눈이 멀어 있음', 'red'],
-              ['정본 구간(07-07~)', '35', '0.473', '≈ 11.8%p', '여전히 두 자릿수 효과만 보임', 'red'],
-              ['전수 픽', '61', '0.359', '≈ 9.0%p', '9%p 미만은 잡음과 구분 불가', 'orange'],
-              ['소급 모집단(제안)', '500', '0.125', '≈ 3.1%p', '실무적으로 의미있는 구간 진입', 'green'],
-              ['소급 모집단(제안)', '3,000', '0.051', '≈ 1.3%p', '수수료·슬리피지 수준까지 분해', 'green'],
+              ['완숙 실현분', '22', '0.597', '≈ 18.8%p', 'σ 31.5 — 대박 픽이 전부 여기 있다', 'red'],
+              ['정본 구간(07-07~)', '35', '0.473', '≈ 7.8%p', 'σ 16.6 — 단 아직 안 익어서 작다', 'orange'],
+              ['전수 픽', '61', '0.359', '≈ 8.5%p', '8%p 미만은 잡음과 구분 불가', 'orange'],
+              ['소급 모집단(제안)', '500', '0.125', '≈ 3.0%p', '실무적으로 의미있는 구간 진입', 'green'],
+              ['소급 모집단(제안)', '3,000', '0.051', '≈ 1.2%p', '수수료·슬리피지 수준까지 분해', 'green'],
             ].map((r, i) => (
               <tr key={i}>
                 <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>{r[0]}</td>
@@ -127,9 +127,22 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
         </table>
       </div>
       <p style={{ ...p, fontSize: 12.5, color: colors.textMuted }}>
-        양측 α=0.05 · 검정력 0.80. 수익률 환산은 건당 수익 표준편차 25%p 가정
-        (로그정규 적합 σ≈0.335 대비 보수적 — 실측으로 대체해야 한다, §10).
+        양측 α=0.05 · 검정력 0.80. 수익률 환산 = d × σ 이고, <b style={strong}>σ는 2026-08-13 실측값</b>이다
+        (`_sigma_reconcile.py`, 현행 운영룰 기준). 초판은 전 행에 25%p를 가정했으나
+        σ는 모집단마다 다르다 — 아래 상자 참조.
       </p>
+      <div style={{ ...quote, borderLeft: '3px solid #D97706' }}>
+        <b style={strong}>σ는 상수가 아니었다.</b> 실측하니 정본 <b style={strong}>16.6%p</b> ·
+        전수 23.7%p · 산발 30.9%p · 완숙 <b style={strong}>31.5%p</b>로 <b style={strong}>2배 가까이 벌어진다.</b>
+        대박 픽(+120%·+174%)이 전부 산발·완숙 구간에 있기 때문이다. 그래서 초판의 단일 σ 가정은
+        <b style={strong}> 완숙 행을 낙관적으로, 정본 행을 비관적으로</b> 동시에 틀렸다
+        (14.9 → 18.8 / 11.8 → 7.8).
+        <br /><br />
+        ⚠️ <b style={strong}>정본의 7.8%p를 그대로 믿으면 안 된다.</b> 정본 σ가 작은 건 실력이 아니라
+        <b style={strong}> 아직 안 익어서</b>다. 완숙되며 큰 움직임이 실현되면 σ는 산발 수준(≈31)으로
+        올라갈 수 있고, 그러면 탐지 하한도 <b style={strong}>≈14.7%p로 되돌아간다.</b> 지금 값은
+        낙관 쪽으로 치우친 하한이다.
+      </div>
       <div style={quote}>
         알파 측정의 <b style={strong}>p=1.000</b>은 실패한 실험이 아니다. 정상 작동하는 검출기가
         &ldquo;내 분해능 아래&rdquo;라고 보고한 것이다. 지금 필요한 건 더 좋은 전략이 아니라 <b style={strong}>더 좋은 검출기</b>다.
@@ -261,21 +274,30 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
         그런데 여러 후보 중 <b style={strong}>최댓값을 고르는 행위 자체가 편향</b>이다.
         참 알파가 정확히 0인 세계에서도 100개 중 1등은 반드시 앞서 보인다.
       </p>
-      <div style={mono}>{`SE = sigma / sqrt(n) = 0.335 / sqrt(54) = 4.56%p
+      <div style={mono}>{`[초판] SE = sigma / sqrt(n) = 0.335 / sqrt(54) = 4.56%p
+[실측] SE_pair = SD(A-B) / sqrt(n) = 10.53 / sqrt(60) = 1.36%p
 
 참 알파가 0일 때 N개 중 최댓값의 기대치:
     E[max] ≈ SE · sqrt(2 · ln N)
 
-    N=  5  →   8.18%p
-    N= 20  →  11.16%p
-    N=100  →  13.84%p   ← 현행 그리드 크기
+              초판      실측(짝지음)
+    N=  5    8.18%p      2.44%p
+    N= 20   11.16%p      3.33%p
+    N=100   13.84%p      4.13%p   ← 현행 그리드 크기
 
 실제 관측된 최고-현행 격차          =  3.52%p
-                                       ↑ 잡음 상한의 25%`}</div>
+                                       ↑ 실측 상한의 85%`}</div>
       <p style={p}>
-        <b style={strong}>그리드 전체의 성과 격차가 잡음 상한 안에 통째로 들어있다.</b>
-        100개 룰이 서로 강하게 상관돼 있어 유효 N은 100보다 훨씬 작지만, 보수적으로 유효 N=10까지 낮춰 잡아도
-        잡음 상한은 <b style={strong}>9.78%p</b>로 관측 격차의 <b style={strong}>2.8배</b>다.
+        <b style={strong}>결론은 살아남지만 여유가 훨씬 좁다.</b> 초판은 격차가 잡음 상한의 25%라고 했는데,
+        실측 상한으로 재면 <b style={strong}>85%</b>다. N_eff=30 기준 짝지은 상한 4.63%p 대비로도
+        격차 3.52%p는 여전히 안쪽이라 <b style={strong}>&ldquo;유지&rdquo; 판정 자체는 바뀌지 않는다.</b>
+        다만 &ldquo;통째로 잡음 안&rdquo;이라고 말할 만큼 넉넉하지는 않다.
+      </p>
+      <p style={p}>
+        초판이 상한을 부풀린 원인은 <b style={strong}>두 개가 곱해진 것</b>이다 —
+        σ 과대(<b style={strong}>1.42배</b>, 로그정규 적합이 두꺼운 꼬리를 σ로 흡수)
+        × 짝 안 지음(<b style={strong}>2.24배</b>, 100개 룰이 같은 픽 위에서 도는데 단일 룰 SE를 씀)
+        = 합계 <b style={strong}>3.18배</b>.
       </p>
 
       <h3 style={h3}>이 계산이 과거 판정들을 사후 정당화한다</h3>
@@ -293,17 +315,17 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
         <table style={tbl}>
           <thead><tr>
             <th style={th}>표본 n</th>
-            <th style={{ ...th, textAlign: 'right' }}>SE</th>
-            <th style={{ ...th, textAlign: 'right' }}>필요 마진 (N_eff=30)</th>
+            <th style={{ ...th, textAlign: 'right' }}>초판 마진</th>
+            <th style={{ ...th, textAlign: 'right' }}>실측 마진 (N_eff=30)</th>
             <th style={{ ...th, textAlign: 'right' }}>현행 1.5%p 대비</th>
           </tr></thead>
           <tbody>
             {[
-              ['22 (완숙)', '7.14%p', '18.63%p', '12.4× 느슨', 'red'],
-              ['54 (현재 측정)', '4.56%p', '11.89%p', '7.9× 느슨', 'red'],
-              ['200', '2.37%p', '6.18%p', '4.1× 느슨', 'orange'],
-              ['1,000', '1.06%p', '2.76%p', '1.8× 느슨', 'orange'],
-              ['3,000 (소급 제안)', '0.61%p', '1.60%p', '적정', 'green'],
+              ['22 (완숙)', '18.63%p', '5.86%p', '3.9× 느슨', 'red'],
+              ['54 (2026-08-08 측정)', '11.89%p', '3.74%p', '2.5× 느슨', 'orange'],
+              ['200', '6.18%p', '1.94%p', '1.3× 느슨', 'green'],
+              ['1,000', '2.76%p', '0.87%p', '되레 빡빡', 'green'],
+              ['3,000 (소급 제안)', '1.60%p', '0.50%p', '되레 빡빡', 'green'],
             ].map((r, i) => (
               <tr key={i} style={{ background: r[4] === 'green' ? (dark ? 'rgba(22,163,74,0.07)' : 'rgba(22,163,74,0.04)') : 'transparent' }}>
                 <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>{r[0]}</td>
@@ -316,10 +338,13 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
         </table>
       </div>
       <div style={quote}>
-        <b style={strong}>1.5%p는 틀린 숫자가 아니라 표본 3,000건짜리 숫자다.</b>
-        현재 표본에서 그 임계를 쓰면 잡음이 만든 우위를 진짜 개선으로 채택하게 된다.
-        그리고 이 사실이 §6의 소급 모집단 제안을 다시 한번 지지한다 — 표본이 3,000이 되는 순간
-        <b style={strong}> 지금 쓰는 임계가 비로소 옳아진다.</b>
+        <b style={strong}>초판의 &ldquo;1.5%p는 표본 3,000건짜리 숫자다&rdquo;는 틀렸다.</b>
+        짝지어 실측하면 <b style={strong}>n≈200에서 이미 적정</b>해진다(1.94%p). 3,000에서는
+        되레 현행 임계가 <b style={strong}>느슨한 게 아니라 빡빡해진다</b>(0.50%p).
+        <br /><br />
+        이건 §6의 소급 모집단 대공사가 <b style={strong}>임계를 옳게 만들기 위해서는 필요 없다</b>는 뜻이다.
+        다만 팩터 8개를 추정하려면 <span style={{ fontFamily: FONTS.mono }}>n/p ≥ 10</span> 요구가 별개로 살아 있어
+        <b style={strong}> 큰 표본은 여전히 필요하다</b> — 이유가 바뀐 것이지 결론이 뒤집힌 게 아니다.
       </div>
       <p style={{ ...p, fontSize: 12.5, color: colors.textMuted }}>
         보완: 정식 처리는 Deflated Sharpe Ratio(Bailey &amp; López de Prado)로, 시행 횟수와 룰 간 상관을 함께 넣어
@@ -523,9 +548,9 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
               ['B3', '포지션 사이징 정의 (1/n 고정부터)',
                 'MDD KPI가 계산되기 위한 선행조건. Risk Parity는 표본이 없으므로 나중',
                 '중간', 'orange'],
-              ['B4', '건당 수익 σ 실측',
-                '§1 검정력 표의 수익률 환산이 통째로 σ=25%p 가정에 의존. 실측으로 대체하면 8주 계획의 정밀도가 올라감',
-                '중간', 'orange'],
+              ['B4', '건당 수익 σ 실측 — 완료(08-13)',
+                '실측 결과 σ는 단일값이 아니었다(정본 16.6 ~ 완숙 31.5). §1·§4 반영 완료. 남은 것은 정본이 완숙되며 σ가 산발 수준으로 올라가는지 재측정',
+                '완료', 'green'],
             ].map((r, i) => (
               <tr key={i}>
                 <td style={{ ...td, fontFamily: FONTS.mono, fontWeight: 700, color: '#D97706' }}>{r[0]}</td>
@@ -694,12 +719,19 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
           A1이 이걸 즉시 대체한다 — 그래서 A1을 1순위에 뒀다.
         </div>
       </div>
-      <div style={card('#D97706')}>
-        <div style={{ ...cardLabel, color: '#D97706' }}>③ 검정력·다중검정 계산의 σ=0.335는 적합값이다</div>
+      <div style={card('#16A34A')}>
+        <div style={{ ...cardLabel, color: '#16A34A' }}>③ σ=0.335는 적합값이다 → <b>해결(2026-08-13)</b></div>
         <div style={cardBody}>
-          §1의 수익률 환산과 §4의 마진 표가 통째로 이 값에 의존한다. 실측 σ가 더 크면 필요 표본과 필요 마진이 모두 커지고,
-          내 8주 계획은 <b style={strong}>더 보수적으로 재작성되어야 한다.</b> B4가 이걸 처리한다.
-          다만 §1의 d 열과 §4의 <span style={{ fontFamily: FONTS.mono }}>sqrt(2·lnN)</span> 배수는 σ와 무관하므로 그쪽이 더 단단한 숫자다.
+          실측했다. <b style={strong}>내 예측은 방향이 반대였다</b> — &ldquo;실측 σ가 더 크면 더 보수적으로
+          재작성해야 한다&rdquo;고 썼는데, 실제 σ는 더 <b style={strong}>작았다</b>(전수 23.7 vs 적합 33.5).
+          로그정규 적합이 두꺼운 꼬리를 σ로 흡수해 부풀린 것이다.
+          <br /><br />
+          더 중요한 건 <b style={strong}>σ가 단일값이 아니었다는 점</b>이다(정본 16.6 ~ 완숙 31.5).
+          단일 σ를 전 행에 쓴 탓에 §1은 완숙 행을 낙관·정본 행을 비관으로 <b style={strong}>동시에</b> 틀렸다.
+          내 자기비판이 &ldquo;값이 얼마냐&rdquo;를 물었지 &ldquo;하나이긴 하냐&rdquo;를 묻지 않은 것이 진짜 사각이었다.
+          <br /><br />
+          §1의 d 열과 <span style={{ fontFamily: FONTS.mono }}>sqrt(2·lnN)</span> 배수가 σ와 무관해 더 단단하다는
+          진술은 <b style={strong}>맞았다</b> — 그 두 열은 이번 정정에서 그대로다.
         </div>
       </div>
 
