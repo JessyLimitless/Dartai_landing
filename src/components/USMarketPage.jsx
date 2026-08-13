@@ -79,6 +79,10 @@ export default function USMarketPage() {
     }
   }
 
+  // ADR 시세 블록 (가격 + 애프터마켓) — 백엔드가 Yahoo 한 소스로 채워 보낸다.
+  // ⚠️ 원주(000660)와 가격을 산술 비교하지 말 것. ADR 1주 ≠ 원주 1주.
+  const adr = data?.adr || null
+
   const cats = data?.categories || []
   const core = cats.filter(c => c.tier === 'core')
   const sat = cats.filter(c => c.tier === 'satellite')
@@ -134,12 +138,27 @@ export default function USMarketPage() {
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
+                  {/* 등락률·가격은 같은 소스(adr 블록)에서 온다. 없으면 카테고리 %로 폴백. */}
                   <div style={{
                     fontSize: 34, fontWeight: 800, fontFamily: FONTS.mono, lineHeight: 1,
-                    color: hynix.change >= 0 ? '#DC2626' : '#2563EB',
+                    color: (adr ? adr.change : hynix.change) >= 0 ? '#DC2626' : '#2563EB',
                   }}>
-                    {fmtPct(hynix.change)}
+                    {fmtPct(adr ? adr.change : hynix.change)}
                   </div>
+                  {adr && (
+                    <div style={{ fontSize: 15, fontWeight: 700, fontFamily: FONTS.mono, color: colors.textPrimary, marginTop: 6 }}>
+                      ${adr.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <span style={{ fontSize: 11.5, fontWeight: 500, color: t.dim, marginLeft: 6 }}>정규장 종가</span>
+                    </div>
+                  )}
+                  {adr && adr.after_price != null && (
+                    <div style={{ fontSize: 12.5, fontFamily: FONTS.mono, color: t.sub, marginTop: 3 }}>
+                      애프터 ${adr.after_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <span style={{ color: adr.after_change >= 0 ? '#DC2626' : '#2563EB', marginLeft: 5, fontWeight: 700 }}>
+                        {fmtPct(adr.after_change)}
+                      </span>
+                    </div>
+                  )}
                   {memPair.length > 0 && (
                     <div style={{ fontSize: 12, color: t.sub, marginTop: 6 }}>
                       메모리 쌍 {memPair.map(m => `${m.name} ${fmtPct(m.change)}`).join(' · ')}
