@@ -35,6 +35,33 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
     return out
   }
 
+  // 원금 10억 복리 시뮬 (백엔드 modules/pick_compound.py)
+  const cp = data.compound || null
+  const eok = (v) => (typeof v !== 'number') ? '–' : `${(v / 1e8).toFixed(2)}억`
+  const money = (v) => {
+    if (typeof v !== 'number') return '–'
+    const s = v > 0 ? '+' : v < 0 ? '−' : ''
+    const a = Math.abs(v)
+    return a >= 1e8 ? `${s}${(a / 1e8).toFixed(2)}억` : `${s}${Math.round(a / 1e4).toLocaleString()}만`
+  }
+  // 자산곡선 스파크라인 — 실현 기준(실선)과 평가 포함(점선) 두 계열
+  const spark = (() => {
+    const c = cp && Array.isArray(cp.curve) ? cp.curve : []
+    if (c.length < 2) return null
+    const W = 300, H = 54, PAD = 3
+    const vals = c.flatMap(p => [p.eq, p.realized_eq]).concat([cp.capital0])
+    const lo = Math.min(...vals), hi = Math.max(...vals)
+    const span = (hi - lo) || 1
+    const X = (i) => (W * i) / (c.length - 1)
+    const Y = (v) => PAD + (H - PAD * 2) * (1 - (v - lo) / span)
+    const d = (k) => c.map((p, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join(' ')
+    const fd = (s) => (s ? `${s.slice(4, 6)}/${s.slice(6, 8)}` : '')
+    return {
+      W, H, dTotal: d('eq'), dReal: d('realized_eq'),
+      zero: Y(cp.capital0), first: fd(c[0].d), last: fd(c[c.length - 1].d),
+    }
+  })()
+
   const th = { fontSize: 11, fontWeight: 700, color: colors.textMuted, padding: '7px 5px', textAlign: 'right', whiteSpace: 'nowrap' }
   const td = { fontSize: 12.5, padding: '9px 5px', textAlign: 'right', fontFamily: FONTS.mono, borderTop: `1px solid ${lineSep}` }
 
@@ -138,6 +165,111 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
               <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 5, lineHeight: 1.5 }}>
                 관측 모드라 실제 매도는 없습니다. ‘실현’은 관측된 가격경로에서 트레일링 룰이 발동한 지점으로 계산한 값이고,
                 ‘미실현’은 아직 룰이 발동하지 않은 보유중 픽의 현재 평가손익입니다.
+              </div>
+            </div>
+          )}
+
+          {/* 원금 10억 복리 — 픽을 실제 포트폴리오로 굴렸을 때.
+              청산 대금이 현금으로 돌아와 다음 픽에 재투입된다(복리).
+              ⚠️ 보유중 포지션은 현금이 아니므로 자산곡선을 둘로 낸다. */}
+          {cp && (
+            <div style={{ margin: '16px 0 6px' }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: colors.textSecondary, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: 'rgba(234,179,8,0.16)', color: dark ? '#D6B25E' : '#8A6D2F', letterSpacing: '0.03em' }}>복리</span>
+                원금 {eok(cp.capital0)} 으로 굴렸으면
+                {cp.rule && <span style={{ fontWeight: 500, color: colors.textMuted }}>· {cp.rule}</span>}
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {[
+                  ['최종 자산', eok(cp.equity), colorOf(cp.ret_pct), fmt(cp.ret_pct)],
+                  ['실현 손익', money(cp.realized_pnl), colorOf(cp.realized_pnl), `청산 ${cp.n_closed ?? '–'}건`],
+                  ['평가 손익', money(cp.unrealized_pnl), dark ? '#D6B25E' : '#8A6D2F', `보유 ${cp.n_open ?? '–'}건 · 확정 아님`],
+                  ['최대 낙폭', fmt(cp.mdd_pct), colorOf(cp.mdd_pct), '자산곡선 기준'],
+                ].map(([label, val, col, sub]) => (
+                  <div key={label} style={{
+                    flex: '1 1 0', minWidth: 96, padding: '10px 12px', borderRadius: 12,
+                    border: `1px solid ${lineSep}`, background: dark ? '#141416' : '#FFF',
+                  }}>
+                    <div style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>{label}</div>
+                    <div style={{ fontSize: 17, fontWeight: 800, fontFamily: FONTS.mono, color: col }}>{val}</div>
+                    <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 3, fontFamily: FONTS.mono }}>{sub}</div>
+                  </div>
+                ))}
+              </div>
+
+              {spark && (
+                <div style={{
+                  marginTop: 8, padding: '10px 12px 6px', borderRadius: 12,
+                  border: `1px solid ${lineSep}`, background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                }}>
+                  <div style={{ display: 'flex', gap: 14, fontSize: 10, color: colors.textMuted, marginBottom: 4, flexWrap: 'wrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <i style={{ width: 14, borderTop: `2px solid ${colors.textPrimary}` }} />실현 기준
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <i style={{ width: 14, borderTop: `2px dashed ${dark ? '#D6B25E' : '#8A6D2F'}` }} />평가 포함
+                    </span>
+                    <span style={{ marginLeft: 'auto', fontFamily: FONTS.mono }}>{spark.first} → {spark.last}</span>
+                  </div>
+                  <svg viewBox={`0 0 ${spark.W} ${spark.H}`} style={{ display: 'block', width: '100%', height: 54 }}
+                       role="img" aria-label="원금 10억 복리 자산곡선. 실현 기준과 평가 포함 두 계열.">
+                    <line x1="0" x2={spark.W} y1={spark.zero} y2={spark.zero} stroke={lineSep} strokeWidth="1" />
+                    <path d={spark.dTotal} fill="none" stroke={dark ? '#D6B25E' : '#8A6D2F'} strokeWidth="1.6" strokeDasharray="4 3" />
+                    <path d={spark.dReal} fill="none" stroke={colors.textPrimary} strokeWidth="1.6" />
+                  </svg>
+                </div>
+              )}
+
+              <div style={{ fontSize: 10.5, color: colors.textMuted, marginTop: 6, lineHeight: 1.55 }}>
+                {cp.detail}
+                {typeof cp.skipped === 'number' && cp.skipped > 0 && (
+                  <> 배분 규칙상 <b style={{ color: colors.textSecondary }}>{cp.skipped}건이 미진입</b>이라
+                  전수가 아닙니다 — 먼저 온 픽이 자리를 차지한 결과라는 뜻입니다.</>
+                )}
+                {typeof cp.avg_deployed_pct === 'number' && ` 평균 투입률 ${cp.avg_deployed_pct.toFixed(0)}%`}
+                {typeof cp.min_cash_pct === 'number' && ` · 현금 최저 ${cp.min_cash_pct.toFixed(1)}%`}
+                {cp.note_sizing ? ` ${cp.note_sizing}` : ''}
+              </div>
+
+              {/* 이 두 가지를 안 보이면 성과를 과대평가하게 된다 */}
+              <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+                {[
+                  ['평가익 비중', (typeof cp.unrealized_pnl === 'number' && (cp.equity - cp.capital0))
+                    ? `${Math.round(cp.unrealized_pnl / (cp.equity - cp.capital0) * 100)}%`
+                    : '–', '아직 팔지 않은 몫'],
+                  ['상위 3건 비중', typeof cp.top3_share_pct === 'number' ? `${cp.top3_share_pct.toFixed(0)}%` : '–', '소수 픽 의존도'],
+                ].map(([label, val, sub]) => (
+                  <div key={label} style={{
+                    flex: '1 1 0', minWidth: 132, padding: '8px 12px', borderRadius: 12,
+                    border: `1px dashed ${lineSep}`,
+                    background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
+                  }}>
+                    <div style={{ fontSize: 10.5, color: colors.textMuted }}>{label}</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <span style={{ fontSize: 15, fontWeight: 800, fontFamily: FONTS.mono, color: colors.textSecondary }}>{val}</span>
+                      <span style={{ fontSize: 10, color: colors.textMuted }}>{sub}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 비율을 튜닝해서 고른 게 아님을 보인다 */}
+              {Array.isArray(cp.sensitivity) && cp.sensitivity.length > 1 && (
+                <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 6, lineHeight: 1.6 }}>
+                  배분 비율 민감도 ·{' '}
+                  {cp.sensitivity.map((s, i) => (
+                    <span key={s.label} style={{ fontFamily: FONTS.mono, fontWeight: s.current ? 800 : 400, color: s.current ? colors.textSecondary : colors.textMuted }}>
+                      {i ? ' / ' : ''}{s.label.replace('현금 ', '').replace('/픽', '')} {fmt(s.ret_pct)}
+                    </span>
+                  ))}
+                  . 수익이 가장 큰 값이 아니라 현금 완충이 남는 값을 씁니다.
+                </div>
+              )}
+              <div style={{ fontSize: 10, color: colors.textMuted, marginTop: 4, lineHeight: 1.5 }}>
+                청산 대금만 현금으로 돌아와 다음 픽에 재투입됩니다. 보유중 포지션은 현금이 아니라 평가액이므로
+                복리에 태우지 않았습니다 — 위 두 선의 간격이 아직 확정되지 않은 부분입니다.
+                기간이 짧아 연율(CAGR)로 환산하지 않습니다.
               </div>
             </div>
           )}

@@ -4,6 +4,7 @@ import { FONTS, PREMIUM, GRADE_COLORS } from '../constants/theme'
 import { API } from '../lib/api'
 import { useLandingData } from '../hooks/useLandingData'
 import { useAuth } from '../contexts/AuthContext'
+import MacroTicker from './MacroTicker'
 
 const R = '#DC2626'
 
@@ -205,6 +206,9 @@ export default function LandingPage() {
           </Reveal>
         </div>
       </section>
+
+      {/* ━━━ 1.15 거시지표 밴드 — 숫자와 등락까지만 (해석 금지) ━━━ */}
+      <MacroTicker />
 
       {/* ━━━ 1.2 KOREA MARKET PRESS 마스트헤드 (뉴스프린트 신문 지면) ━━━ */}
       <section

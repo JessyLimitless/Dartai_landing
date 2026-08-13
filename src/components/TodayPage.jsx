@@ -420,8 +420,10 @@ export default function TodayPage({ onViewCard }) {
                         transition: 'text-decoration-color 0.15s',
                       }} onClick={(e) => {
                         e.stopPropagation()
-                        const cc = d.corp_code || d.stock_code
-                        if (cc) onViewCard(cc)
+                        // corp_code만 신뢰한다. 백엔드가 정확히 일치하는 코드에만
+                        // corp_code를 채우므로(2026-08-08), 미검증 stock_code로
+                        // 폴백하면 무관한 기업 카드가 열린다(KCC→일동홀딩스).
+                        if (d.corp_code) onViewCard(d.corp_code)
                       }} onMouseEnter={(e) => e.target.style.textDecorationColor = colors.textPrimary}
                          onMouseLeave={(e) => e.target.style.textDecorationColor = 'transparent'}
                       >{d.corp_name}</span>

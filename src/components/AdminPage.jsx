@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
 import { API } from '../lib/api'
+import QuantDiagnosticBlog from './QuantDiagnosticBlog'
 
 const ADMIN_EMAIL = 'j07087815@gmail.com'
 
@@ -122,6 +123,7 @@ export default function AdminPage() {
           strategy: [
             { key: 'book', label: '📖 전자책', route: '/admin/book' },
             { key: 'engine', label: '🔬 엔진 연구' },
+            { key: 'quant', label: '📐 퀀트 진단' },
             { key: 'aidc', label: 'AI DC' },
             { key: 'strategy', label: '전략' },
             { key: 'architecture', label: '설계' },
@@ -492,6 +494,8 @@ export default function AdminPage() {
         )
       ) : tab === 'engine' ? (
         <EngineResearchBlog colors={colors} dark={dark} sep={sep} />
+      ) : tab === 'quant' ? (
+        <QuantDiagnosticBlog colors={colors} dark={dark} sep={sep} />
       ) : tab === 'strategy' ? (
         <StrategyBlog colors={colors} dark={dark} sep={sep} />
       ) : tab === 'architecture' ? (

@@ -348,12 +348,14 @@ export default function DisclosureModal({ rcept_no, onClose, onViewCard }) {
             </div>
           )}
 
-          {(raw.corp_code || data?.corp_code || raw.stock_code) && (
+          {(raw.corp_code || data?.corp_code) && (
             <button
               className="touch-press"
               onClick={() => {
-                // corp_code 우선, 없으면 stock_code
-                const cc = data?.corp_code || raw.corp_code || data?.stock_code || raw.stock_code
+                // corp_code만 신뢰 — 미검증 stock_code 폴백은 무관한 기업 카드를
+                // 연다(2026-08-08: KCC 000238 → 일동홀딩스). 백엔드가 정확 일치
+                // 코드에만 corp_code를 채운다.
+                const cc = data?.corp_code || raw.corp_code
                 if (cc) {
                   onViewCard?.(cc)
                 }
