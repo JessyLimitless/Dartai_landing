@@ -366,9 +366,13 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
           <tbody>
             <tr>
               <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>편향 0% 백테스트</td>
-              <td style={td}>{chip('8주 내 가능', 'green')}</td>
-              <td style={td}>네 개 중 <b style={strong}>유일하게 데이터가 이미 있다.</b> 공시 33,507건 · price_tracks 12,706건.
-                상장폐지·거래정지 편향은 실재하고 소급 교정 가능. 여기부터 한다.</td>
+              <td style={td}>{chip('불가 — 반증됨', 'red')}</td>
+              <td style={td}>데이터는 있다(공시 <b style={strong}>125,055건</b> · price_tracks 43,188건 — 초판의
+                33,507·12,706은 낡은 숫자였다). 그런데 <b style={strong}>&ldquo;상폐 편향 소급 교정 가능&rdquo;은 틀렸다</b> —
+                2026-08-13 실측 결과 <b style={strong}>키움이 폐지 종목 시세를 0봉으로 반환</b>한다
+                (대동전자·스타코링크 확인). 소급창 2,667종 표본 70종 중 <b style={strong}>2.9%가 시세 부재</b>이고,
+                빠지는 건 정확히 −100%로 간 종목이라 편향이 <b style={strong}>위로</b> 걸린다.
+                가능한 건 <b style={strong}>&ldquo;생존자 백테스트&rdquo;</b>다.</td>
             </tr>
             <tr>
               <td style={{ ...td, fontWeight: 600, color: colors.textPrimary }}>샤프 30% 향상</td>
@@ -412,14 +416,28 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
       <p style={p}>
         하지만 파이프라인을 분해하면 사람이 병목인 구간은 <b style={strong}>맨 끝 한 칸뿐</b>이다.
       </p>
-      <div style={mono}>{`공시 33,507건 ─→ [게이트: 기계] ─→ 후보 ─→ [원문 검증: 사람] ─→ 픽 61
-                      ↑                            ↑
-                 소급 적용 가능              소급 불가능
-                 (룰이 결정적이므로)         (판단이 남아있지 않으므로)`}</div>
+      <div style={mono}>{`공시 125,055건 ─→ [게이트: 기계] ─→ 후보 ─→ [원문 검증: 사람] ─→ 픽 61
+                        ↑                            ↑
+                   소급 적용 가능              소급 불가능
+                   (룰이 결정적이므로)         (판단이 남아있지 않으므로)`}</div>
       <p style={p}>
         게이트는 결정적 룰이다. 과거 공시에 되돌려 적용하면 <b style={strong}>&ldquo;이 룰이 3년간 돌았다면&rdquo;의 반사실 모집단</b>이
         오늘 만들어진다. 표본 61 → 수천. 검정력은 <b style={strong}>15%p에서 1.3%p로</b> 간다.
       </p>
+      <div style={{ ...quote, borderLeft: '3px solid #D97706' }}>
+        <b style={strong}>단, 하나의 모집단으로는 지을 수 없다(2026-08-13 설계 실측).</b> 게이트는 두 소스를
+        병합하는데 가용 구간이 4배 다르다 — DART 원문은 <b style={strong}>API로 2023-06까지</b> 재조회되지만,
+        소수계좌·투자경고 같은 <b style={strong}>거래소 시장경보는 2026-04-08부터만</b> 존재한다(로컬 DB에만 있고
+        KRX가 과거분을 벌크로 주지 않는다).
+        <br /><br />
+        그 경로는 사소하지 않다 — 2026-08-11 실측으로 <b style={strong}>게이트 통과 108종 중 41종(38%)</b>이
+        시장경보발이었다. 그래서 소급 모집단은 <b style={strong}>DART 단독(넓고 얕음) / 풀게이트(좁고 정확함)</b>
+        두 개로 쪼개 짓고 <b style={strong}>절대 합산하지 않는다.</b> 설계 전문은
+        <span style={{ fontFamily: FONTS.mono }}> PICK_RETRO_POPULATION_DESIGN.md</span>.
+        <br /><br />
+        쪼갠 덕분에 생기는 배당금이 있다 — 두 모집단의 <b style={strong}>공통 구간(2026-04~)에서 대조</b>하면
+        &ldquo;시장경보 병합이 실제로 값을 하는가&rdquo;를 처음으로 직접 잴 수 있다.
+      </div>
 
       <h3 style={h3}>사람 단계를 빼도 잃는 게 없다 — 오히려 그게 측정이다</h3>
       <p style={p}>
@@ -571,8 +589,8 @@ export default function QuantDiagnosticBlog({ colors, dark, sep }) {
           </tr></thead>
           <tbody>
             {[
-              ['C1', '소급 모집단 구축',
-                '게이트 재현성 검증 → 공시 33,507건에 소급 적용 → 상장폐지·정지 포함. 표본 61 → 수천. 다른 모든 항목이 여기에 의존'],
+              ['C1', '소급 모집단 구축 — 2개로 분리(설계 완료 08-13)',
+                '풀게이트(2026-04-08~, 현행 게이트 그대로) 먼저 → DART단독(2025-04~, 하위 게이트) 나중. 합산 금지. 상폐 종목은 시세가 없어 "생존자 표본"으로 라벨링. 선행 버그: minority_repeat 집계가 date(now) 하드코딩이라 소급 시 조용히 틀림'],
               ['C2', '위약 대조군 재검정',
                 '같은 날 같은 시총·업종 풀에서 무작위 N종을 뽑아 같은 룰로 돌린 분포와 비교. p=0.363을 처음으로 검정력 있게 다시 묻는다'],
               ['C3', '변동성 정규화 트레일링 (k·σ)',
