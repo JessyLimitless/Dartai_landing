@@ -287,7 +287,7 @@ export default function MonetizationPlan({ colors, dark, sep }) {
           <tbody>
             <tr><td style={td}><b style={b}>공매도 거래·비중</b></td><td style={td}>키움 ka10014</td><td style={td}><b style={{ color: '#0D9488' }}>확보</b> — 789,712행 / 2,533종</td></tr>
             <tr><td style={td}>공매도 <b style={b}>잔고</b></td><td style={td}>KRX 통계뿐</td><td style={td}><b style={{ color: '#DC2626' }}>소스 없음</b></td></tr>
-            <tr><td style={td}>대차잔고</td><td style={td}>예탁원·금투협 일간 무료</td><td style={td}><b style={{ color: '#DC2626' }}>미수집</b></td></tr>
+            <tr><td style={td}><b style={b}>대차잔고</b> <span style={{ color: colors.textMuted }}>(잔고 대용치)</span></td><td style={td}>키움 ka20068</td><td style={td}><b style={{ color: '#0D9488' }}>확보</b> — 258,988행 / 2,595종</td></tr>
             <tr><td style={td}>신용잔고</td><td style={td}>키움 ka10013</td><td style={td}>주간 2,581종</td></tr>
             <tr><td style={td}>Borrow fee</td><td style={td}>—</td><td style={td}>한국에 통합 시세 없음</td></tr>
           </tbody>
@@ -300,7 +300,8 @@ export default function MonetizationPlan({ colors, dark, sep }) {
       </p>
       <div style={warn}>
         <p style={{ ...p, margin: 0 }}>
-          <b style={b}>숏스퀴즈 점수는 만들 수 없다</b> — 스퀴즈는 잔고의 함수인데 잔고 소스가 없다.
+          <b style={b}>숏스퀴즈 점수는 여전히 만들 수 없다.</b> 대차잔고가 생겼지만 그건 <b style={b}>대용치</b>다 —
+          빌린 주식이 전부 공매도되지는 않는다. 진짜 공매도 잔고는 KRX에만 있고 막혀 있다.
           거래 비중만으로 스퀴즈를 주장하면 없는 근거를 만드는 것이다. 전면금지 구간(2023-11~2025-03)은
           <b style={b}>별도 모집단</b>이고, "금지"가 0을 뜻하지도 않는다 — 시장조성자·LP 예외가 남아
           중앙 비중이 <b style={b}>0.04% vs 2.05%로 50배</b> 차이난다.
