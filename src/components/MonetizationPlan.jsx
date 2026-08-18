@@ -285,7 +285,8 @@ export default function MonetizationPlan({ colors, dark, sep }) {
         <table style={tbl}>
           <thead><tr><th style={th}>데이터</th><th style={th}>공개</th><th style={th}>현재</th></tr></thead>
           <tbody>
-            <tr><td style={td}>공매도 잔고</td><td style={td}>KRX 일간 무료</td><td style={td}><b style={{ color: '#DC2626' }}>미수집</b></td></tr>
+            <tr><td style={td}><b style={b}>공매도 거래·비중</b></td><td style={td}>키움 ka10014</td><td style={td}><b style={{ color: '#0D9488' }}>확보</b> — 789,712행 / 2,533종</td></tr>
+            <tr><td style={td}>공매도 <b style={b}>잔고</b></td><td style={td}>KRX 통계뿐</td><td style={td}><b style={{ color: '#DC2626' }}>소스 없음</b></td></tr>
             <tr><td style={td}>대차잔고</td><td style={td}>예탁원·금투협 일간 무료</td><td style={td}><b style={{ color: '#DC2626' }}>미수집</b></td></tr>
             <tr><td style={td}>신용잔고</td><td style={td}>키움 ka10013</td><td style={td}>주간 2,581종</td></tr>
             <tr><td style={td}>Borrow fee</td><td style={td}>—</td><td style={td}>한국에 통합 시세 없음</td></tr>
@@ -299,8 +300,10 @@ export default function MonetizationPlan({ colors, dark, sep }) {
       </p>
       <div style={warn}>
         <p style={{ ...p, margin: 0 }}>
-          2023-11 ~ 2025-03 공매도 전면금지 구간은 <b style={b}>별도 모집단</b>이다. 합산 금지.
-          스퀴즈 지표는 실증 전까지 "지표"로만 쓰고 <b style={b}>"확률"로 부르지 않는다.</b>
+          <b style={b}>숏스퀴즈 점수는 만들 수 없다</b> — 스퀴즈는 잔고의 함수인데 잔고 소스가 없다.
+          거래 비중만으로 스퀴즈를 주장하면 없는 근거를 만드는 것이다. 전면금지 구간(2023-11~2025-03)은
+          <b style={b}>별도 모집단</b>이고, "금지"가 0을 뜻하지도 않는다 — 시장조성자·LP 예외가 남아
+          중앙 비중이 <b style={b}>0.04% vs 2.05%로 50배</b> 차이난다.
         </p>
       </div>
 
