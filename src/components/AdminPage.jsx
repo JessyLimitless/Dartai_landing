@@ -4,6 +4,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
 import { API } from '../lib/api'
 import QuantDiagnosticBlog from './QuantDiagnosticBlog'
+import MonetizationPlan from './MonetizationPlan'
 
 const ADMIN_EMAIL = 'j07087815@gmail.com'
 
@@ -121,6 +122,7 @@ export default function AdminPage() {
             { key: 'inquiries', label: `문의 ${inquiries.length}` },
           ],
           strategy: [
+            { key: 'plan', label: '💰 전략기획' },
             { key: 'book', label: '📖 전자책', route: '/admin/book' },
             { key: 'engine', label: '🔬 엔진 연구' },
             { key: 'quant', label: '📐 퀀트 진단' },
@@ -492,6 +494,8 @@ export default function AdminPage() {
             })}
           </div>
         )
+      ) : tab === 'plan' ? (
+        <MonetizationPlan colors={colors} dark={dark} sep={sep} />
       ) : tab === 'engine' ? (
         <EngineResearchBlog colors={colors} dark={dark} sep={sep} />
       ) : tab === 'quant' ? (
