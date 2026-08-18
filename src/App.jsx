@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom'
 import Header from './components/Header'
+import RadarPage from './components/RadarPage'
 import PushSubscribeBanner from './components/PushSubscribeBanner'
 import ToastContainer from './components/ToastContainer'
 import NotificationDetailModal from './components/NotificationDetailModal'
@@ -136,6 +137,7 @@ export default function App() {
               <Route path="/us-beneficiary" element={<USBeneficiaryPage />} />
               <Route path="/market-press" element={<MarketPressPage />} />
               <Route path="/market-press/:date" element={<MarketPressPage />} />
+              <Route path="/radar" element={<RadarPage />} />
               <Route path="/dividend" element={<DividendPage />} />
               {/* PRD의 서브메뉴 경로는 탭 쿼리로 흡수 — 링크 호환을 위해 리다이렉트 */}
               <Route path="/dividend/screener" element={<Navigate to="/dividend" replace />} />

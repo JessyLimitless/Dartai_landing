@@ -12,7 +12,11 @@ const TABS = [
   { key: '/dart-pick', label: 'DART 픽', mobileLabel: '픽', premium: true },
   { key: '/briefing', label: '브리핑', mobileLabel: '브리핑' },
   { key: '/us-market', label: '미국장', mobileLabel: '미국장' },
-  { key: '/dividend', label: '배당', mobileLabel: '배당' },
+  // 🔕 배당 노출 중단(2026-08-19) — 국내 배당 정보는 효용이 낮고 데이터 부채도 있다
+  //    (291종이 2023년 이전에서 stale). __코드·API·라우트는 그대로 둔다__ —
+  //    되돌릴 수 있게, 그리고 종목 페이지의 한 섹션으로 흡수할 예정이라.
+  // { key: '/dividend', label: '배당', mobileLabel: '배당' },
+  { key: '/radar', label: '레이더', mobileLabel: '레이더' },
   // 재무분석(/dart-view): 미완성이라 정식 서비스에서 숨김. 라우트는 App.jsx에 유지 — 완성 시 이 줄 복구로 재노출.
   // { key: '/dart-view', label: '재무분석', mobileLabel: '재무분석' },
   // 프리미엄은 하단 탭에서 뺀다. 375px에서 탭 7개(minWidth 56)는 폭을 넘겨
@@ -209,6 +213,10 @@ export default function Header({
         <nav className="desktop-nav" style={{
           position: 'absolute', left: '50%', transform: 'translateX(-50%)',
           display: 'flex', alignItems: 'center', gap: 2,
+          // ⚠️ absolute + 무폭이라 라벨이 길어지면 __버튼 안에서 줄바꿈__된다.
+          //    2026-08-19 '배당'(2자)→'레이더'(3자)만으로 전 메뉴가 2줄로 깨졌다.
+          //    라벨 길이에 안 흔들리게 nowrap 을 고정한다.
+          whiteSpace: 'nowrap',
         }}>
           {TABS.map((tab, idx) => {
             const active = isActive(tab.key)
@@ -216,8 +224,12 @@ export default function Header({
               <button key={tab.key}
                 onClick={() => handleNav(tab.key)}
                 style={{
-                  padding: '8px 20px', borderRadius: 8,
+                  // nowrap 을 걸면 폭이 늘어 769~1100px 에서 우측 '로그인'과 겹친다.
+                  // 데스크톱 nav 는 absolute 중앙정렬이라 공간을 예약하지 않기 때문이다.
+                  // 좌우 패딩을 20→14 로 줄여 7개 항목 기준 84px 를 회수한다.
+                  padding: '8px 14px', borderRadius: 8,
                   border: 'none', cursor: 'pointer',
+                  whiteSpace: 'nowrap', flexShrink: 0,
                   fontSize: 14, fontWeight: active ? 700 : 400,
                   fontFamily: FONTS.serif,
                   letterSpacing: '0.02em',
