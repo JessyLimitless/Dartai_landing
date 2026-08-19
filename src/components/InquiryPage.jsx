@@ -42,6 +42,7 @@ export default function InquiryPage() {
   const [message, setMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => { setCategory(mode.categories[0]) }, [type])
 
@@ -51,14 +52,27 @@ export default function InquiryPage() {
   const handleSubmit = async () => {
     if (!message.trim()) return
     setLoading(true)
+    setError('')
     try {
-      await fetch(`${API}/api/inquiries`, {
+      // source: 유입 경로. 이 엔드포인트를 __뮤즈AI·랜딩과 공유__하므로 이게 없으면
+      // 어디서 온 문의인지 구분되지 않는다. 백엔드는 이 값이 있을 때만 구글 시트로
+      // 넘긴다(뮤즈AI는 프론트에서 이미 직접 쏘고 있어 중복 방지).
+      const r = await fetch(`${API}/api/inquiries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, contact, category, message, type }),
+        body: JSON.stringify({
+          name, contact, category, message, type,
+          source: type === 'premium' ? 'dartai.kr/premium' : 'dartai.kr',
+        }),
       })
+      // ⚠️ fetch 는 4xx·5xx 에 throw 하지 않는다. r.ok 를 안 보면 서버가 500 을 줘도
+      //    완료 화면이 뜬다 — 문의는 유실됐는데 사용자는 접수된 줄 안다.
+      //    뮤즈AI 가 겪은 "시트 0행인데 화면은 성공"과 같은 종류의 사고다.
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
       setSubmitted(true)
-    } catch {}
+    } catch (e) {
+      setError('접수에 실패했습니다. 잠시 후 다시 시도하거나 j07087815@gmail.com 으로 보내주세요.')
+    }
     setLoading(false)
   }
 
@@ -192,6 +206,16 @@ export default function InquiryPage() {
           }}>
           {loading ? '접수 중...' : '문의 접수'}
         </button>
+
+        {/* 실패를 조용히 삼키지 않는다 — 접수 실패인데 완료 화면이 뜨면 문의가 유실된다. */}
+        {error && (
+          <div style={{
+            marginTop: 12, padding: '10px 12px', borderRadius: 8,
+            background: dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2',
+            border: `1px solid ${dark ? 'rgba(220,38,38,0.35)' : '#FECACA'}`,
+            fontSize: 12.5, lineHeight: 1.6, color: R,
+          }}>{error}</div>
+        )}
       </div>
 
       {/* 회사 정보 */}
