@@ -97,6 +97,34 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
 
       {open && (
         <>
+          {/* 관측 모드 고지 — "트레일링 청산 N건"이 실제로 판 것처럼 읽히는 걸 막는다.
+              청산 수치는 일봉 위 사후 계산이고, 집행 엔진은 2026-07-20부터 멈춰 있다. */}
+          {data.execution && data.execution.executing === false && (
+            <div style={{
+              margin: '12px 0 4px', padding: '10px 12px', borderRadius: 10,
+              border: `1px solid ${dark ? 'rgba(217,119,6,0.35)' : '#FDE68A'}`,
+              background: dark ? 'rgba(217,119,6,0.10)' : '#FFFBEB',
+            }}>
+              <div style={{
+                fontSize: 11.5, fontWeight: 800, color: dark ? '#FBBF24' : '#B45309',
+                marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+              }}>
+                <span style={{
+                  fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
+                  background: dark ? 'rgba(217,119,6,0.22)' : '#FEF3C7',
+                  color: dark ? '#FBBF24' : '#92400E', letterSpacing: '0.03em',
+                }}>계산값</span>
+                {data.execution.label}
+              </div>
+              <div style={{ fontSize: 10.5, lineHeight: 1.6, color: colors.textMuted }}>
+                {data.execution.detail}
+                {data.execution.resume_when
+                  ? ` 집행 재개 조건은 ${data.execution.resume_when}입니다.`
+                  : ''}
+              </div>
+            </div>
+          )}
+
           {/* 대표 성과: 청산룰(선정일 시가 진입 + 트레일링 -12%) 적용 실현손익 */}
           {overall.trail && (
             <div style={{ margin: '14px 0 6px' }}>
