@@ -24,6 +24,8 @@ export default function DartPickPage() {
   const [noPick, setNoPick] = useState(false)
   // 결측(파이프라인 미실행) — "분석했고 임계 미달"인 noPick과 의미가 정반대다
   const [unrecorded, setUnrecorded] = useState(false)
+  const [degraded, setDegraded] = useState(false)
+  const [degradedReason, setDegradedReason] = useState('')
   const [note, setNote] = useState('')
   const [archive, setArchive] = useState([])
   const [scores, setScores] = useState(null)
@@ -46,6 +48,11 @@ export default function DartPickPage() {
         setExtraPicks(picks.slice(1))
         setNoPick(!!(today && today.no_pick))
         setUnrecorded(!!(today && today.unrecorded))
+        // 픽 상태는 세 가지다: no_pick(임계 미달·유효 표본) / degraded(필수 시그널
+        // 소스가 죽어 있었음) / unrecorded(미실행). degraded 를 안 보여주면
+        // 결손된 후보 풀에서 고른 픽이 __정상 픽처럼 읽힌다.__
+        setDegraded(!!(today && today.degraded))
+        setDegradedReason((today && today.degraded_reason) || '')
         setNote((today && today.note) || '')
         const all = (list && Array.isArray(list.picks)) ? list.picks : []
         // 오늘(featured) 픽과 같은 날짜는 아카이브에서 제외
@@ -108,6 +115,24 @@ export default function DartPickPage() {
               : <EmptyState colors={colors} />
         ) : (
           <div>
+            {degraded && (
+              <div style={{
+                margin: '14px 0 2px', padding: '11px 13px', borderRadius: 10,
+                border: `1px solid ${dark ? 'rgba(217,119,6,0.35)' : '#FDE68A'}`,
+                background: dark ? 'rgba(217,119,6,0.10)' : '#FFFBEB',
+              }}>
+                <div style={{
+                  fontSize: 12, fontWeight: 800, marginBottom: 4,
+                  color: dark ? '#FBBF24' : '#B45309',
+                }}>
+                  신호 소스 일부가 수집되지 않은 날입니다
+                </div>
+                <div style={{ fontSize: 11, lineHeight: 1.65, color: colors.textMuted }}>
+                  {degradedReason || '거래소 소수계좌·투자경고 데이터를 확보하지 못했습니다.'}
+                  {' '}아래 픽은 DART 공시만으로 골랐으며, 성적표 집계에서는 제외됩니다.
+                </div>
+              </div>
+            )}
             {extraPicks.length > 0 && (
               <div style={{
                 fontSize: 12, color: colors.textMuted, marginTop: 18, marginBottom: -6,
