@@ -69,6 +69,19 @@ const TAB_ICONS = {
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
     </svg>
   ),
+  // 레이더 — 좌하단 원점에서 퍼지는 신호 호 3개 + 발신점.
+  // ⚠️ 동심원+점으로 그렸더니 `/dart-pick`(circle r9 + r4.5 + dot)과 실루엣이
+  //    사실상 같았다(모바일 탭바에서 두 칸이 붙어 있어 구분 불가).
+  //    첫 수정본은 호 간격이 좁아 20px 에서 뭉쳐 보였다 → 반지름을 6/11/16 으로
+  //    벌리고 사분호로 정리했다. 톤(24 viewBox · stroke 1.8 · round)은 유지.
+  '/radar': (color, size = 18) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 13.5 A 6 6 0 0 1 11 19.5" />
+      <path d="M5 8.5 A 11 11 0 0 1 16 19.5" />
+      <path d="M5 3.5 A 16 16 0 0 1 21 19.5" />
+      <circle cx="5" cy="19.5" r="1.5" fill={color} stroke="none" />
+    </svg>
+  ),
   '/dividend': (color, size = 18) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />

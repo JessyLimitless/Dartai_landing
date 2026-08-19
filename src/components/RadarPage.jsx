@@ -61,6 +61,13 @@ export default function RadarPage() {
     color: colors.textSecondary, background: dark ? '#1A1A1E' : '#FAFAFA',
     borderBottom: `1px solid ${sep}`,
   }
+  // 종목명 → 서버렌더 종목 페이지. 사이트맵만으로도 색인은 되지만 __내부 링크가 있어야__
+  // 크롤러가 빨리 돌고 사용자 유입 경로도 생긴다(SEO 엔진의 나머지 절반).
+  const Name = ({ code, children }) => (
+    <a href={`/stock/${code}`} style={{
+      color: 'inherit', textDecoration: 'none', borderBottom: `1px solid ${sep}`,
+    }}>{children}</a>
+  )
   const num = (n) => (n == null ? '-' : n.toLocaleString())
   const signed = (n) => (n == null ? '-' : `${n > 0 ? '+' : ''}${n.toLocaleString()}`)
   const up = '#E8364E', down = '#0D9488'
@@ -122,7 +129,7 @@ export default function RadarPage() {
           <div key={x.stock_code} style={row}>
             <span style={rank}>{i + 1}</span>
             <div>
-              <div style={nameS}>{x.corp_name}</div>
+              <div style={nameS}><Name code={x.stock_code}>{x.corp_name}</Name></div>
               <div style={codeS}>{x.stock_code} · 잔고 {x.remain_amt_bil}십억</div>
             </div>
             <div>
@@ -140,7 +147,7 @@ export default function RadarPage() {
           <div key={x.stock_code} style={row}>
             <span style={rank}>{i + 1}</span>
             <div>
-              <div style={nameS}>{x.corp_name}</div>
+              <div style={nameS}><Name code={x.stock_code}>{x.corp_name}</Name></div>
               <div style={codeS}>{x.stock_code} · {num(x.short_qty)} / {num(x.trade_qty)}주</div>
             </div>
             <div>
@@ -160,7 +167,7 @@ export default function RadarPage() {
           <div key={x.rcept_no} style={{ ...row, gridTemplateColumns: '18px 1fr' }}>
             <span style={rank}>{i + 1}</span>
             <div>
-              <div style={nameS}>{x.corp_name}</div>
+              <div style={nameS}><Name code={x.stock_code}>{x.corp_name}</Name></div>
               <div style={{ ...codeS, color: colors.textSecondary, marginTop: 2 }}>{x.alert}</div>
             </div>
           </div>
@@ -179,7 +186,7 @@ export default function RadarPage() {
           <div key={x.rcept_no} style={{ ...row, gridTemplateColumns: '18px 1fr' }}>
             <span style={rank}>{i + 1}</span>
             <div>
-              <div style={nameS}>{x.corp_name}</div>
+              <div style={nameS}><Name code={x.stock_code}>{x.corp_name}</Name></div>
               <div style={codeS}>{x.stock_code} · {x.report_nm}</div>
             </div>
           </div>
