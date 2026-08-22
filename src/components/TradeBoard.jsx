@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM_GOLD } from '../constants/theme'
 import { API, secretHeaders } from '../lib/api'
+import { isTradeDemo, demoBoard } from '../lib/tradeDemo'
 
 /**
  * 📊 매매 전광판 — 실체결 성과.
@@ -24,7 +25,10 @@ export default function TradeBoard() {
   const [d, setD] = useState(null)
   const [err, setErr] = useState(false)
 
+  const demo = isTradeDemo()
+
   useEffect(() => {
+    if (demo) { setD(demoBoard()); setErr(false); return }
     let alive = true
     const load = () => fetch(`${API}/api/trade/board`, { headers: secretHeaders() })
       .then(r => r.json())
@@ -33,7 +37,7 @@ export default function TradeBoard() {
     load()
     const t = setInterval(load, 60000)   // 장중 1분 갱신
     return () => { alive = false; clearInterval(t) }
-  }, [])
+  }, [demo])
 
   if (err) return null
   const line = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'
@@ -58,6 +62,12 @@ export default function TradeBoard() {
           background: isMock ? 'rgba(13,148,136,0.12)' : '#DC2626',
         }}>{isMock ? '모의투자' : '실계좌'}</span>
         <span style={{ fontSize: 13, fontWeight: 800, color: colors.textPrimary }}>매매 전광판</span>
+        {d?.demo && (
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.06em',
+                         color: '#fff', background: '#DC2626', padding: '3px 8px', borderRadius: 5 }}>
+            데모 · 가상 데이터
+          </span>
+        )}
         {d?.halted && (
           <span style={{
             fontSize: 10.5, fontWeight: 700, color: '#DC2626', padding: '3px 8px',

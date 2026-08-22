@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
-import { API, secretHeaders } from '../lib/api'
+import { API, secretHeaders, adminToken } from '../lib/api'
+import { isTradeDemo, toggleTradeDemo, demoAdminStatus } from '../lib/tradeDemo'
 
 /**
  * 🛠 매매 운영 패널 — 관리자 전용.
@@ -27,6 +28,7 @@ export default function AdminTradePanel() {
   const [busy, setBusy] = useState('')
   const [plan, setPlan] = useState(null)
   const [probed, setProbed] = useState(false)
+  const demo = isTradeDemo()
 
   const t = {
     line: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
@@ -41,9 +43,12 @@ export default function AdminTradePanel() {
       .then(r => (r.ok ? r.json() : Promise.reject(new Error(r.status === 403
         ? '관리자 토큰이 없습니다 — localStorage.dart_admin_token 을 설정하세요'
         : `오류 ${r.status}`))))
-      .then(x => { setD(x); setErr(''); if (probe) setProbed(true) })
-      .catch(e => setErr(e.message))
-  }, [])
+      .then(x => { setD(demo ? demoAdminStatus(x) : x); setErr(''); if (probe) setProbed(true) })
+      .catch(e => {
+        // 데모는 서버 없이도 봐야 한다 — 토큰이 없어도 화면 확인이 목적이니까
+        if (demo) { setD(demoAdminStatus({})); setErr('') } else setErr(e.message)
+      })
+  }, [demo])
 
   useEffect(() => {
     load()
@@ -69,7 +74,7 @@ export default function AdminTradePanel() {
     } catch (e) { setErr(String(e)) } finally { setBusy('') }
   }
 
-  if (err) return <Notice tone="err" colors={colors} t={t}>{err}</Notice>
+  if (err) return <TokenSetup msg={err} colors={colors} t={t} onDemo={() => toggleTradeDemo(true)} />
   if (!d) return <Notice colors={colors} t={t}>불러오는 중…</Notice>
 
   const positions = d.positions || []
@@ -94,6 +99,28 @@ export default function AdminTradePanel() {
 
   return (
     <div style={{ fontFamily: FONTS.body }}>
+
+      {demo && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+          padding: '10px 14px', borderRadius: 10, marginBottom: 12,
+          border: '1px solid rgba(220,38,38,0.35)',
+          background: dark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.05)',
+        }}>
+          <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.06em',
+                         color: '#fff', background: UP, padding: '3px 8px', borderRadius: 5 }}>
+            데모
+          </span>
+          <span style={{ fontSize: 12, color: colors.textPrimary, fontWeight: 600 }}>
+            가상 데이터입니다 — 8/24 픽 3종을 다 샀다고 가정한 화면
+          </span>
+          <button onClick={() => toggleTradeDemo(false)} style={{
+            marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer',
+            fontSize: 12, color: UP, fontWeight: 700, textDecoration: 'underline',
+            fontFamily: FONTS.body,
+          }}>실제 화면으로</button>
+        </div>
+      )}
 
       {/* ══ 상태 바 ══ */}
       <div style={{
@@ -163,6 +190,11 @@ export default function AdminTradePanel() {
           <Btn onClick={() => post('/api/admin/trade/halt', '?reason=관리자 수동 정지', 'halt')}
                busy={busy === 'halt'} tone="danger" colors={colors} t={t}>
             즉시 정지
+          </Btn>
+        )}
+        {!demo && (
+          <Btn onClick={() => toggleTradeDemo(true)} colors={colors} t={t}>
+            데모 화면 보기
           </Btn>
         )}
         <span style={{ alignSelf: 'center', fontSize: 11, color: t.dim, lineHeight: 1.5 }}>
@@ -461,6 +493,47 @@ const Empty = ({ children, t }) => (
     {children}
   </div>
 )
+
+/** 토큰이 없을 때 — __개발자도구를 열게 하지 않는다.__ 여기서 바로 넣는다. */
+function TokenSetup({ msg, colors, t, onDemo }) {
+  const [v, setV] = useState('')
+  const save = () => {
+    try { localStorage.setItem('dart_admin_token', v.trim()) } catch { /* 무시 */ }
+    window.location.reload()
+  }
+  return (
+    <div style={{
+      border: `1px solid ${t.line}`, borderRadius: 10, padding: '18px 16px',
+      fontFamily: FONTS.body, background: t.panel,
+    }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: colors.textPrimary, marginBottom: 6 }}>
+        관리자 토큰이 필요합니다
+      </div>
+      <div style={{ fontSize: 12, color: t.dim, lineHeight: 1.6, marginBottom: 14 }}>
+        {msg}<br />
+        픽 종목·선정 로직·수익률은 서버가 기본적으로 마스킹합니다.
+        서버 <code style={{ fontFamily: FONTS.mono }}>ADMIN_API_TOKEN</code> 값을 넣으세요.
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <input value={v} onChange={e => setV(e.target.value)} type="password"
+               placeholder="ADMIN_API_TOKEN"
+               onKeyDown={e => e.key === 'Enter' && v.trim() && save()}
+               style={{
+                 flex: 1, minWidth: 220, padding: '8px 11px', borderRadius: 8,
+                 border: `1px solid ${t.line}`, background: t.sunken,
+                 color: colors.textPrimary, fontSize: 12.5, fontFamily: FONTS.mono,
+               }} />
+        <Btn onClick={save} colors={colors} t={t}>저장</Btn>
+        <Btn onClick={onDemo} colors={colors} t={t}>데모 화면 보기</Btn>
+      </div>
+      {adminToken() && (
+        <div style={{ fontSize: 11, color: t.dim, marginTop: 10 }}>
+          현재 저장된 토큰이 있는데 거부됐습니다 — 값이 서버와 다를 수 있습니다.
+        </div>
+      )}
+    </div>
+  )
+}
 
 const Notice = ({ children, tone, colors, t }) => (
   <div style={{
