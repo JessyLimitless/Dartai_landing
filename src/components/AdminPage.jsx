@@ -4,6 +4,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
 import { API } from '../lib/api'
 import QuantDiagnosticBlog from './QuantDiagnosticBlog'
+import AdminTradePanel from './AdminTradePanel'
 import MonetizationPlan from './MonetizationPlan'
 
 const ADMIN_EMAIL = 'j07087815@gmail.com'
@@ -106,6 +107,7 @@ export default function AdminPage() {
         ]
         const subTabs = {
           ops: [
+            { key: 'trade', label: '📈 매매' },
             { key: 'top10', label: '🔥 TOP10' },
             { key: 'screener', label: '🎯 시그널 룰북' },
             { key: 'radar', label: '📡 매집 레이더' },
@@ -171,6 +173,8 @@ export default function AdminPage() {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: colors.textMuted }}>로딩 중...</div>
+      ) : tab === 'trade' ? (
+        <AdminTradePanel />
       ) : tab === 'top10' ? (
         <TopPicksPanel colors={colors} dark={dark} sep={sep} />
       ) : tab === 'subscribers' ? (
