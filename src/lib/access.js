@@ -12,15 +12,22 @@ export const PREMIUM_PRICE = 9900
 export const PREMIUM_PRICE_LABEL = '월 9,900원'
 
 // 무료/유료 경계 — __여기만 고치면 경계가 바뀐다.__
-// 오늘의 공시를 무료 유입 채널로 되돌리려면 today: false 한 줄이면 된다.
-// 🚧 2026-08-22 현재 __전부 꺼둔 상태로 배포__돼 있다.
-//    페이월 코드는 완성됐지만, 대가를 받고 불특정 다수에게 투자판단 정보를 제공하면
-//    __유사투자자문업 신고 대상__이 된다(무료일 때는 안 걸리던 문제다).
-//    신고 여부를 확인한 뒤 아래 셋을 true 로 바꾸면 즉시 유료화된다.
+// 유료화 활성화는 PAYWALL_ENABLED 한 줄, 경계 변경은 PAID 한 줄이면 된다.
+// 🔘 유료화 마스터 스위치.
+// 대가를 받고 불특정 다수에게 투자판단 정보를 제공하면 __유사투자자문업 신고 대상__이
+// 된다(무료일 때는 안 걸리던 문제다). 확인 전까지 false 로 둔다 —
+// 아래 PAID 경계는 확정돼 있고, 이 한 줄만 true 로 바꾸면 즉시 유료화된다.
+export const PAYWALL_ENABLED = false
+
+// 무료/유료 경계 (2026-08-22 확정)
+// ⚠️ __오늘의 공시는 무료로 둔다.__ 자동 파이프라인이라 사람 손이 안 들어가고
+//    DART 알리미·증권사 앱 등 __무료 대체재가 촘촘하다.__ 여기 페이월을 걸면
+//    "무료로 되던 게 막혔다"는 인상만 남고 전환에는 거의 기여하지 않는다.
+//    대신 무료 유입 채널로 쓰고, 사람이 원문을 검증하는 둘만 판다.
 export const PAID = {
-  today: false,      // 오늘의 공시
-  briefing: false,   // 일일 브리핑
-  usMarket: false,   // 미국장 브리핑 (편지 + 인과 지도)
+  today: false,      // 오늘의 공시 — __무료 유입 채널__
+  briefing: true,    // 일일 브리핑 — 원문 검증이 들어간다
+  usMarket: true,    // 미국장 브리핑 — 인과 매핑이 들어간다
 }
 
 // 비구독자에게 보여주는 미리보기 분량
@@ -54,6 +61,7 @@ export function hasPremium() {
 
 // 해당 콘텐츠를 지금 볼 수 있는가
 export function canView(key) {
+  if (!PAYWALL_ENABLED) return true      // 마스터 스위치가 꺼져 있으면 전부 공개
   if (!PAID[key]) return true
   return hasPremium()
 }

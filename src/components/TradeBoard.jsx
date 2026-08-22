@@ -82,16 +82,18 @@ export default function TradeBoard() {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: `1px solid ${line}` }}>
-          <Big label="실현 손익" value={fmtWon(live.total_pnl)}
-               tone={live.total_pnl > 0 ? 'up' : live.total_pnl < 0 ? 'down' : null}
-               colors={colors} line={line} />
-          <Big label="평균 수익률" value={fmtPct(live.avg_ret)}
-               tone={toneOf(live.avg_ret)} colors={colors} line={line} />
-          {/* ⚠️ 중앙값을 평균과 __같은 크기__로 둔다 — 원장 불변식 #4 */}
-          <Big label="중앙값" value={fmtPct(live.med_ret)}
-               tone={toneOf(live.med_ret)} colors={colors} line={line} />
-          <Big label="승률" value={live.win == null ? '—' : `${live.win}%`}
-               colors={colors} line={line} />
+          {/* 보유 중일 때도 __화면이 살아 있어야 한다.__ 청산 전엔 실현이 0이라
+              실현만 크게 두면 3종을 들고 있어도 전부 '—' 로 보인다. */}
+          <Big label="평가손익 (보유)" value={fmtWon(live.unrealized_pnl)}
+               tone={toneOf(live.unrealized_pnl)} colors={colors} line={line} />
+          <Big label="평가수익률" value={fmtPct(live.unrealized_avg)}
+               tone={toneOf(live.unrealized_avg)} colors={colors} line={line} />
+          <Big label="실현손익" value={fmtWon(live.total_pnl)}
+               tone={toneOf(live.total_pnl)} colors={colors} line={line} />
+          {/* ⚠️ 실현 평균 옆에 중앙값을 __같은 크기__로 — 원장 불변식 #4 */}
+          <Big label={`실현 평균 / 중앙 (${live.closed}건)`}
+               value={live.closed ? `${fmtPct(live.avg_ret)} / ${fmtPct(live.med_ret)}` : '—'}
+               tone={toneOf(live.med_ret)} colors={colors} line={line} small />
         </div>
       )}
 
@@ -105,6 +107,7 @@ export default function TradeBoard() {
         <span>청산 {live?.closed ?? 0}</span>
         <span>보유 {live?.open ?? 0}</span>
         <span>슬롯 {live?.slots_used ?? 0}/{live?.slots_max ?? 0}</span>
+        {live?.win != null && <span>승률 {live.win}%</span>}
         {live?.worst != null && <span>최악 {fmtPct(live.worst)}</span>}
         {d?.reconcile_ok === false && (
           <span style={{ color: '#DC2626', fontWeight: 700 }}>원장/잔고 불일치</span>
@@ -168,14 +171,15 @@ export default function TradeBoard() {
   )
 }
 
-function Big({ label, value, tone, colors, line }) {
+function Big({ label, value, tone, colors, line, small }) {
   const c = tone === 'up' ? '#DC2626' : tone === 'down' ? '#2563EB' : colors.textPrimary
   return (
     <div style={{ padding: '16px', borderRight: `1px solid ${line}`, borderBottom: `1px solid ${line}` }}>
       <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', color: colors.textMuted }}>
         {label}
       </div>
-      <div style={{ fontSize: 24, fontWeight: 800, fontFamily: FONTS.mono,
+      <div style={{ fontSize: small ? 17 : 24, fontWeight: 800, fontFamily: FONTS.mono,
+                    fontVariantNumeric: 'tabular-nums',
                     letterSpacing: '-0.02em', color: c, marginTop: 4 }}>
         {value}
       </div>
@@ -195,8 +199,9 @@ function fmtPct(v) {
 function fmtWon(v) {
   if (v == null || isNaN(v)) return '—'
   const sign = v > 0 ? '+' : v < 0 ? '−' : ''
-  const a = Math.abs(v)
-  if (a >= 10000) return `${sign}${Math.round(a / 10000).toLocaleString()}만`
+  const a = Math.abs(Math.round(v))
+  if (a >= 1e8) return `${sign}${(a / 1e8).toFixed(2)}억`
+  if (a >= 1e4) return `${sign}${Math.round(a / 1e4).toLocaleString()}만`
   return `${sign}${a.toLocaleString()}`
 }
 

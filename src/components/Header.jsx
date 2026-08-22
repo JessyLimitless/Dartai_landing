@@ -8,7 +8,8 @@ import { useAuth } from '../contexts/AuthContext'
 
 const TABS = [
   { key: '/', label: '홈', mobileLabel: '홈', exact: true },
-  { key: '/today', label: '오늘의 공시', mobileLabel: '공시', premium: true },
+  // 오늘의 공시는 __무료__ — PRO 배지를 붙이지 않는다(2026-08-22 경계 확정)
+  { key: '/today', label: '오늘의 공시', mobileLabel: '공시' },
   // 🔕 DART 픽 노출 중단(2026-08-22) — __유료 정보 서비스 상품에서 제외__.
   //    픽은 판매 콘텐츠가 아니라 __자산운용을 위한 내부 도구__다(사용자 결정).
   //    정합성도 맞다: 알파 초과중앙 +0.49%(p=1.000) · 위약 대조군 p=0.363 —

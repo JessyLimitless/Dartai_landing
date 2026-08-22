@@ -26,6 +26,7 @@ export default function AdminTradePanel() {
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState('')
   const [plan, setPlan] = useState(null)
+  const [probed, setProbed] = useState(false)
 
   const t = {
     line: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
@@ -35,12 +36,12 @@ export default function AdminTradePanel() {
     dim: dark ? '#6B6B75' : '#A1A1AA',
   }
 
-  const load = useCallback(() => {
-    fetch(`${API}/api/admin/trade/status`, { headers: secretHeaders() })
+  const load = useCallback((probe = false) => {
+    fetch(`${API}/api/admin/trade/status${probe ? '?probe=1' : ''}`, { headers: secretHeaders() })
       .then(r => (r.ok ? r.json() : Promise.reject(new Error(r.status === 403
         ? '관리자 토큰이 없습니다 — localStorage.dart_admin_token 을 설정하세요'
         : `오류 ${r.status}`))))
-      .then(x => { setD(x); setErr('') })
+      .then(x => { setD(x); setErr(''); if (probe) setProbed(true) })
       .catch(e => setErr(e.message))
   }, [])
 
@@ -74,6 +75,22 @@ export default function AdminTradePanel() {
   const positions = d.positions || []
   const open = positions.filter(p => ['open', 'ordered', 'exit_ordered'].includes(p.status))
   const isMock = (d.mode || '').includes('모의')
+
+  // 평가손익 — 원장에 현재가가 없어 서버가 실시간으로 붙여준다.
+  // __실현과 평가를 섞지 않는다__: "얼마 벌었나"가 흐려진다.
+  let unreal = 0, invested = 0, realized = 0
+  for (const p of positions) {
+    const e = p.entry_price || p.ref_price || 0
+    const cur = p.last_price || 0
+    const q = p.shares || 0
+    if (['open', 'ordered', 'exit_ordered'].includes(p.status)) {
+      if (e && q) invested += e * q
+      if (e && cur && q) unreal += (cur - e) * q
+    } else if (p.status === 'closed' && e && p.exit_price && q) {
+      realized += (p.exit_price - e) * q
+    }
+  }
+  const unrealPct = invested ? (unreal / invested) * 100 : null
 
   return (
     <div style={{ fontFamily: FONTS.body }}>
@@ -109,6 +126,28 @@ export default function AdminTradePanel() {
           border: `1px solid rgba(220,38,38,0.2)`,
         }}>{d.halted}</pre>
       )}
+
+      {/* ══ KPI — 지금 얼마인가 ══ */}
+      {open.length > 0 && (
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))',
+          border: `1px solid ${t.line}`, borderRadius: 10, overflow: 'hidden',
+          marginBottom: 14, background: t.panel,
+        }}>
+          <Kpi label="평가손익" value={fmtWon(unreal)} tone={toneOf(unreal)} t={t} colors={colors} />
+          <Kpi label="평가수익률" value={fmtPct(unrealPct)} tone={toneOf(unrealPct)} t={t} colors={colors} />
+          <Kpi label="실현손익" value={fmtWon(realized)} tone={toneOf(realized)} t={t} colors={colors} />
+          <Kpi label="투입원금" value={fmtWon(invested, false)} t={t} colors={colors} />
+          <Kpi label="슬롯" value={`${open.length}/${d.readiness?.caps?.slots ?? '—'}`} t={t} colors={colors} />
+        </div>
+      )}
+
+      {/* ══ 준비 상태 ══
+          아직 아무 일도 안 일어난 시점에 __가장 필요한 화면.__
+          포지션·주문·로그가 다 비어 있으면 화면이 고장 난 것처럼 보인다. */}
+      {d.readiness && <Readiness r={d.readiness} t={t} colors={colors}
+                                 probed={probed} busy={busy}
+                                 onProbe={() => { setBusy('probe'); load(true); setTimeout(() => setBusy(''), 1200) }} />}
 
       {/* ══ 컨트롤 ══ */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
@@ -150,7 +189,7 @@ export default function AdminTradePanel() {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
-                <tr>{['종목', '상태', '진입', '수량', '손익', '고점', '발동선까지', '보유'].map((h, i) => (
+                <tr>{['종목', '상태', '진입', '수량', '평가손익', '고점', '트레일링까지', '보유'].map((h, i) => (
                   <th key={h} style={{
                     textAlign: i < 2 ? 'left' : 'right', padding: '7px 10px',
                     fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
@@ -191,6 +230,84 @@ export default function AdminTradePanel() {
         )}
       </Section>
     </div>
+  )
+}
+
+function Kpi({ label, value, tone, t, colors }) {
+  const c = tone === 'up' ? UP : tone === 'down' ? DOWN : colors.textPrimary
+  return (
+    <div style={{ padding: '13px 15px', borderRight: `1px solid ${t.hair}` }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: t.dim }}>{label}</div>
+      <div style={{
+        fontSize: 20, fontWeight: 800, marginTop: 3, color: c,
+        fontFamily: FONTS.mono, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em',
+      }}>{value}</div>
+    </div>
+  )
+}
+
+const toneOf = v => (v == null || isNaN(v) ? null : v > 0 ? 'up' : v < 0 ? 'down' : null)
+
+// signed=false — __원금은 손익이 아니다.__ 부호를 붙이면 수익으로 읽힌다.
+function fmtWon(v, signed = true) {
+  if (v == null || isNaN(v)) return '—'
+  const sign = !signed ? '' : v > 0 ? '+' : v < 0 ? '−' : ''
+  const a = Math.abs(Math.round(v))
+  if (a >= 1e8) return `${sign}${(a / 1e8).toFixed(2)}억`
+  if (a >= 1e4) return `${sign}${Math.round(a / 1e4).toLocaleString()}만`
+  return `${sign}${a.toLocaleString()}`
+}
+
+/* ── 준비 상태 ─────────────────────────────────────────── */
+function Readiness({ r, t, colors, onProbe, busy, probed }) {
+  const caps = r.caps || {}
+  const won = n => (n >= 1e8 ? `${(n / 1e8).toFixed(n % 1e8 ? 1 : 0)}억` : `${(n / 1e4).toLocaleString()}만`)
+  return (
+    <Section title="준비 상태" t={t} colors={colors}
+             right={r.ready ? '전부 준비됨' : '미완'}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))' }}>
+        {r.checks.map(c => (
+          <div key={c.key} style={{
+            padding: '11px 14px', borderRight: `1px solid ${t.hair}`,
+            borderBottom: `1px solid ${t.hair}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                background: c.ok ? '#0D9488' : '#DC2626',
+              }} />
+              <span style={{ fontSize: 11, color: t.dim }}>{c.label}</span>
+            </div>
+            <div style={{
+              fontSize: 12.5, fontWeight: 700, marginTop: 3,
+              color: c.ok ? colors.textPrimary : '#DC2626',
+            }}>{c.value}</div>
+            {c.note && (
+              <div style={{ fontSize: 10.5, color: t.dim, marginTop: 3, lineHeight: 1.5 }}>
+                {c.note.replace(/__/g, '')}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* 운영 파라미터 — 지금 어떤 룰로 돌게 돼 있는지 */}
+      <div style={{
+        display: 'flex', gap: 20, flexWrap: 'wrap', padding: '10px 14px',
+        borderTop: `1px solid ${t.line}`, fontSize: 11.5, color: t.dim,
+      }}>
+        <span>자본 <b style={{ color: colors.textSecondary, fontFamily: FONTS.mono }}>{won(caps.total || 0)}</b></span>
+        <span>종목당 <b style={{ color: colors.textSecondary, fontFamily: FONTS.mono }}>{won(caps.per_stock || 0)}</b></span>
+        <span>슬롯 <b style={{ color: colors.textSecondary, fontFamily: FONTS.mono }}>{caps.slots}</b></span>
+        <span>진입 <b style={{ color: colors.textSecondary }}>{r.rule?.entry}</b></span>
+        <span>청산 <b style={{ color: colors.textSecondary }}>{r.rule?.exit}</b></span>
+        <button onClick={onProbe} disabled={busy === 'probe'} style={{
+          marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer',
+          fontSize: 11.5, color: colors.textMuted, textDecoration: 'underline',
+          fontFamily: FONTS.body, padding: 0,
+        }}>{busy === 'probe' ? '확인 중…' : probed ? '토큰 재확인' : '키움 토큰 확인'}</button>
+      </div>
+    </Section>
   )
 }
 
