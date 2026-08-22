@@ -7,6 +7,7 @@ import { MarkdownBody } from './BriefingPage'
 import { isAdmin } from './AdminPage'
 import PickScorecard from './PickScorecard'
 import PaperTrading from './PaperTrading'
+import TradeBoard from './TradeBoard'
 
 const GRADE_COLOR = { S: '#E8364E', A: '#0D9488', B: '#6B7280', D: '#DC2626' }
 
@@ -101,6 +102,11 @@ export default function DartPickPage() {
         <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 8, lineHeight: 1.6 }}>
           800여 건 공시 + 미국 AI 섹터를 한 깔때기에 넣어 <b style={{ color: colors.textSecondary }}>단 하나</b>로 좁힙니다.
         </div>
+      </div>
+
+      {/* 📊 매매 전광판 — 실체결 성과. 계산값과 섞지 않는다. */}
+      <div className="bp-pad">
+        <TradeBoard />
       </div>
 
       <div className="bp-pad">
