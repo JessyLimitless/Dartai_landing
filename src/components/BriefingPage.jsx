@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM } from '../constants/theme'
 import { API } from '../lib/api'
+import { canView, previewMarkdown } from '../lib/access'
+import PremiumLock from './PremiumLock'
 
 export default function BriefingPage() {
   const { colors, dark } = useTheme()
@@ -22,6 +24,8 @@ export default function BriefingPage() {
   }, [])
 
   const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  // 유료 경계는 lib/access.js 의 PAID 한 곳에서만 정한다
+  const unlocked = canView('briefing')
 
   return (
     <div className="page-enter briefing-page" style={{
@@ -41,7 +45,7 @@ export default function BriefingPage() {
       </div>
 
       {/* 아카이브 캘린더 — 6/15부터 일자별 누적 */}
-      {!loading && briefings.length > 1 && (
+      {!loading && unlocked && briefings.length > 1 && (
         <BriefingCalendar
           briefings={briefings}
           selectedId={selected?.id}
@@ -109,10 +113,23 @@ export default function BriefingPage() {
               )}
             </div>
 
-            {/* MD 본문 */}
+            {/* MD 본문 — 비구독자는 앞부분만 보여주고 페이월로 잇는다 */}
             <div style={{ padding: '20px 0' }}>
-              <MarkdownBody content={selected.content} colors={colors} dark={dark} />
+              <MarkdownBody
+                content={unlocked ? selected.content : previewMarkdown(selected.content)}
+                colors={colors} dark={dark}
+              />
             </div>
+            {!unlocked && (
+              <PremiumLock
+                title="나머지 브리핑은 구독자에게 공개됩니다"
+                benefits={[
+                  '핵심 공시 5건의 원문 검증 해석',
+                  '지난 브리핑 전체 아카이브',
+                  '미국장 브리핑 · 오늘의 공시 함께 이용',
+                ]}
+              />
+            )}
           </div>
         )}
       </div>

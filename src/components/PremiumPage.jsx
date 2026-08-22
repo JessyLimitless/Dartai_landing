@@ -2,39 +2,44 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
+import { PREMIUM_PRICE_LABEL } from '../lib/access'
 
 const R = '#DC2626'
 
+// 구독 상품 = 오늘의 공시 · 브리핑 · 미국장 브리핑 3종.
+// __DART 픽은 포함하지 않는다__ — 자산운용용 내부 도구라 판매 대상이 아니다.
+//
+// ⚠️ 이 페이지의 모든 문구는 __성과를 약속하지 않는다.__ "수익률"·"수익을 높인다"
+//    류를 쓰면 근거 없는 주장이 된다(알파 p=1.000 · 위약 대조군 p=0.363).
+//    파는 것은 __원문 검증에 들어간 사람의 시간__이다.
+
 const FEATURES = [
   {
-    badge: 'PREMIUM',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/>
-      </svg>
-    ),
-    title: 'DART 픽 — 오늘의 상승 종목',
-    desc: '매일 아침 800여 건 공시 + 미국 AI 섹터를 한 깔때기에 넣어 단 하나의 상승 시그널 종목으로 좁혀 드립니다. 선정 깔때기(공시 70 + 미국 30)를 그대로 공개해요.',
-  },
-  {
-    free: true,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
     ),
-    title: '오늘의 공시 브리핑',
-    desc: '매일 800건 중 상승 시그널 5종목만. 소수계좌·투자경고·내부자 매수를 골라 업종·재무·PBR까지 한눈에 정리해 드려요.',
+    title: '오늘의 공시',
+    desc: '하루 800여 건 중 주가를 움직이는 S·A 시그널만 실시간으로 골라냅니다. 소수계좌·투자경고·내부자 매수를 등급과 강도로 정리해 드려요.',
   },
   {
-    free: true,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+    ),
+    title: '일일 브리핑',
+    desc: '핵심 공시를 골라 원문까지 직접 열어 확인하고 해석합니다. 제목만 보면 반대로 읽히는 공시 — 3주짜리 자사주 소각, 매수가 아닌 무상신주 — 를 걸러내는 게 이 작업의 전부입니다.',
+  },
+  {
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
       </svg>
     ),
     title: '미국장 브리핑',
-    desc: '어젯밤 미국장의 유가·금리·매크로 + AI 섹터 세분 분석으로, 그 신호가 한국 어느 종목에 꽂히는지 매핑해 드려요.',
+    desc: '밤사이 뉴욕장이 무엇을 왜 움직였는지 읽고, 그 신호가 한국 어느 섹터에 꽂히는지 매핑합니다. 1차 수혜와 연상 수혜를 구분해 표기해요.',
   },
   {
     icon: (
@@ -49,20 +54,24 @@ const FEATURES = [
 
 const FAQ = [
   {
-    q: '무료와 뭐가 다른가요?',
-    a: '공시 브리핑과 미국장 브리핑은 누구나 무료로 보실 수 있어요. 프리미엄은 매일 아침 단 하나의 상승 시그널 종목을 고르는 「DART 픽」 — 공시·미국 신호를 종합한 최종 한 종목과 선정 깔때기를 받아보실 수 있습니다.',
+    q: '무엇을 받게 되나요?',
+    a: '오늘의 공시 · 일일 브리핑 · 미국장 브리핑 3종 전체입니다. 구독 전에도 각 화면의 앞부분은 미리 보실 수 있어요.',
   },
   {
     q: '콘텐츠는 매일 오나요?',
-    a: '평일 매일입니다. 공시 브리핑은 장 마감 후, 미국장 브리핑은 아침에 발행되고, DART 픽은 매일 아침 단 한 종목으로 발행됩니다.',
+    a: '평일 기준으로 발행하지만 매일을 약속드리지는 않습니다. 최근 22거래일 실측 발행률은 브리핑 91%(20회), 미국장 브리핑 86%(19회)였어요. 사람이 원문을 직접 확인해 쓰기 때문에 열흘에 한 번 정도는 거르는 날이 있습니다. 월 20회 내외로 보시면 됩니다.',
+  },
+  {
+    q: '수익을 올려주나요?',
+    a: '아니요, 그런 약속은 드리지 않습니다. 저희가 파는 것은 수익률이 아니라 정보를 압축하는 시간입니다 — 하루 800여 건의 공시에서 볼 만한 것을 골라내고, 원문을 열어 제목과 실제 내용이 다른 것을 걸러내는 작업이에요. 투자 판단과 그 결과는 이용자 본인의 몫입니다.',
   },
   {
     q: '왜 신뢰할 수 있나요?',
-    a: '모든 시세·재무는 실제 API로 조회한 값만 씁니다 — 추정이나 소문이 아니라 데이터 기반이에요. 공시 원문까지 확인해 정리합니다.',
+    a: '모든 시세·재무는 실제 API로 조회한 값만 씁니다 — 추정이나 소문을 쓰지 않아요. 확인되지 않은 것은 "확인 필요"로 표기하고 넘어갑니다.',
   },
   {
     q: '가격과 결제는?',
-    a: '가격은 문의 주시면 안내드립니다. 「프리미엄 문의하기」로 연락처를 남겨주시면 구독 방법과 함께 알려드려요. 언제든 해지 가능합니다.',
+    a: PREMIUM_PRICE_LABEL + '입니다. 아래 「구독 신청하기」로 연락처를 남겨주시면 결제 방법을 안내드려요. 언제든 해지 가능합니다.',
   },
 ]
 
@@ -88,45 +97,40 @@ export default function PremiumPage() {
           fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 800, fontFamily: FONTS.serif,
           lineHeight: 1.2, letterSpacing: '-0.03em', margin: '0 0 16px', color: colors.textPrimary,
         }}>
-          매일 아침,<br />단 하나의 상승 종목
+          공시 원문까지<br />직접 열어 봅니다
         </h1>
         <p style={{ fontSize: 16, color: colors.textMuted, lineHeight: 1.65, margin: '0 auto 32px', maxWidth: 400 }}>
-          공시 브리핑과 미국장 브리핑은 <b style={{ color: colors.textSecondary }}>무료</b>.<br />
-          그 위에, 신호를 종합한 <b style={{ color: R }}>DART 픽</b> 한 종목을 매일.
+          하루 800여 건의 공시 중 볼 만한 것을 골라,
+          <b style={{ color: colors.textSecondary }}> 제목과 실제 내용이 다른 것</b>을 걸러 드립니다.
         </p>
 
-        {/* 가격 — 비공개, 문의 시 안내 */}
+        {/* 가격 */}
         <div style={{ marginBottom: 24 }}>
           <div style={{
-            fontSize: 'clamp(20px, 5vw, 26px)', fontWeight: 800, fontFamily: FONTS.serif,
-            color: colors.textPrimary, letterSpacing: '-0.02em', lineHeight: 1.3,
+            fontSize: 'clamp(30px, 7vw, 40px)', fontWeight: 800, fontFamily: FONTS.mono,
+            color: colors.textPrimary, letterSpacing: '-0.03em', lineHeight: 1.2,
           }}>
-            가격은 문의 주시면 안내드려요
+            {PREMIUM_PRICE_LABEL}
           </div>
-          <div style={{ marginTop: 12 }}>
-            <span style={{
-              display: 'inline-block', fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
-              color: '#B45309', background: dark ? 'rgba(217,119,6,0.12)' : 'rgba(217,119,6,0.1)',
-              padding: '5px 13px', borderRadius: 20,
-            }}>
-              DART 픽 — 프리미엄 전용
-            </span>
+          <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 8, lineHeight: 1.6 }}>
+            오늘의 공시 · 브리핑 · 미국장 브리핑 3종<br />
+            언제든 해지 · 발행일 기준 월 20회 내외
           </div>
         </div>
 
-        {/* 프리미엄(DART 픽) 문의 CTA */}
+        {/* 구독 신청 CTA — 결제 연동 전까지 문의 페이지로 */}
         <button onClick={() => navigate('/inquiry?type=premium')} style={{
           width: '100%', maxWidth: 380, height: 52, borderRadius: 12, border: 'none',
           background: R, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
           margin: '0 auto', display: 'block', letterSpacing: '-0.01em',
         }}>
-          프리미엄 문의하기
+          구독 신청하기
         </button>
         <button onClick={() => navigate('/briefing')} style={{
           background: 'none', border: 'none', cursor: 'pointer',
           fontSize: 13, color: colors.textMuted, textDecoration: 'underline', marginTop: 14,
         }}>
-          무료 브리핑 먼저 보기 →
+          먼저 미리보기 →
         </button>
       </div>
 
@@ -196,17 +200,17 @@ export default function PremiumPage() {
       {/* 하단 CTA — 프리미엄 문의 */}
       <div style={{ padding: '48px 28px 0', textAlign: 'center' }}>
         <p style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, margin: '0 0 6px' }}>
-          DART 픽으로 매일 한 종목을
+          공시 읽는 시간을 줄여 드립니다
         </p>
         <p style={{ fontSize: 13, color: colors.textMuted, margin: '0 0 20px' }}>
-          공시·미국 신호를 종합한 단 하나의 상승 시그널 종목. 가격은 문의 시 안내드려요.
+          {PREMIUM_PRICE_LABEL} · 오늘의 공시 · 브리핑 · 미국장 브리핑 3종.
         </p>
         <button onClick={() => navigate('/inquiry?type=premium')} style={{
           width: '100%', maxWidth: 380, height: 52, borderRadius: 12, border: 'none',
           background: R, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
           margin: '0 auto', display: 'block', letterSpacing: '-0.01em',
         }}>
-          프리미엄 문의하기
+          구독 신청하기
         </button>
       </div>
 

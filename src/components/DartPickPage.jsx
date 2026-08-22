@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
-import { API } from '../lib/api'
+import { API, secretHeaders } from '../lib/api'
 import { MarkdownBody } from './BriefingPage'
 import { isAdmin } from './AdminPage'
 import PickScorecard from './PickScorecard'
@@ -10,10 +10,17 @@ import PaperTrading from './PaperTrading'
 
 const GRADE_COLOR = { S: '#E8364E', A: '#0D9488', B: '#6B7280', D: '#DC2626' }
 
-// 프리미엄 권한 판정: 관리자 또는 로그인 사용자의 premium 플래그
+// DART 픽 접근 권한 — __관리자 전용__ (2026-08-22)
+//
+// 픽은 유료 정보 서비스 상품이 아니다. __자산운용을 위한 내부 도구__다(사용자 결정).
+// 그래서 판매도 하지 않고, 구독자에게도 열지 않는다 — 예전의 premium 플래그 분기를
+// 뗐다. 남겨두면 "구독하면 열리는 것"으로 읽혀 상품 경계가 흐려진다.
+//
+// 판매하지 않는 판단은 데이터와도 정합적이다: 알파 초과중앙 +0.49%(p=1.000),
+// 위약 대조군 p=0.363. __성과를 약속할 수 없는 것을 팔지 않는다.__
+// 화면 자체는 매일 픽 세션이 쓰므로 라우트·API·로직은 전부 그대로 둔다.
 function hasPickAccess() {
-  if (isAdmin()) return true
-  try { return !!JSON.parse(localStorage.getItem('dart_user'))?.premium } catch { return false }
+  return isAdmin()
 }
 
 export default function DartPickPage() {
@@ -36,8 +43,8 @@ export default function DartPickPage() {
   useEffect(() => {
     if (!allowed) return
     Promise.all([
-      fetch(`${API}/api/pick/today`).then(r => r.json()).catch(() => null),
-      fetch(`${API}/api/pick/list`).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/pick/today`, { headers: secretHeaders() }).then(r => r.json()).catch(() => null),
+      fetch(`${API}/api/pick/list`, { headers: secretHeaders() }).then(r => r.json()).catch(() => null),
     ])
       .then(([today, list]) => {
         // 신 스키마(picks[]) 우선, 구 스키마(flat/pick) 하위호환
@@ -62,11 +69,11 @@ export default function DartPickPage() {
       })
       .finally(() => setLoading(false))
     // DART 픽 성적표 — 선정 후 시세 추적 + 요인 분해 (키움 실측)
-    fetch(`${API}/api/pick/feedback`).then(r => r.json())
+    fetch(`${API}/api/pick/feedback`, { headers: secretHeaders() }).then(r => r.json())
       .then(d => setScores(d && Array.isArray(d.picks) ? d : null))
       .catch(() => setScores(null))
     // 페이퍼 트레이딩 원장 — 1,000만원 가상매매 트랙레코드
-    fetch(`${API}/api/pick/paper`).then(r => r.json())
+    fetch(`${API}/api/pick/paper`, { headers: secretHeaders() }).then(r => r.json())
       .then(d => setPaper(d && Array.isArray(d.positions) && d.positions.length ? d : null))
       .catch(() => setPaper(null))
   }, [])
@@ -356,74 +363,50 @@ function ArchiveItem({ item, colors, dark, lineSep }) {
   )
 }
 
-// 프리미엄 페이월 — DART 픽은 유료 전용. 결제 연동 전까지 문의로 전환.
+// 비공개 안내 — DART 픽은 판매 상품이 아니라 내부 자산운용 도구다.
+// 페이월(=돈 내면 열림)이 아니라 __비공개__라고 정확히 말해야 한다.
+// 여기서 구독을 권하면 팔지 않기로 한 것을 파는 셈이 된다.
 function PickPremiumGate({ dark, colors, navigate }) {
-  const accent = '#DC2626'
   const lineSep = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
   return (
     <div className="page-enter" style={{
-      maxWidth: 560, margin: '0 auto', padding: '64px 24px 120px',
+      maxWidth: 520, margin: '0 auto', padding: '80px 24px 120px',
       fontFamily: FONTS.body, textAlign: 'center',
     }}>
-      {/* 자물쇠 + 과녁 */}
       <div style={{
-        width: 64, height: 64, borderRadius: 18, margin: '0 auto 22px',
+        width: 56, height: 56, borderRadius: 16, margin: '0 auto 20px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.07)',
+        background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
       }}>
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       </div>
 
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-        <span style={{
-          fontSize: 11, fontWeight: 800, color: '#fff', background: accent,
-          padding: '3px 8px', borderRadius: 6, letterSpacing: '0.04em',
-        }}>DART 픽</span>
-        <span style={{
-          fontSize: 11, fontWeight: 800, color: accent, letterSpacing: '0.08em',
-          background: dark ? 'rgba(220,38,38,0.14)' : 'rgba(220,38,38,0.08)',
-          padding: '3px 8px', borderRadius: 6,
-        }}>PREMIUM</span>
-      </div>
-
       <h1 style={{
-        fontSize: 24, fontWeight: 800, fontFamily: FONTS.serif, color: colors.textPrimary,
-        margin: '0 0 12px', letterSpacing: '-0.02em', lineHeight: 1.3,
+        fontSize: 20, fontWeight: 800, fontFamily: FONTS.serif, color: colors.textPrimary,
+        margin: '0 0 12px', letterSpacing: '-0.02em', lineHeight: 1.4,
       }}>
-        매일 아침, 단 하나의 상승 시그널 종목
+        비공개 페이지입니다
       </h1>
-      <p style={{ fontSize: 15, color: colors.textMuted, lineHeight: 1.7, margin: '0 auto 8px', maxWidth: 400 }}>
-        800여 건의 공시와 미국 AI 섹터 흐름을 하나의 깔때기에 넣어
-        <b style={{ color: colors.textSecondary }}> 단 하나의 종목</b>으로 좁혀 드립니다.
-      </p>
-      <p style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.7, margin: '0 auto 28px', maxWidth: 400 }}>
-        공시 브리핑과 미국장 브리핑은 무료로 열려 있어요.<br />
-        <b style={{ color: colors.textSecondary }}>DART 픽</b>은 프리미엄 전용입니다.
+      <p style={{ fontSize: 14, color: colors.textMuted, lineHeight: 1.75, margin: '0 auto 28px', maxWidth: 380 }}>
+        DART 픽은 자체 자산운용에 쓰는 내부 도구라
+        구독 상품에 포함되지 않습니다.
       </p>
 
-      <button onClick={() => navigate('/inquiry?type=premium')} style={{
-        width: '100%', maxWidth: 320, padding: '14px', borderRadius: 12, border: 'none',
-        background: accent, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+      <button onClick={() => navigate('/briefing')} style={{
+        width: '100%', maxWidth: 300, padding: '13px', borderRadius: 10, border: 'none',
+        background: colors.textPrimary, color: dark ? '#0A0A0B' : '#fff',
+        fontSize: 14.5, fontWeight: 700, cursor: 'pointer', fontFamily: FONTS.body,
       }}>
-        프리미엄 문의하기
+        오늘의 브리핑 보러 가기
       </button>
-      <div style={{ marginTop: 14 }}>
-        <button onClick={() => navigate('/premium')} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: 13, color: colors.textMuted, textDecoration: 'underline',
-        }}>
-          프리미엄 안내 보기 →
-        </button>
-      </div>
 
       <div style={{
         marginTop: 32, paddingTop: 20, borderTop: `1px solid ${lineSep}`,
         fontSize: 12, color: colors.textMuted, lineHeight: 1.7,
       }}>
-        모든 시세·재무는 실제 API로 조회한 값만 사용합니다.<br />
-        투자 참고 정보이며, 최종 판단과 책임은 본인에게 있습니다.
+        구독 상품은 오늘의 공시 · 브리핑 · 미국장 브리핑 3종입니다.
       </div>
     </div>
   )

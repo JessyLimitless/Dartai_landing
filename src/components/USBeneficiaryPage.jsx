@@ -3,6 +3,8 @@ import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
 import { API } from '../lib/api'
 import { MarkdownBody } from './BriefingPage'
+import { canView, previewMarkdown } from '../lib/access'
+import PremiumLock from './PremiumLock'
 
 export default function USBeneficiaryPage() {
   const { colors, dark } = useTheme()
@@ -23,6 +25,7 @@ export default function USBeneficiaryPage() {
   }, [])
 
   const lineSep = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const unlocked = canView('usMarket')
 
   return (
     <div className="page-enter" style={{
@@ -41,7 +44,7 @@ export default function USBeneficiaryPage() {
       </div>
 
       {/* 아카이브 날짜칩 — 6/15부터 일자별 누적 */}
-      {!loading && cards.length > 1 && (
+      {!loading && unlocked && cards.length > 1 && (
         <div className="bp-pad" style={{
           display: 'flex', gap: 8, overflowX: 'auto', paddingTop: 16, paddingBottom: 4,
         }}>
@@ -94,10 +97,23 @@ export default function USBeneficiaryPage() {
               )}
             </div>
 
-            {/* 본문 (마크다운) */}
+            {/* 본문 (마크다운) — 비구독자는 앞부분만 */}
             <div style={{ padding: '12px 0 32px' }}>
-              <MarkdownBody content={selected.content} colors={colors} dark={dark} />
+              <MarkdownBody
+                content={unlocked ? selected.content : previewMarkdown(selected.content)}
+                colors={colors} dark={dark}
+              />
             </div>
+            {!unlocked && (
+              <PremiumLock
+                title="밤사이 미국장 해석 전문은 구독자에게 공개됩니다"
+                benefits={[
+                  '미국 AI 섹터 8세부 정량 지표',
+                  '한국 수혜 섹터 매핑 (1차 / 간접 / 연상 구분)',
+                  '브리핑 · 오늘의 공시 함께 이용',
+                ]}
+              />
+            )}
           </div>
         )}
       </div>

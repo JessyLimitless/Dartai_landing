@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, getBoxStyle } from '../constants/theme'
+import { canView } from '../lib/access'
+import PremiumLock from './PremiumLock'
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -86,6 +88,8 @@ export default function USMarketPage() {
   const cats = data?.categories || []
   const core = cats.filter(c => c.tier === 'core')
   const sat = cats.filter(c => c.tier === 'satellite')
+  // 비구독자는 하이닉스 ADR 하이라이트까지만 — 밸류체인 매핑이 유료 본체다
+  const unlocked = canView('usMarket')
 
   return (
     <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 16px 64px', fontFamily: FONTS.body }}>
@@ -187,11 +191,28 @@ export default function USMarketPage() {
 
           {/* ── 핵심(core) 밸류체인 ── */}
           <SectionLabel dark={dark} colors={colors}>AI 밸류체인 — 실체 동력 (core)</SectionLabel>
-          {core.map(cat => <ChainRow key={cat.key} cat={cat} dark={dark} colors={colors} t={t} />)}
+          {(unlocked ? core : core.slice(0, 1)).map(cat => (
+            <ChainRow key={cat.key} cat={cat} dark={dark} colors={colors} t={t} />
+          ))}
 
-          {/* ── 위성(satellite) 테마 ── */}
-          <SectionLabel dark={dark} colors={colors} muted>테마·베타 (satellite) — 적자·연상 다수, 투기적</SectionLabel>
-          {sat.map(cat => <ChainRow key={cat.key} cat={cat} dark={dark} colors={colors} t={t} />)}
+          {unlocked ? (
+            <>
+              {/* ── 위성(satellite) 테마 ── */}
+              <SectionLabel dark={dark} colors={colors} muted>테마·베타 (satellite) — 적자·연상 다수, 투기적</SectionLabel>
+              {sat.map(cat => <ChainRow key={cat.key} cat={cat} dark={dark} colors={colors} t={t} />)}
+            </>
+          ) : (
+            <div style={{ marginTop: 18 }}>
+              <PremiumLock
+                title={`나머지 밸류체인 ${Math.max(0, core.length - 1) + sat.length}칸은 구독자에게 공개됩니다`}
+                benefits={[
+                  '미국 무버 → 한국 수혜주 전체 매핑',
+                  '1차 수혜 / 간접 / 연상 등급 구분',
+                  '브리핑 · 오늘의 공시 함께 이용',
+                ]}
+              />
+            </div>
+          )}
 
           <div style={{ marginTop: 20, fontSize: 11.5, color: t.dim, lineHeight: 1.6 }}>
             미국 개별주 단일일 등락 = 키움 미국주식 API(usa20100) 실측 · 한국 수혜 매핑 = DART Insight causal-map. 투자 판단과 책임은 이용자에게 있습니다.

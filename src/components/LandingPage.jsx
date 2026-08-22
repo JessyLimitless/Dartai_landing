@@ -89,11 +89,12 @@ export default function LandingPage() {
   const aCount = stats?.a_count ?? 0
 
   // 우리가 매일 발행하는 콘텐츠 라인업 (랜딩에서 한눈에)
+  // 구독 상품 3종. __DART 픽은 라인업에서 뺐다__(2026-08-22) —
+  // 판매 콘텐츠가 아니라 자산운용용 내부 도구라 랜딩에 걸면 상품으로 읽힌다.
   const lineup = [
-    { title: '오늘의 공시', desc: '하루 800건 중 주가를 움직이는 S·A 시그널만 실시간으로 골라냅니다.', tag: '무료', tagColor: '#0D9488', route: '/today', accent: '#DC2626' },
-    { title: '일일 브리핑', desc: '매일 저녁, 핵심 공시 5건을 5단계 프레임으로 쉽게 해석합니다.', tag: '무료', tagColor: '#0D9488', route: '/briefing', accent: '#DC2626' },
-    { title: '미국 수혜주 편지', desc: '밤사이 뉴욕장을 읽고, 오늘 움직일 한국 수혜주로 매핑합니다.', tag: '무료', tagColor: '#0D9488', route: '/us-beneficiary', accent: '#2563EB' },
-    { title: 'DART 픽', desc: '매일 아침, 강도 임계를 넘은 상승 시그널 종목을 선정합니다.', tag: '프리미엄', tagColor: '#7C3AED', route: '/dart-pick', accent: '#7C3AED' },
+    { title: '오늘의 공시', desc: '하루 800건 중 주가를 움직이는 S·A 시그널만 실시간으로 골라냅니다.', tag: '구독', tagColor: '#A67C00', route: '/today', accent: '#DC2626' },
+    { title: '일일 브리핑', desc: '매일 저녁, 핵심 공시를 원문까지 열어 확인하고 해석합니다.', tag: '구독', tagColor: '#A67C00', route: '/briefing', accent: '#DC2626' },
+    { title: '미국 수혜주 편지', desc: '밤사이 뉴욕장을 읽고, 오늘 움직일 한국 수혜 섹터로 매핑합니다.', tag: '구독', tagColor: '#A67C00', route: '/us-beneficiary', accent: '#2563EB' },
   ]
 
   return (
@@ -290,6 +291,15 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ━━━ 1.4 오늘의 미국 편지 — 전문 바로가기 (눈에 띄게) ━━━ */}
+      <section style={{ borderTop: '1px solid #F4F4F5' }}>
+        <div style={{ maxWidth: 620, margin: '0 auto', padding: 'clamp(56px, 7vh, 80px) clamp(20px, 5vw, 40px)' }}>
+          <Reveal>
+            <USLetterPreview navigate={navigate} />
           </Reveal>
         </div>
       </section>
@@ -1112,6 +1122,109 @@ function LiveRiserLanding({ navigate, heroOnly }) {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+function USLetterPreview({ navigate }) {
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    fetch(`${API}/api/us-beneficiary/cards`)
+      .then(r => r.json())
+      .then(d => {
+        const latest = (d.cards || [])[0]
+        if (!latest) return
+        const lines = (latest.content || '').split('\n')
+
+        // 10줄 요약의 헤드라인 = "> **...**"
+        let headline = ''
+        for (const line of lines) {
+          const m = line.match(/^>\s*\*\*(.+?)\*\*\s*$/)
+          if (m) { headline = m[1]; break }
+        }
+
+        // 10줄 항목: "1. **라벨** — 본문"
+        const bullets = []
+        for (const line of lines) {
+          const m = line.match(/^\d+\.\s*\*\*(.+?)\*\*\s*[—-]\s*(.+)$/)
+          if (m) bullets.push({ label: m[1], body: m[2].replace(/__(.+?)__/g, '$1').replace(/\*\*(.+?)\*\*/g, '$1') })
+          if (bullets.length >= 4) break
+        }
+
+        setData({ dateLabel: latest.date_label || latest.id, headline, bullets })
+      })
+      .catch(() => {})
+  }, [])
+
+  const B = '#2563EB'
+  const go = () => navigate('/us-beneficiary')
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: '#A1A1AA', letterSpacing: '0.08em', fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>US MORNING LETTER</p>
+      <h2 style={{
+        fontSize: 'clamp(20px, 3.5vw, 30px)', fontWeight: 700, fontFamily: FONTS.serif,
+        color: '#18181B', textAlign: 'center', margin: '0 0 14px', letterSpacing: '-0.02em',
+      }}>
+        어젯밤 뉴욕, 오늘 한국
+      </h2>
+      <p style={{ fontSize: 15, color: '#71717A', textAlign: 'center', margin: '0 auto 32px', lineHeight: 1.65, maxWidth: 460 }}>
+        미국장이 왜 그렇게 움직였는지, 그게 오늘 한국 어느 칸에 닿는지.
+      </p>
+
+      <div
+        onClick={go}
+        style={{
+          borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
+          border: `1.5px solid ${B}25`, background: '#FFFFFF',
+          boxShadow: `0 2px 20px ${B}12`, transition: 'box-shadow .2s, transform .2s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 6px 28px ${B}22`; e.currentTarget.style.transform = 'translateY(-2px)' }}
+        onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 2px 20px ${B}12`; e.currentTarget.style.transform = 'none' }}
+      >
+        <div style={{ padding: '13px 20px', borderBottom: '1px solid #F0F0F2', display: 'flex', alignItems: 'center', gap: 8, background: `${B}06` }}>
+          <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 4, background: B, color: '#fff', letterSpacing: '0.05em' }}>US LETTER</span>
+          <span style={{ fontSize: 12, color: '#A1A1AA', fontFamily: FONTS.mono }}>{data?.dateLabel || '—'}</span>
+          <span style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 700, color: '#0D9488', padding: '3px 10px', borderRadius: 20, background: '#0D948812' }}>무료</span>
+        </div>
+
+        {data?.headline && (
+          <div style={{ padding: '20px 20px 6px' }}>
+            <div style={{ fontSize: 'clamp(15px, 2.4vw, 17px)', fontWeight: 700, color: '#18181B', lineHeight: 1.5, letterSpacing: '-0.01em' }}>
+              {data.headline}
+            </div>
+          </div>
+        )}
+
+        {data?.bullets?.length > 0 && (
+          <div style={{ padding: '10px 20px 4px' }}>
+            {data.bullets.map((b, i) => (
+              <div key={i} style={{ display: 'flex', gap: 10, padding: '7px 0', borderBottom: i < data.bullets.length - 1 ? '1px solid #F7F7F8' : 'none' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: B, flexShrink: 0, minWidth: 52 }}>{b.label}</span>
+                <span style={{ fontSize: 12.5, color: '#71717A', lineHeight: 1.55, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>{b.body}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{ padding: '16px 20px 20px' }}>
+          <button
+            onClick={e => { e.stopPropagation(); go() }}
+            style={{
+              width: '100%', padding: '13px 20px', borderRadius: 10, border: 'none',
+              background: B, color: '#fff', fontSize: 14.5, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            오늘의 미국 편지 전문 보기 <span style={{ fontSize: 16, lineHeight: 1 }}>→</span>
+          </button>
+          <div style={{ fontSize: 11.5, color: '#A1A1AA', textAlign: 'center', marginTop: 10 }}>
+            10줄 요약 · 왜 그랬나 · 미국 AI 섹터 → 한국 같은 칸
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

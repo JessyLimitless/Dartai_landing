@@ -25,7 +25,7 @@ export default function FeedbackPage() {
       .catch(() => {})
       .finally(() => setLoading(false))
     // DART 픽 성적표 — 선정 후 시세 추적 + 요인 분해 (키움 실측)
-    fetch(`${API}/api/pick/feedback`).then(r => r.json())
+    fetch(`${API}/api/pick/feedback`, { headers: secretHeaders() }).then(r => r.json())
       .then(d => setPickScores(d && Array.isArray(d.picks) ? d : null))
       .catch(() => setPickScores(null))
   }, [])

@@ -9,6 +9,8 @@ import { useTheme } from '../contexts/ThemeContext'
 import { API } from '../lib/api'
 import { GUIDE_GRADES, GUIDE_SIGNALS, GUIDE_DISCLAIMER } from '../lib/signalGuide'
 import { getSignalStrength, strengthBadgeStyle, STRENGTH_INFO } from '../lib/signalStrength'
+import { canView, PREVIEW } from '../lib/access'
+import PremiumLock from './PremiumLock'
 
 export default function TodayPage({ onViewCard }) {
   const { colors, dark } = useTheme()
@@ -99,7 +101,12 @@ export default function TodayPage({ onViewCard }) {
     return list
   }, [todayDisclosures, gradeFilter, search])
 
-  const visibleItems = showAll ? filtered : filtered.slice(0, 20)
+  // 유료 경계 — 비구독자는 상단 PREVIEW.todayRows 행까지만
+  const unlocked = canView('today')
+  const visibleItems = unlocked
+    ? (showAll ? filtered : filtered.slice(0, 20))
+    : filtered.slice(0, PREVIEW.todayRows)
+  const lockedCount = unlocked ? 0 : Math.max(0, filtered.length - visibleItems.length)
   const lineSep = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'
 
   // 공시 후 상승 종목
@@ -503,13 +510,23 @@ export default function TodayPage({ onViewCard }) {
                 </div>
               )
             })}
-            {!showAll && filtered.length > 20 && (
+            {unlocked && !showAll && filtered.length > 20 && (
               <button className="touch-press" onClick={() => setShowAll(true)} style={{
                 width: '100%', padding: '18px 0', border: 'none',
                 background: 'transparent', cursor: 'pointer',
                 fontSize: 15, fontWeight: 600, color: colors.textSecondary,
                 borderTop: `1px solid ${lineSep}`, minHeight: 52,
               }}>더 보기</button>
+            )}
+            {!unlocked && lockedCount > 0 && (
+              <PremiumLock
+                title={`오늘 시그널 ${lockedCount}건이 더 있습니다`}
+                benefits={[
+                  '하루 800여 건 중 S · A 등급 전체 열람',
+                  '등급 · 시그널 강도 필터와 검색',
+                  '브리핑 · 미국장 브리핑 함께 이용',
+                ]}
+              />
             )}
           </>
         )}
