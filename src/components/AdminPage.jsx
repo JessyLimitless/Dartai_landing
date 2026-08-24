@@ -7,7 +7,7 @@ import QuantDiagnosticBlog from './QuantDiagnosticBlog'
 import AdminTradePanel from './AdminTradePanel'
 import MonetizationPlan from './MonetizationPlan'
 
-const ADMIN_EMAIL = 'j07087815@gmail.com'
+export const ADMIN_EMAIL = 'j07087815@gmail.com'
 
 export function isAdmin() {
   try {

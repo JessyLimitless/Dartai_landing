@@ -3,20 +3,27 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import NotificationBell from './NotificationBell'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM, PREMIUM_GOLD } from '../constants/theme'
-import { isAdmin } from './AdminPage'
+import { isAdmin, ADMIN_EMAIL } from './AdminPage'
 import { useAuth } from '../contexts/AuthContext'
 
 const TABS = [
   { key: '/', label: '홈', mobileLabel: '홈', exact: true },
   // 오늘의 공시는 __무료__ — PRO 배지를 붙이지 않는다(2026-08-22 경계 확정)
   { key: '/today', label: '오늘의 공시', mobileLabel: '공시' },
-  // 🔕 DART 픽 노출 중단(2026-08-22) — __유료 정보 서비스 상품에서 제외__.
-  //    픽은 판매 콘텐츠가 아니라 __자산운용을 위한 내부 도구__다(사용자 결정).
-  //    정합성도 맞다: 알파 초과중앙 +0.49%(p=1.000) · 위약 대조군 p=0.363 —
-  //    성과를 약속할 수 없는 것을 상품에 넣지 않는다.
-  //    배당·레이더와 동일 처리: __코드·API·라우트는 그대로 둔다__(되돌릴 수 있게).
-  //    `/dart-pick` 은 관리자 전용으로 살아 있다 — 매일 픽 세션이 이 화면을 쓴다.
-  // { key: '/dart-pick', label: 'DART 픽', mobileLabel: '픽', premium: true },
+  // 🔒 DART 픽 = __관리자 전용 메뉴__ (2026-08-25 복구).
+  //    2026-08-22에 통째로 감췄다가, 메뉴·아이콘은 되살리고 __노출 대상만 좁혔다__ —
+  //    매일 픽 세션이 이 화면을 쓰는데 주소를 직접 쳐야 했기 때문이다(사용자 요청).
+  //
+  //    ⚠️ __PRO 배지를 붙이지 않는다.__ 픽은 유료 상품이 아니라 자산운용용 내부
+  //    도구다. PRO 를 달면 "구독하면 열리는 것"으로 읽혀 상품 경계가 흐려진다
+  //    (`lib/access.js` 의 PAID 에 pick 키가 없는 것과 같은 이유).
+  //    판매하지 않는 판단은 데이터와도 정합적이다: 알파 초과중앙 +0.49%(p=1.000),
+  //    위약 대조군 p=0.363 — 성과를 약속할 수 없는 것을 팔지 않는다.
+  //
+  //    ⚠️ __이 필터는 화면 게이트일 뿐 보안이 아니다.__ 진짜 경계는 API 마스킹
+  //    (`X-Admin-Token`)에 있고, 이미 걸려 있다 — 토큰 없이 `/api/pick/today` 를
+  //    치면 corp_name 이 null 로 온다(2026-08-25 실측). 프론트 게이트만 믿지 않는다.
+  { key: '/dart-pick', label: 'DART 픽', mobileLabel: '픽', adminOnly: true },
   { key: '/briefing', label: '브리핑', mobileLabel: '브리핑', premium: true },
   { key: '/us-market', label: '미국장', mobileLabel: '미국장', premium: true },
   // 🔕 배당 노출 중단(2026-08-19) — 국내 배당 정보는 효용이 낮고 데이터 부채도 있다
@@ -153,6 +160,15 @@ export default function Header({
   const [showLoginNotice, setShowLoginNotice] = useState(false)
   const { user, login, logout } = useAuth()
 
+  // 관리자 전용 탭(현재 DART 픽) 노출 여부.
+  //
+  // ⚠️ `isAdmin()` 대신 __컨텍스트의 user 를 본다.__ isAdmin() 은 localStorage 를
+  //    직접 읽어서 값은 같지만 __리렌더를 유발하지 않는다__ — 로그인 직후 메뉴가
+  //    안 나타나고 새로고침해야 보이는 문제가 생긴다. useAuth() 의 user 는
+  //    dart-auth-change 이벤트로 갱신되므로 로그인·로그아웃 즉시 반영된다.
+  const showAdminTabs = user?.email === ADMIN_EMAIL
+  const visibleTabs = TABS.filter(tab => !tab.adminOnly || showAdminTabs)
+
   // 외부 클릭 시 유저 메뉴 닫기
   useEffect(() => {
     if (!showUserMenu) return
@@ -247,7 +263,7 @@ export default function Header({
           //    라벨 길이에 안 흔들리게 nowrap 을 고정한다.
           whiteSpace: 'nowrap',
         }}>
-          {TABS.map((tab, idx) => {
+          {visibleTabs.map((tab, idx) => {
             const active = isActive(tab.key)
             return (
               <button key={tab.key}
@@ -290,6 +306,17 @@ export default function Header({
                     padding: '2px 5px', borderRadius: 4, verticalAlign: 'middle',
                     boxShadow: `0 0 6px ${PREMIUM_GOLD.glow}`, fontFamily: FONTS.body,
                   }}>PRO</span>
+                )}
+                {/* 관리자 전용 표시 — 금색 PRO 와 __색을 겹치지 않게__ 무채색으로 둔다.
+                    이게 판매 등급이 아니라 접근 범위라는 걸 한눈에 구분시키려는 것. */}
+                {tab.adminOnly && (
+                  <span style={{
+                    marginLeft: 5, fontSize: 9, fontWeight: 800, letterSpacing: '0.06em',
+                    color: dark ? '#A1A1AA' : '#6B7280',
+                    border: `1px solid ${dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.16)'}`,
+                    padding: '1px 4px', borderRadius: 4, verticalAlign: 'middle',
+                    fontFamily: FONTS.body,
+                  }}>ADMIN</span>
                 )}
                 {active && <div style={{
                   position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)',
@@ -482,7 +509,7 @@ export default function Header({
         backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
         borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
       }}>
-        {TABS.filter(tab => !tab.desktopOnly && !tab.mobileHidden).map((tab) => {
+        {visibleTabs.filter(tab => !tab.desktopOnly && !tab.mobileHidden).map((tab) => {
           const active = isActive(tab.key)
           const iconColor = active ? accentColor : '#94A3B8'
           const IconFn = TAB_ICONS[tab.key]
