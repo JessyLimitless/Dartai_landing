@@ -33,6 +33,9 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('dart_user')
+    // 🔑 세션 토큰도 같이 지운다. 안 지우면 로그아웃한 브라우저에
+    //    __픽 원문 열쇠가 남는다__ — 로그아웃의 의미가 사라진다.
+    try { localStorage.removeItem('dart_session_token') } catch { /* 무시 */ }
     setUser(null)
     window.dispatchEvent(new CustomEvent('dart-auth-change', { detail: null }))
   }, [])

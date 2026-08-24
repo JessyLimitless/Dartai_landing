@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
-import { API, secretHeaders } from '../lib/api'
+import { API, secretHeaders, sessionToken } from '../lib/api'
 import { MarkdownBody } from './BriefingPage'
 import { isAdmin } from './AdminPage'
 import PickScorecard from './PickScorecard'
@@ -35,6 +35,10 @@ export default function DartPickPage() {
   const [degraded, setDegraded] = useState(false)
   const [degradedReason, setDegradedReason] = useState('')
   const [note, setNote] = useState('')
+  // 🔒 마스킹 상태 — 토큰이 없거나 __만료된__ 경우.
+  // 서버는 이때 401 이 아니라 __HTTP 200 + {masked:true}__ 를 준다(의도된 fail-closed).
+  // 그래서 fetch 는 성공하고 화면만 빈다 — 원인이 화면에 전혀 안 뜨는 게 문제였다.
+  const [masked, setMasked] = useState(false)
   const [archive, setArchive] = useState([])
   const [scores, setScores] = useState(null)
   const [paper, setPaper] = useState(null)
@@ -52,6 +56,9 @@ export default function DartPickPage() {
         const picks = (today && Array.isArray(today.picks) && today.picks.length)
           ? today.picks
           : (today && today.corp_name ? [today] : (today && today.pick ? [today.pick] : []))
+        // 마스킹 판정: 서버 플래그를 1순위로 보고, 플래그가 없는 구 응답을 대비해
+        // "픽은 있는데 종목명이 없다"는 사실로도 잡는다.
+        setMasked(picks.some(p => p && (p.masked === true || !p.corp_name)))
         setPick(picks[0] || null)
         setExtraPicks(picks.slice(1))
         setNoPick(!!(today && today.no_pick))
@@ -108,6 +115,14 @@ export default function DartPickPage() {
       <div className="bp-pad">
         <TradeBoard />
       </div>
+
+      {/* 🔒 토큰이 없거나 만료됨 — 서버가 200 으로 마스킹만 하므로
+          이 배너가 없으면 화면이 __이유 없이 비어 보인다.__ */}
+      {!loading && masked && (
+        <div className="bp-pad">
+          <PickTokenBanner colors={colors} dark={dark} lineSep={lineSep} />
+        </div>
+      )}
 
       <div className="bp-pad">
         {loading ? (
@@ -363,6 +378,71 @@ function ArchiveItem({ item, colors, dark, lineSep }) {
       {open && item.detail && (
         <div style={{ padding: '0 14px 16px', borderTop: `1px solid ${lineSep}` }}>
           <MarkdownBody content={item.detail} colors={colors} dark={dark} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** 🔒 마스킹 배너 — __왜 비었는지를 화면이 말하게 한다.__
+ *
+ *  서버는 열쇠가 없거나 틀리면 401 이 아니라 __200 + {masked:true}__ 를 준다.
+ *  fetch 는 성공하므로 프론트는 아무 에러도 못 받고 카드가 빈칸으로 렌더됐다 —
+ *  이 배너가 없던 동안 그게 "데이터가 사라졌다"로 보였다.
+ *
+ *  정상 경로는 __구글 로그인__ 이다(로그인 시 세션 토큰이 자동 발급·저장된다).
+ *  세션은 30일이라 만료되면 다시 로그인하면 된다.
+ *  수동 토큰 입력은 __비상구__ 로만 남긴다 — 크론·curl 이 쓰는 공유 시크릿이다.
+ */
+function PickTokenBanner({ colors, dark, lineSep }) {
+  const [v, setV] = useState('')
+  const [showManual, setShowManual] = useState(false)
+  const hadSession = !!sessionToken()   // 세션은 있는데 마스킹됨 = 만료됐거나 무효
+  const save = () => {
+    const t = v.trim()
+    if (!t) return
+    try { localStorage.setItem('dart_admin_token', t) } catch { /* 무시 */ }
+    window.location.reload()
+  }
+  return (
+    <div style={{
+      marginTop: 16, padding: '15px 16px', borderRadius: 12,
+      border: `1px solid ${dark ? 'rgba(220,38,38,0.35)' : '#FECACA'}`,
+      background: dark ? 'rgba(220,38,38,0.08)' : '#FEF2F2',
+      fontFamily: FONTS.body,
+    }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: dark ? '#FCA5A5' : '#B91C1C', marginBottom: 5 }}>
+        {hadSession ? '로그인 세션이 만료되었습니다' : '로그인 세션이 없습니다'}
+      </div>
+      <div style={{ fontSize: 11.5, lineHeight: 1.7, color: colors.textMuted, marginBottom: 12 }}>
+        종목명·점수·본문은 서버가 가렸습니다. <b>픽 자체는 정상 생성돼 있습니다.</b>
+        <br />
+        {hadSession
+          ? '세션 유효기간은 30일입니다. 우측 상단에서 로그아웃 후 구글 로그인을 다시 하면 즉시 열립니다.'
+          : '우측 상단에서 관리자 계정으로 구글 로그인하면 즉시 열립니다. 따로 넣을 값은 없습니다.'}
+      </div>
+
+      {!showManual ? (
+        <button onClick={() => setShowManual(true)} style={{
+          padding: 0, border: 'none', background: 'transparent', cursor: 'pointer',
+          fontSize: 11, color: colors.textMuted, textDecoration: 'underline',
+          fontFamily: FONTS.body,
+        }}>로그인이 안 되면 · 공유 시크릿으로 열기</button>
+      ) : (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <input value={v} onChange={e => setV(e.target.value)} type="password"
+                 placeholder="ADMIN_API_TOKEN (비상구)"
+                 onKeyDown={e => e.key === 'Enter' && save()}
+                 style={{
+                   flex: 1, minWidth: 200, padding: '8px 11px', borderRadius: 8,
+                   border: `1px solid ${lineSep}`, background: dark ? '#0F0F11' : '#FFF',
+                   color: colors.textPrimary, fontSize: 12.5, fontFamily: FONTS.mono,
+                 }} />
+          <button onClick={save} style={{
+            padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            background: '#DC2626', color: '#fff', fontSize: 12.5, fontWeight: 700,
+            fontFamily: FONTS.body,
+          }}>저장</button>
         </div>
       )}
     </div>
