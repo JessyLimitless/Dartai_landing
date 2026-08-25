@@ -29,6 +29,25 @@ export function adminToken() {
   try { return localStorage.getItem('dart_admin_token') || '' } catch { return '' }
 }
 
+/** 🔑 로그인 응답을 저장한다 — __반드시 여기 한 곳에서만.__
+ *
+ *  ☠️ 2026-08-25 실사고. `/api/auth/google` 호출부가 __네 군데__로 복붙돼 있었다
+ *     (Header · LandingPage · BriefingPage · DartViewPage). 세션 저장을
+ *     Header 에만 넣었더니 __랜딩에서 로그인한 경우 픽이 계속 잠겼다.__
+ *     서버는 세션을 정상 발급했는데 화면이 그걸 버린 것이라 로그만 봐서는
+ *     "로그인 성공"으로 보였다.
+ *
+ *  저장 로직을 여기로 모은다. 호출부가 다섯 번째로 늘어나도 이 함수만 부르면
+ *  같은 구멍이 다시 안 생긴다.
+ */
+export function saveAuth(data) {
+  try {
+    if (data && data.user) localStorage.setItem('dart_user', JSON.stringify(data.user))
+    if (data && data.session_token) localStorage.setItem('dart_session_token', data.session_token)
+    else localStorage.removeItem('dart_session_token')
+  } catch { /* 무시 */ }
+}
+
 /** 비밀 게이트 헤더. __세션 우선__, 없으면 공유 시크릿, 둘 다 없으면 마스킹된 응답. */
 export function secretHeaders() {
   const h = {}

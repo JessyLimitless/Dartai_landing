@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM } from '../constants/theme'
-import { API } from '../lib/api'
+import { API, saveAuth } from '../lib/api'
 import { canView, previewMarkdown } from '../lib/access'
 import PremiumLock from './PremiumLock'
 
@@ -489,7 +489,7 @@ export function LoginGate({ dark, colors }) {
             if (res.ok) {
               const data = await res.json()
               if (data.user) {
-                localStorage.setItem('dart_user', JSON.stringify(data.user))
+                saveAuth(data)   // 🔑 dart_user + 세션 토큰을 한 곳에서 저장
                 window.location.reload()
               }
             }

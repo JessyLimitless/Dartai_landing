@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FONTS, PREMIUM, GRADE_COLORS } from '../constants/theme'
-import { API } from '../lib/api'
+import { API, saveAuth } from '../lib/api'
 import { useLandingData } from '../hooks/useLandingData'
 import { useAuth } from '../contexts/AuthContext'
 import MacroTicker from './MacroTicker'
@@ -31,6 +31,7 @@ export default function LandingPage() {
             if (res.ok) {
               const data = await res.json()
               if (data.user) {
+                saveAuth(data)   // 🔑 세션 토큰 저장
                 login(data.user)
                 setShowGoogleBtn(false)
               }

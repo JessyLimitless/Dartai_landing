@@ -4,6 +4,7 @@ import NotificationBell from './NotificationBell'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM, PREMIUM_GOLD } from '../constants/theme'
 import { isAdmin } from './AdminPage'
+import { saveAuth } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 
 const TABS = [
@@ -184,13 +185,7 @@ export default function Header({
             if (res.ok) {
               const data = await res.json()
               if (data.user) {
-                // 🔑 관리자면 세션 토큰이 함께 온다 — 이게 픽 원문의 열쇠다.
-                //    저장해두면 secretHeaders() 가 이후 요청에 자동으로 싣는다.
-                //    손으로 토큰을 넣던 절차가 여기서 사라진다.
-                try {
-                  if (data.session_token) localStorage.setItem('dart_session_token', data.session_token)
-                  else localStorage.removeItem('dart_session_token')
-                } catch { /* 무시 */ }
+                saveAuth(data)   // 🔑 세션 토큰 저장 (픽 원문의 열쇠)
                 login(data.user)
                 setShowGoogleBtn(false)
               }

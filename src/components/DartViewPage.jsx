@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM } from '../constants/theme'
-import { API } from '../lib/api'
+import { API, saveAuth } from '../lib/api'
 
 export default function DartViewPage() {
   const { colors, dark } = useTheme()
@@ -609,7 +609,7 @@ function LoginGate({ dark, colors, label = '브리핑' }) {
             if (res.ok) {
               const data = await res.json()
               if (data.user) {
-                localStorage.setItem('dart_user', JSON.stringify(data.user))
+                saveAuth(data)   // 🔑 dart_user + 세션 토큰을 한 곳에서 저장
                 window.location.reload()
               }
             }
