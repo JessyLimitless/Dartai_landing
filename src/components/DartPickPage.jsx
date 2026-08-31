@@ -272,20 +272,30 @@ export default function DartPickPage() {
   )
 }
 
-// 강도 미터 — 강도 점수를 임계(6점) 대비 막대로 시각화 (본문 점수 산문의 요약)
-const STRENGTH_MAX = 12
+// 강도 미터 — 강도 점수를 임계 대비 막대로 시각화 (본문 점수 산문의 요약)
+//
+// ⚠️ 아래 네 값은 __파이썬 정본 `modules/pick_rule.py` 의 사본__이다.
+//    원본: SCORE_THRESHOLD · SCORE_MAX · BAND_STRONG · BAND_CLEAR
+//    프론트에서 숫자를 고치면 화면과 엔진이 다른 룰을 말하게 된다 — 오늘(2026-08-27)
+//    같은 트레일링 -12% 가 코드 세 곳에서 다르게 굴던 것과 __정확히 같은 유형__이다.
+//    그래서 `tests/test_pick_rule.py` 가 이 파일을 읽어 값이 일치하는지 검사한다.
+//    바꿔야 하면 파이썬을 먼저 고치고 여기를 맞춘다.
+const SCORE_THRESHOLD = 6
+const SCORE_MAX = 12
+const BAND_STRONG = 9
+const BAND_CLEAR = 7
 function StrengthMeter({ score, colors, dark, accent }) {
-  const pct = Math.max(0, Math.min(1, score / STRENGTH_MAX)) * 100
-  const threshPct = (6 / STRENGTH_MAX) * 100
-  const pass = score >= 6
-  const band = score >= 9 ? '강력' : score >= 7 ? '뚜렷' : pass ? '임계 통과' : '임계 미달'
+  const pct = Math.max(0, Math.min(1, score / SCORE_MAX)) * 100
+  const threshPct = (SCORE_THRESHOLD / SCORE_MAX) * 100
+  const pass = score >= SCORE_THRESHOLD
+  const band = score >= BAND_STRONG ? '강력' : score >= BAND_CLEAR ? '뚜렷' : pass ? '임계 통과' : '임계 미달'
   const track = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)'
   return (
     <div style={{ marginTop: 14 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
         <span style={{ fontSize: 11, fontWeight: 700, color: colors.textMuted, letterSpacing: '0.03em' }}>선정 강도</span>
         <span style={{ fontSize: 18, fontWeight: 800, color: accent, fontFamily: FONTS.mono, lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>/ 임계 6</span>
+        <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: FONTS.mono }}>/ 임계 {SCORE_THRESHOLD}</span>
         <span style={{
           marginLeft: 'auto', fontSize: 10.5, fontWeight: 700, color: accent,
           background: dark ? 'rgba(220,38,38,0.14)' : 'rgba(220,38,38,0.07)',
