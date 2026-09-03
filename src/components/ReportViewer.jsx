@@ -86,11 +86,21 @@ export default function ReportViewer() {
   }, [navigate])
 
   // 본문의 ## 제목 → 목차
+  //
+  // ⚠️ 제목 안의 마크다운 기호를 __반드시 벗긴다.__ 안 벗기면 목차에
+  //    `2. 다트 픽을 통한 **실제 투자** 수익률 점검` 처럼 별표가 그대로 뜬다
+  //    (2026-09-04 첫 배포에서 실제로 그랬다). 본문은 렌더러가 처리하지만
+  //    목차는 raw 문자열을 그대로 쓰므로 여기서만 따로 정리해야 한다.
   const outline = useMemo(() => {
     if (!doc?.content) return []
     return doc.content.split('\n')
       .filter(l => /^##\s+/.test(l))
-      .map(l => l.replace(/^##\s+/, '').trim())
+      .map(l => l.replace(/^##\s+/, '')
+        .replace(/\*\*(.+?)\*\*/g, '$1')   // 굵게
+        .replace(/__(.+?)__/g, '$1')       // 밑줄
+        .replace(/`(.+?)`/g, '$1')         // 인라인 코드
+        .replace(/~~(.+?)~~/g, '$1')       // 취소선
+        .trim())
   }, [doc])
 
   const border = dark ? '#2a2f3a' : '#e5e7eb'
