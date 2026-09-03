@@ -124,6 +124,9 @@ export default function AdminPage() {
             { key: 'inquiries', label: `문의 ${inquiries.length}` },
           ],
           strategy: [
+            // 🔒 리포팅 — 점검·분석 리포트 원문(수익률·게이트 성과·종목명 포함).
+            //    잠금은 여기가 아니라 __API 에__ 있다(`/api/admin/reports` 403).
+            { key: 'report', label: '📋 리포팅', route: '/admin/report' },
             { key: 'plan', label: '💰 전략기획' },
             { key: 'book', label: '📖 전자책', route: '/admin/book' },
             { key: 'engine', label: '🔬 엔진 연구' },

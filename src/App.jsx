@@ -36,6 +36,7 @@ const DartViewPage = lazy(() => import('./components/DartViewPage'))
 const DartViewDetailLazy = lazy(() => import('./components/DartViewPage').then(m => ({ default: m.DartViewDetail })))
 const AdminPage = lazy(() => import('./components/AdminPage'))
 const BookViewer = lazy(() => import('./components/BookViewer'))
+const ReportViewer = lazy(() => import('./components/ReportViewer'))
 const InquiryPage = lazy(() => import('./components/InquiryPage'))
 import BuffettChatPanel from './components/BuffettChat'
 import DisclosureModal from './components/DisclosureModal'
@@ -158,6 +159,8 @@ export default function App() {
               <Route path="/library" element={<LibraryPage />} />
               <Route path="/premium" element={<PremiumPage />} />
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/report" element={<ReportViewer />} />
+              <Route path="/admin/report/:slug" element={<ReportViewer />} />
               <Route path="/admin/book" element={<BookViewer />} />
               <Route path="/admin/book/:partDir/:chapterFile" element={<BookViewer />} />
               <Route path="/inquiry" element={<InquiryPage />} />
