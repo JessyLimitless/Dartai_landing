@@ -78,7 +78,7 @@ const METRIC_ROWS = {
 // 그래서 목록을 고정하지 않고 __서버가 준 순서 그대로__ 그린다.
 // 화면에 올리지 않을 내부 키만 여기서 거른다.
 const DYNAMIC_TEMPLATES = ['INSIDER', 'MAJOR_HOLDING', 'DS005', 'OWNER_CHANGE',
-  'GUARANTEE', 'EMBEZZLEMENT', 'DIVIDEND']
+  'GUARANTEE', 'EMBEZZLEMENT', 'DIVIDEND', 'FACILITY', 'CANCELLATION']
 const METRIC_SKIP = new Set(['is_accumulation', 'verified', 'cross_check', 'source_api',
   'contract_amount_raw', 'revenue_ratio_raw', 'revenue_raw', 'operating_profit_raw',
   'net_income_raw', 'revenue_yoy_raw', 'operating_profit_yoy_raw', 'yoy_basis'])
@@ -912,7 +912,7 @@ export default function DartInPage() {
             정량 분해 지원: <b style={{ color: colors.textSecondary }}>공급계약 · 잠정실적</b>(원문 표 분해),
             {' '}<b style={{ color: colors.textSecondary }}>임원·주요주주 소유 · 대량보유(5%) · 주요사항보고서</b>
             {' '}(DART 정형 API — 파싱 없이 값을 그대로 받습니다),
-            {' '}<b style={{ color: colors.textSecondary }}>최대주주 소유주식 변동 · 채무보증 · 횡령배임 · 배당결정</b>
+            {' '}<b style={{ color: colors.textSecondary }}>최대주주 변동 · 채무보증 · 횡령배임 · 배당 · 시설투자 · 주식소각</b>
             {' '}(원문 표 + 검산). 시장경보와 텍스트 공시(풍문해명·대표이사변경)는 뽑을 숫자가 없어 대상이 아닙니다.
             시장경보는 DART 원문 자체가 없어 분해 대상이 아닙니다.<br />
             판단 전에 원문을 함께 보시기 바랍니다.
@@ -1066,8 +1066,17 @@ function factLine(rep) {
     if (has(m.counterparty) && m.counterparty !== '미공시 또는 확인 필요') parts.push(m.counterparty)
     return parts.join(' · ')
   }
-  if (rep.template_type === 'GUARANTEE' || rep.template_type === 'EMBEZZLEMENT') {
-    const amt = m['채무보증금액'] || m['혐의발생금액']
+  if (rep.template_type === 'CANCELLATION') {
+    const parts = []
+    if (has(m['소각 주식수'])) parts.push(m['소각 주식수'])
+    // 소각은 __발행주식 대비__ 가 규모다. 금액만 보면 규모 차이가 안 보인다.
+    if (has(m['발행주식 대비'])) parts.push(`발행주식 대비 ${m['발행주식 대비']}`)
+    if (has(m['소각예정금액'])) parts.push(m['소각예정금액'])
+    return parts.join(' · ')
+  }
+  if (rep.template_type === 'GUARANTEE' || rep.template_type === 'EMBEZZLEMENT'
+      || rep.template_type === 'FACILITY') {
+    const amt = m['채무보증금액'] || m['혐의발생금액'] || m['투자금액']
     const parts = []
     if (has(amt)) parts.push(amt)
     // 규모는 금액이 아니라 __자기자본 대비__ 다 — 같은 100억도 회사마다 다른 사건이다
