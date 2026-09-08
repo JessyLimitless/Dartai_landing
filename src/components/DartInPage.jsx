@@ -46,6 +46,7 @@ const STATUS = {
   ok:              { label: '분해 완료',    color: '#0D9488', desc: '핵심 값을 전부 읽었습니다.' },
   partial:         { label: '일부만 읽음',  color: '#D97706', desc: '일부 값이 원문에 없거나 서식이 달랐습니다.' },
   not_in_document: { label: '원문에 값 없음', color: '#6366F1', desc: '원문이 그 값을 기재하지 않았습니다(공시 유보·영업기밀 등). 추출 실패가 아닙니다.' },
+  inconsistent:    { label: '검산 불일치',  color: '#DC2626', desc: '원문에서 읽은 값끼리 산술이 맞지 않아 숫자를 싣지 않았습니다. 원문에서 직접 확인하세요.' },
   failed:          { label: '분해 실패',    color: '#DC2626', desc: '값을 읽지 못했습니다. 원문에서 확인하세요.' },
   no_document:     { label: '원문 못 읽음',  color: '#DC2626', desc: 'DART 원문을 불러오지 못했습니다.' },
   synthetic_rcept: { label: '원문 번호 없음', color: '#71717A', desc: '거래소 경보 경로로 들어온 항목이라 DART 접수번호가 없습니다.' },
@@ -56,6 +57,7 @@ const STATUS = {
 const METRIC_ROWS = {
   SUPPLY_CONTRACT: [
     ['contract_amount', '계약금액'],
+    ['revised_from', '정정 전 금액'],
     ['revenue_ratio', '매출액 대비'],
     ['prev_revenue', '직전 매출액'],
     ['counterparty', '계약상대방'],
@@ -113,6 +115,24 @@ const parseCodes = (text) => {
 // ⚠️ 이건 __분류 순서일 뿐 점수가 아니다.__ 게이트 가중치와 무관하고 공개 규칙이다
 //    (CLAUDE.md 영업비밀 HARD RULE — 선정 로직은 이 화면에 들어오지 않는다).
 const CAT_RANK = { GROWTH: 0, EARNINGS: 0, CAPITAL: 1, GOVERNANCE: 1, GENERAL: 2, ALERT: 3 }
+
+// 📏 정확도 실측 (`_flash_accuracy.py` · 2026-09-08).
+// __파는 것은 정확도 자체가 아니라 정확도를 잰다는 사실__ 이므로 화면에 붙인다.
+// 판정 방법 = 원문이 스스로 적어 둔 산술로 검산한다. 세 값이 서로 다른 칸에서
+// 오므로 하나라도 잘못 집으면 닫히지 않는다.
+//   · 공급계약: 계약금액 ÷ 직전 매출액 × 100 == 원문의 매출액 대비(%)
+//   · 잠정실적: (당기 − 전년동기) ÷ 전년동기 × 100 == 원문의 전년동기대비(%)
+const ACCURACY = {
+  date: '2026-09-08',
+  note: '원문의 산술로 검산한 결과입니다. 검산이 불가능한 건(원문에 비교값이 없음)은 "확인되지 않음"으로 둡니다.',
+  rows: [
+    ['공급계약 · 계약금액', 67, 63, 0],
+    ['공급계약 · 매출액 대비', 67, 63, 0],
+    ['잠정실적 · 매출액', 40, 39, 0],
+    ['잠정실적 · 영업이익', 40, 39, 0],
+    ['잠정실적 · 당기순이익', 40, 35, 0],
+  ],
+}
 
 const SAMPLE_UNIVERSE = '005930 000660 035420 051910 207940 000270 105560 034730'
 
@@ -777,6 +797,26 @@ export default function DartInPage() {
                       </div>
                     )}
 
+                    {/* 검산 — __잰다는 사실__ 이 이 도구가 파는 것이다 */}
+                    {report.metrics?.cross_check && (
+                      <div style={{
+                        display: 'flex', gap: 8, alignItems: 'flex-start',
+                        padding: '11px 16px', borderBottom: `1px solid ${sep}`,
+                        background: report.metrics.verified
+                          ? (dark ? 'rgba(13,148,136,0.08)' : 'rgba(13,148,136,0.05)')
+                          : (dark ? 'rgba(220,38,38,0.08)' : 'rgba(220,38,38,0.05)'),
+                      }}>
+                        <span style={{
+                          fontSize: 10.5, fontWeight: 800, whiteSpace: 'nowrap',
+                          color: report.metrics.verified ? '#0D9488' : '#DC2626',
+                        }}>{report.metrics.verified ? '검산 통과' : '검산 불일치'}</span>
+                        <span style={{
+                          fontSize: 11.5, lineHeight: 1.7, color: colors.textSecondary,
+                          fontFamily: FONTS.mono,
+                        }}>{report.metrics.cross_check}</span>
+                      </div>
+                    )}
+
                     {/* 원문이 "안 적었다"고 말한 대목을 그대로 인용한다 —
                         이게 있으면 사용자는 원문을 열 필요가 없다. */}
                     {report.parse_note && (
@@ -857,9 +897,52 @@ export default function DartInPage() {
             정량 분해는 <b style={{ color: colors.textSecondary }}>단일판매·공급계약</b>과
             {' '}<b style={{ color: colors.textSecondary }}>영업(잠정)실적</b> 2종만 지원합니다.
             나머지는 분류와 원문 링크까지입니다.<br />
-            값을 뽑았다는 것이 <b style={{ color: colors.textSecondary }}>맞다는 뜻은 아닙니다</b> —
-            필드별 정확도 실측은 진행 중이라, 판단 전에 원문을 함께 보시기 바랍니다.<br />
+            판단 전에 원문을 함께 보시기 바랍니다.
             유니버스와 확인 이력은 <b style={{ color: colors.textSecondary }}>이 브라우저에만</b> 저장됩니다.
+          </div>
+
+          {/* 📏 정확도 실측 — 감추면 제품, 드러내면 도구 (DARTIN.md §7-2) */}
+          <div style={{
+            marginTop: 12, border: `1px solid ${sep}`, borderRadius: 12,
+            background: surface, overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'baseline', gap: 8,
+              padding: '11px 14px', borderBottom: `1px solid ${sep}`,
+            }}>
+              <span style={{ fontSize: 12.5, fontWeight: 800, color: colors.textPrimary }}>정확도 실측</span>
+              <span style={{ fontSize: 10.5, color: colors.textMuted, fontFamily: FONTS.mono }}>{ACCURACY.date}</span>
+            </div>
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 52px 52px 62px',
+              fontSize: 11, color: colors.textMuted, padding: '7px 14px', gap: 4,
+              borderBottom: `1px solid ${sep}`,
+            }}>
+              <span>필드</span><span style={{ textAlign: 'right' }}>표본</span>
+              <span style={{ textAlign: 'right' }}>값 냄</span><span style={{ textAlign: 'right' }}>불일치</span>
+            </div>
+            {ACCURACY.rows.map(([label, n, got, bad]) => (
+              <div key={label} style={{
+                display: 'grid', gridTemplateColumns: '1fr 52px 52px 62px', gap: 4,
+                padding: '7px 14px', fontSize: 11.5, color: colors.textSecondary,
+                borderBottom: `1px solid ${sep}`,
+              }}>
+                <span>{label}</span>
+                <span style={{ textAlign: 'right', fontFamily: FONTS.mono }}>{n}</span>
+                <span style={{ textAlign: 'right', fontFamily: FONTS.mono, color: colors.textPrimary, fontWeight: 700 }}>
+                  {got}
+                </span>
+                <span style={{
+                  textAlign: 'right', fontFamily: FONTS.mono, fontWeight: 700,
+                  color: bad ? '#DC2626' : '#0D9488',
+                }}>{bad}</span>
+              </div>
+            ))}
+            <div style={{ padding: '10px 14px', fontSize: 11, lineHeight: 1.75, color: colors.textMuted }}>
+              {ACCURACY.note}<br />
+              값을 못 낸 건은 원문이 <b style={{ color: colors.textSecondary }}>기재하지 않았거나</b>
+              {' '}서식이 달라 읽지 못한 경우이며, <b style={{ color: colors.textSecondary }}>추측으로 채우지 않습니다.</b>
+            </div>
           </div>
         </div>
       </div>
