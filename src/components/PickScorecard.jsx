@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { FONTS } from '../constants/theme'
+import { isAdminUser } from '../lib/access'
 
 // DART 픽 성적표 — 선정 후 시세 추적 + 요인 분해.
 // 장 전 선정이므로 기준가는 전일(D-1) 종가. 현재는 장중 라이브 우선(없으면 최신 종가).
@@ -11,6 +12,18 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
   const UP = '#E8364E', DOWN = '#2563EB'
 
   const rows = (data && Array.isArray(data.picks)) ? data.picks : []
+
+  // 🔒 __잠긴 상태와 빈 상태를 구분한다.__
+  //    서버는 토큰이 없으면 401 이 아니라 200 + {masked:true} 로 응답하고
+  //    picks·overall 을 통째로 지운다(api.py `_mask_feedback`). 이 분기가 없던
+  //    동안 화면은 그냥 __아무것도 안 그렸다__ — 아래 `!rows.length` 에 걸려서다.
+  //    ☠️ 2026-09-08 실사고: 성적표가 0건으로 보여 원장이 날아간 줄 알고 뒤졌는데
+  //       토큰을 주니 83건이 그대로 있었다. "없음"과 "가려짐"이 같은 화면이면
+  //       사람은 반드시 데이터를 의심한다.
+  if (data && data.masked) {
+    return <ScorecardLocked data={data} colors={colors} dark={dark} lineSep={lineSep} />
+  }
+
   if (!rows.length) return null
 
   const overall = data.overall || {}
@@ -575,6 +588,101 @@ export default function PickScorecard({ data, colors, dark, lineSep, defaultOpen
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+// 🔒 성적표 잠금 카드 — 핵심 문구는 __"없음"이 아니라 "가려짐"__ 이다.
+//
+//  선례: DartPickPage 의 `PickTokenBanner`(같은 사고를 픽 카드 쪽에서 먼저 막았다),
+//        AdminTradePanel 의 403 문장화. 톤·문법을 그대로 따른다.
+//
+//  ⚠️ 여기서 구독을 권하지 않는다. 픽은 __판매 상품이 아니다__ —
+//     `access.js` 의 PAID 에 pick 이 없는 것과 같은 이유다. 페이월이 아니라 비공개다.
+//  ⚠️ 문구는 서버가 준 `secret_notice` 를 쓴다. 없으면 프론트에 하드코딩하지 않고
+//     기본 배너만 띄운다(경계가 바뀌면 서버 한 곳만 고치면 되게).
+function ScorecardLocked({ data, colors, dark, lineSep }) {
+  const admin = isAdminUser()
+  const notice = (data && data.secret_notice) || ''
+  const exec = (data && data.execution) || null
+
+  return (
+    <div style={{ marginTop: 18 }}>
+      {/* 접이식이 아니다 — 잠긴 상태는 항상 보여야 오진을 막는다 */}
+      <div style={{
+        width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+        padding: '14px 0 8px', borderBottom: `1px solid ${lineSep}`,
+      }}>
+        <span style={{
+          fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4,
+          background: 'rgba(220,38,38,0.12)', color: '#DC2626', letterSpacing: '0.05em',
+        }}>DART 픽</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color: colors.textSecondary }}>성적표</span>
+        <span style={{ fontSize: 12, color: colors.textMuted }}>비공개</span>
+        <span style={{ marginLeft: 'auto', fontSize: 13, color: colors.textMuted }}>🔒</span>
+      </div>
+
+      <div style={{
+        marginTop: 14, padding: '16px 17px', borderRadius: 12,
+        border: `1px solid ${lineSep}`,
+        background: dark ? 'rgba(255,255,255,0.025)' : '#FAFAFB',
+        fontFamily: FONTS.body,
+      }}>
+        <div style={{
+          fontSize: 13, fontWeight: 800, color: colors.textPrimary,
+          marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <span>🔒</span>
+          <span>잠긴 상태입니다</span>
+        </div>
+
+        {/* __이 한 줄이 이 카드의 존재 이유다.__ 데이터 소실로 오독되는 걸 막는다. */}
+        <div style={{ fontSize: 12, lineHeight: 1.75, color: colors.textMuted }}>
+          집계와 종목별 내역을 서버가 가렸습니다.{' '}
+          <b style={{ color: colors.textSecondary }}>기록은 그대로 남아 있습니다</b> — 사라진 게 아닙니다.
+          {notice && (
+            <>
+              <br />
+              <span style={{ color: colors.textMuted }}>{notice}</span>
+            </>
+          )}
+        </div>
+
+        {admin ? (
+          <div style={{
+            marginTop: 12, paddingTop: 11, borderTop: `1px solid ${lineSep}`,
+            fontSize: 11.5, lineHeight: 1.7, color: colors.textMuted,
+          }}>
+            우측 상단에서 관리자 계정으로 구글 로그인하면 즉시 열립니다.
+            <br />
+            로그인이 안 되면 비상구로{' '}
+            <code style={{
+              fontFamily: FONTS.mono, fontSize: 11,
+              padding: '1px 5px', borderRadius: 4,
+              background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+              color: colors.textSecondary,
+            }}>localStorage.dart_admin_token</code>
+            {' '}에 공유 시크릿을 넣으세요.
+          </div>
+        ) : (
+          <div style={{
+            marginTop: 12, paddingTop: 11, borderTop: `1px solid ${lineSep}`,
+            fontSize: 11.5, lineHeight: 1.7, color: colors.textMuted,
+          }}>
+            내부 자산운용 도구라 비공개로 운영합니다. 구독 상품에 포함되지 않습니다.
+          </div>
+        )}
+
+        {/* 집행 모드는 __숫자가 아니라 고지__라 잠기지 않는다(서버 _FEEDBACK_PUBLIC_KEYS). */}
+        {exec && (exec.mode || exec.label) && (
+          <div style={{
+            marginTop: 10, fontSize: 11, color: colors.textMuted,
+            fontFamily: FONTS.mono,
+          }}>
+            집행 모드 · {exec.label || exec.mode}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

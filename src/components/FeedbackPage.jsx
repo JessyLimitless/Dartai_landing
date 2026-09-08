@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
-import { API } from '../lib/api'
+import { API, secretHeaders } from '../lib/api'
 import { MarkdownBody } from './BriefingPage'
 import PickScorecard from './PickScorecard'
 
@@ -25,8 +25,12 @@ export default function FeedbackPage() {
       .catch(() => {})
       .finally(() => setLoading(false))
     // DART 픽 성적표 — 선정 후 시세 추적 + 요인 분해 (키움 실측)
+    // 🔒 마스킹 응답({masked:true})도 __버리지 않고 넘긴다.__ 예전엔
+    //    `Array.isArray(d.picks)` 로 걸러 null 로 만들었는데, 서버가 잠글 때
+    //    picks 를 통째로 지우므로 이 페이지엔 __아무 안내도 안 떴다.__
+    //    잠금 카드는 PickScorecard 가 그린다.
     fetch(`${API}/api/pick/feedback`, { headers: secretHeaders() }).then(r => r.json())
-      .then(d => setPickScores(d && Array.isArray(d.picks) ? d : null))
+      .then(d => setPickScores(d && (d.masked || Array.isArray(d.picks)) ? d : null))
       .catch(() => setPickScores(null))
   }, [])
 
@@ -50,7 +54,7 @@ export default function FeedbackPage() {
       </div>
 
       {/* DART 픽 성적표 — 선정 후 시세 추적 + 요인 분해 */}
-      {pickScores && pickScores.picks && pickScores.picks.length > 0 && (
+      {pickScores && (pickScores.masked || (pickScores.picks && pickScores.picks.length > 0)) && (
         <div className="bp-pad">
           <PickScorecard data={pickScores} colors={colors} dark={dark} lineSep={lineSep} defaultOpen={true} />
         </div>
