@@ -32,6 +32,7 @@ const USMarketPage = lazy(() => import('./components/USMarketPage'))
 const MarketPressPage = lazy(() => import('./components/MarketPressPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
 const DividendPage = lazy(() => import('./components/DividendPage'))
+const DartInPage = lazy(() => import('./components/DartInPage'))
 const DartViewPage = lazy(() => import('./components/DartViewPage'))
 const DartViewDetailLazy = lazy(() => import('./components/DartViewPage').then(m => ({ default: m.DartViewDetail })))
 const AdminPage = lazy(() => import('./components/AdminPage'))
@@ -153,6 +154,9 @@ export default function App() {
               <Route path="/issues" element={<IssuePage />} />
               <Route path="/signal" element={<SignalPage />} /> {/* 관리자 전용 — 네비에서 숨김 */}
               <Route path="/global" element={<GlobalSignalPage />} />
+              {/* 다트인 — 공시 파싱 → 1페이지 리포트. `/admin/report`(관리자 전용
+                  수익률·게이트 점수)와 __이름이 겹치지 않게__ 둔다(DARTIN.md §6-2). */}
+              <Route path="/dartin" element={<DartInPage />} />
               <Route path="/dart-view" element={<DartViewPage />} />
               <Route path="/dart-view/:stockCode" element={<DartViewDetailLazy />} />
               <Route path="/dart-event" element={<DartEventPage />} />

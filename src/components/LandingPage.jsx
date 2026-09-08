@@ -296,6 +296,83 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ━━━ 1.35 다트인 — 콘텐츠가 아니라 __도구__ 라서 톤을 갈라놓는다 ━━━
+          위(라인업)·아래(미국 편지)는 우리가 __읽어주는__ 것이고, 여기는 사용자가
+          __직접 쓰는__ 것이다. 신문 밴드(#F6F3EA)가 그랬듯 잉크 밴드로 층을 나눈다.
+          강조색도 편집물의 적색이 아니라 청록을 쓴다 — 같은 색을 쓰면 또 하나의
+          읽을거리로 읽힌다. */}
+      <section
+        onClick={() => navigate('/dartin')}
+        style={{ cursor: 'pointer', background: '#101014', color: '#FAFAFA' }}
+      >
+        <div style={{
+          maxWidth: 940, margin: '0 auto',
+          padding: 'clamp(48px, 7vh, 76px) clamp(20px, 5vw, 40px)',
+        }}>
+          <Reveal>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+              <span style={{
+                fontSize: 10.5, letterSpacing: '0.22em', textTransform: 'uppercase',
+                fontWeight: 700, color: '#5EEAD4',
+              }}>Tool</span>
+              <span style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+              <span style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: '#5EEAD4',
+                background: 'rgba(94,234,212,0.12)', padding: '3px 9px', borderRadius: 20,
+              }}>BETA</span>
+            </div>
+
+            <h2 style={{
+              fontSize: 'clamp(24px, 4.4vw, 40px)', fontWeight: 700, fontFamily: FONTS.serif,
+              margin: '0 0 14px', letterSpacing: '-0.025em', lineHeight: 1.25,
+            }}>
+              공시 원문 <span style={{ color: '#71717A', textDecoration: 'line-through', textDecorationColor: 'rgba(255,255,255,0.35)' }}>3분</span>
+              <span style={{ color: '#52525B', fontWeight: 400, margin: '0 0.12em' }}>→</span>
+              <span style={{ color: '#5EEAD4' }}>3초</span>
+            </h2>
+
+            <p style={{
+              fontSize: 'clamp(14px, 1.7vw, 16px)', color: '#A1A1AA', lineHeight: 1.75,
+              margin: '0 0 30px', maxWidth: 560,
+            }}>
+              다트인은 해석을 팔지 않습니다. 공시 원문을 열어 계약금액·매출 대비 비율·영업이익을
+              <b style={{ color: '#FAFAFA', fontWeight: 600 }}> 숫자로 분해</b>해 한 장으로 돌려드립니다.
+              못 읽은 값은 채우지 않고 <b style={{ color: '#FAFAFA', fontWeight: 600 }}>못 읽었다고 적습니다.</b>
+            </p>
+          </Reveal>
+
+          <Reveal d={100}>
+            <div className="di-band">
+              {[
+                { k: '실무 카테고리 5종', v: '시장경보 · 지분 · 자금조달 · 수주 · 실적' },
+                { k: '정량 분해', v: '공급계약 · 영업(잠정)실적' },
+                { k: '값 옆에 항상', v: 'DART 원문 링크 · 파싱 상태' },
+              ].map((x, i) => (
+                <div key={i} style={{
+                  border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12,
+                  padding: '14px 16px', background: 'rgba(255,255,255,0.03)',
+                }}>
+                  <div style={{ fontSize: 11.5, color: '#5EEAD4', fontWeight: 700, marginBottom: 6 }}>{x.k}</div>
+                  <div style={{ fontSize: 13, color: '#D4D4D8', lineHeight: 1.55 }}>{x.v}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <span style={{
+                fontSize: 13.5, fontWeight: 700, padding: '11px 22px', borderRadius: 10,
+                background: '#5EEAD4', color: '#0A0A0C', whiteSpace: 'nowrap',
+              }}>
+                다트인 열어보기 →
+              </span>
+              <span style={{ fontSize: 12, color: '#71717A', lineHeight: 1.6 }}>
+                로그인 없이 바로 씁니다. 공개된 DART 원문만 다룹니다.
+              </span>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ━━━ 1.4 오늘의 미국 편지 — 전문 바로가기 (눈에 띄게) ━━━ */}
       <section style={{ borderTop: '1px solid #F4F4F5' }}>
         <div style={{ maxWidth: 620, margin: '0 auto', padding: 'clamp(56px, 7vh, 80px) clamp(20px, 5vw, 40px)' }}>
@@ -961,8 +1038,14 @@ export default function LandingPage() {
           cursor: pointer;
           transition: background 0.2s ease, box-shadow 0.2s ease;
         }
+        .di-band {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+        }
         @media (max-width: 900px) {
           .ln-lineup { grid-template-columns: repeat(2, 1fr); }
+          .di-band { grid-template-columns: 1fr; }
         }
         @media (max-width: 560px) {
           .ln-lineup { grid-template-columns: 1fr; }
