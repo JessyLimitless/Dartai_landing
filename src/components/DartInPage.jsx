@@ -74,6 +74,14 @@ const METRIC_ROWS = {
   ],
 }
 
+// 정형 API 유형은 지표 키가 공시마다 다르다(사채·증자·자사주가 서로 다른 항목을 쓴다).
+// 그래서 목록을 고정하지 않고 __서버가 준 순서 그대로__ 그린다.
+// 화면에 올리지 않을 내부 키만 여기서 거른다.
+const DYNAMIC_TEMPLATES = ['INSIDER', 'MAJOR_HOLDING', 'DS005']
+const METRIC_SKIP = new Set(['is_accumulation', 'verified', 'cross_check', 'source_api',
+  'contract_amount_raw', 'revenue_ratio_raw', 'revenue_raw', 'operating_profit_raw',
+  'net_income_raw', 'revenue_yoy_raw', 'operating_profit_yoy_raw', 'yoy_basis'])
+
 // 엑셀로 넘어가는 열. __원문 URL 과 접수번호를 반드시 같이 보낸다__ — 값만 옮기면
 // 나중에 출처를 되짚을 수 없고, 그때부터 이 숫자는 근거가 아니라 소문이 된다.
 const CSV_COLS = [
@@ -83,6 +91,7 @@ const CSV_COLS = [
   ['category_label', '분류'],
   ['report_nm', '공시제목'],
   ['status_label', '분해상태'],
+  ['summary', '요약'],
   ['contract_amount', '계약금액'],
   ['revenue_ratio', '매출액대비'],
   ['counterparty', '계약상대방'],
@@ -358,6 +367,7 @@ export default function DartInPage() {
       const flat = {
         ...r,
         status_label: st.label,
+        summary: factLine(rep) || (rep.takeaway || ''),
         contract_amount: m.contract_amount && m.contract_amount !== '-' ? m.contract_amount : '',
         revenue_ratio: m.revenue_ratio && m.revenue_ratio !== '-' ? m.revenue_ratio : '',
         counterparty: m.counterparty || '',
@@ -774,9 +784,13 @@ export default function DartInPage() {
                       }}>{report.takeaway}</div>
                     )}
 
-                    {METRIC_ROWS[report.template_type] && (
+                    {(METRIC_ROWS[report.template_type] || DYNAMIC_TEMPLATES.includes(report.template_type)) && (
                       <div>
-                        {METRIC_ROWS[report.template_type].map(([k, label]) => {
+                        {(METRIC_ROWS[report.template_type]
+                          || Object.keys(report.metrics || {})
+                               .filter(k => !METRIC_SKIP.has(k))
+                               .map(k => [k, k])
+                        ).map(([k, label]) => {
                           const v = report.metrics?.[k]
                           if (v === undefined || v === null || v === '') return null
                           const empty = v === '-'
@@ -894,9 +908,10 @@ export default function DartInPage() {
             marginTop: 12, padding: '12px 14px', borderRadius: 12,
             border: `1px dashed ${sep}`, fontSize: 11.5, lineHeight: 1.8, color: colors.textMuted,
           }}>
-            정량 분해는 <b style={{ color: colors.textSecondary }}>단일판매·공급계약</b>과
-            {' '}<b style={{ color: colors.textSecondary }}>영업(잠정)실적</b> 2종만 지원합니다.
-            나머지는 분류와 원문 링크까지입니다.<br />
+            정량 분해 지원: <b style={{ color: colors.textSecondary }}>공급계약 · 잠정실적</b>(원문 표 분해),
+            {' '}<b style={{ color: colors.textSecondary }}>임원·주요주주 소유 · 대량보유(5%) · 주요사항보고서</b>
+            {' '}(DART 정형 API — 파싱 없이 값을 그대로 받습니다).
+            시장경보는 DART 원문 자체가 없어 분해 대상이 아닙니다.<br />
             판단 전에 원문을 함께 보시기 바랍니다.
             유니버스와 확인 이력은 <b style={{ color: colors.textSecondary }}>이 브라우저에만</b> 저장됩니다.
           </div>
@@ -1046,6 +1061,33 @@ function factLine(rep) {
     if (has(m.contract_amount)) parts.push(m.contract_amount)
     if (has(m.revenue_ratio)) parts.push(`매출대비 ${m.revenue_ratio}`)
     if (has(m.counterparty) && m.counterparty !== '미공시 또는 확인 필요') parts.push(m.counterparty)
+    return parts.join(' · ')
+  }
+  if (rep.template_type === 'INSIDER') {
+    const parts = []
+    if (has(m['증감'])) parts.push(m['증감'])
+    // ☠️ 방법을 모르면 __방향을 말하지 않는다__ (스톡옵션·무상신주가 (+)로 온다)
+    parts.push(has(m['취득·처분 방법']) ? m['취득·처분 방법'] : '방법 미확인')
+    if (has(m['지분율'])) parts.push(`지분 ${m['지분율']}`)
+    return parts.join(' · ')
+  }
+  if (rep.template_type === 'MAJOR_HOLDING') {
+    const parts = []
+    if (has(m['직전 비율']) && has(m['보유 비율'])) parts.push(`${m['직전 비율']} → ${m['보유 비율']}`)
+    else if (has(m['보유 비율'])) parts.push(m['보유 비율'])
+    if (has(m['비율 증감'])) parts.push(m['비율 증감'])
+    if (has(m['보유 목적'])) parts.push(m['보유 목적'])
+    return parts.join(' · ')
+  }
+  if (rep.template_type === 'DS005') {
+    const pick = ['사채총액', '표면이자율(%)', '전환시 발행주식 대비(%)', '신주 보통주(주)',
+                  '증자전 발행주식 대비(%)', '취득예정 금액', '계약금액', '해지 전 계약금액',
+                  '발행주식 대비(%)']
+    const parts = []
+    for (const k of pick) {
+      if (!has(m[k]) || parts.length >= 3) continue
+      parts.push(k.includes('(%)') ? `${k.replace('(%)', '')} ${m[k]}${String(m[k]).includes('%') ? '' : '%'}` : m[k])
+    }
     return parts.join(' · ')
   }
   if (rep.template_type === 'EARNINGS') {
