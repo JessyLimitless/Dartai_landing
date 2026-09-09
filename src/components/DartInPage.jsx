@@ -104,6 +104,7 @@ const CSV_COLS = [
 ]
 
 const LS = {
+  key: 'dartin.key',
   universe: 'dartin.universe',
   seen: 'dartin.seen',
   mode: 'dartin.mode',
@@ -113,6 +114,24 @@ const readLS = (k, fallback) => {
   try { const v = localStorage.getItem(k); return v === null ? fallback : v } catch { return fallback }
 }
 const writeLS = (k, v) => { try { localStorage.setItem(k, v) } catch { /* 사파리 프라이빗 등 */ } }
+
+// 🔒 모든 다트인 호출은 __접근 키를 달고 나간다.__ 키가 없거나 틀리면 서버가 401 을
+// 준다 — 화면에서 가리는 것이 아니라 __서버가 잠근다__(프론트 게이트는 보안이 아니다).
+class AccessError extends Error {
+  constructor(status, detail) { super(detail); this.status = status; this.detail = detail }
+}
+
+async function flashFetch(path) {
+  const key = readLS(LS.key, '')
+  const r = await fetch(`${API}${path}`, key ? { headers: { 'x-dartin-key': key } } : undefined)
+  if (r.status === 401 || r.status === 429) {
+    let detail = ''
+    try { detail = (await r.json()).detail || '' } catch { /* 본문 없음 */ }
+    throw new AccessError(r.status, detail)
+  }
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+  return r.json()
+}
 
 const parseCodes = (text) => {
   const found = String(text || '').match(/\d{6}/g) || []
@@ -180,6 +199,9 @@ export default function DartInPage() {
   const [reports, setReports] = useState({})        // rcept_no → 리포트 (목록 인라인 숫자용)
   const [prefetching, setPrefetching] = useState(false)
   const [toast, setToast] = useState('')
+  const [access, setAccess] = useState(() => (readLS(LS.key, '') ? 'ok' : 'need_key'))
+  const [keyDraft, setKeyDraft] = useState('')
+  const [accessMsg, setAccessMsg] = useState('')
   const panelRef = useRef(null)
   const toastTimer = useRef(null)
 
@@ -209,10 +231,14 @@ export default function DartInPage() {
     if (search) p.set('search', search)
     if (universeMode) p.set('codes', universe.join(','))
     if (days) p.set('days', String(days))
-    fetch(`${API}/api/flash/disclosures?${p}`)
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
-      .then(d => { if (alive) { setList(d.disclosures || []); setMeta(d) } })
-      .catch(e => { if (alive) { setList([]); setMeta(null); setListError(String(e.message || e)) } })
+    flashFetch(`/api/flash/disclosures?${p}`)
+      .then(d => { if (alive) { setList(d.disclosures || []); setMeta(d); setAccess('ok') } })
+      .catch(e => {
+        if (!alive) return
+        setList([]); setMeta(null)
+        if (e instanceof AccessError) { setAccess('need_key'); setAccessMsg(e.detail || '') }
+        else setListError(String(e.message || e))
+      })
       .finally(() => { if (alive) setListLoading(false) })
     return () => { alive = false }
   }, [category, search, universeMode, universe, days])
@@ -228,8 +254,7 @@ export default function DartInPage() {
     if (todo.length === 0) return
     let alive = true
     setPrefetching(true)
-    fetch(`${API}/api/flash/reports?rcept_nos=${todo.join(',')}`)
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+    flashFetch(`/api/flash/reports?rcept_nos=${todo.join(',')}`)
       .then(d => {
         if (!alive) return
         setReports(prev => {
@@ -263,15 +288,14 @@ export default function DartInPage() {
     const cached = reports[row.rcept_no]
     if (cached) { setReport(cached); setReportLoading(false) }
     else { setReport(null); setReportLoading(true) }
-    fetch(`${API}/api/flash/report/${row.rcept_no}`)
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+    flashFetch(`/api/flash/report/${row.rcept_no}`)
       .then(d => {
         setReport(d)
         setReports(prev => ({ ...prev, [row.rcept_no]: d }))
       })
       .catch(e => setReport({
-        parse_status: 'failed',
-        parse_errors: [String(e.message || e)],
+        parse_status: e instanceof AccessError ? 'no_document' : 'failed',
+        parse_errors: [e instanceof AccessError ? (e.detail || '접근이 거부되었습니다.') : String(e.message || e)],
         takeaway: '리포트를 불러오지 못했습니다.',
         corp_name: row.corp_name, stock_code: row.stock_code,
         report_nm: row.report_nm, dart_url: row.dart_url, metrics: {},
@@ -423,6 +447,55 @@ export default function DartInPage() {
   const st = STATUS[report?.parse_status] || STATUS.not_attempted
   const counts = meta?.counts || {}
   const parsableCount = list.filter(r => r.parsable).length
+
+  if (access === 'need_key') {
+    return (
+      <div style={{
+        maxWidth: 520, margin: '0 auto', fontFamily: FONTS.body,
+        padding: '64px clamp(14px, 4vw, 24px)',
+      }}>
+        <h1 style={{
+          fontSize: 24, fontWeight: 800, fontFamily: FONTS.serif,
+          color: colors.textPrimary, margin: '0 0 10px', letterSpacing: '-0.02em',
+        }}>다트인</h1>
+        <p style={{ fontSize: 13.5, color: colors.textSecondary, lineHeight: 1.75, margin: '0 0 18px' }}>
+          접근 키가 필요합니다. 발급받은 키를 넣어 주세요 —
+          이 브라우저에만 저장되고 서버로 다시 보내는 것은 요청 헤더뿐입니다.
+        </p>
+        {accessMsg && (
+          <div style={{
+            fontSize: 12.5, color: '#DC2626', background: 'rgba(220,38,38,0.06)',
+            border: `1px solid rgba(220,38,38,0.2)`, borderRadius: 10,
+            padding: '10px 12px', marginBottom: 14, lineHeight: 1.7,
+          }}>{accessMsg}</div>
+        )}
+        <form onSubmit={e => {
+          e.preventDefault()
+          const v = keyDraft.trim()
+          if (!v) return
+          writeLS(LS.key, v); setAccessMsg(''); setAccess('ok'); setKeyDraft('')
+        }} style={{ display: 'flex', gap: 8 }}>
+          <input
+            value={keyDraft} onChange={e => setKeyDraft(e.target.value)}
+            placeholder="dartin_…" autoFocus
+            style={{
+              flex: 1, minWidth: 0, fontSize: 13.5, padding: '11px 13px',
+              borderRadius: 10, border: `1px solid ${sep}`, background: surface,
+              color: colors.textPrimary, fontFamily: FONTS.mono,
+            }}
+          />
+          <button type="submit" style={{
+            fontSize: 13, fontWeight: 700, padding: '11px 18px', borderRadius: 10,
+            border: 'none', background: accent, color: '#fff', cursor: 'pointer',
+          }}>확인</button>
+        </form>
+        <div style={{ fontSize: 11.5, color: colors.textMuted, lineHeight: 1.8, marginTop: 16 }}>
+          키는 조직 단위로 발급되고 <b style={{ color: colors.textSecondary }}>열람 기록이 남습니다</b>.
+          분실했다면 기존 키를 폐기하고 새로 발급받아야 합니다.
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{
@@ -664,6 +737,11 @@ export default function DartInPage() {
         <span style={{ fontSize: 11.5, color: colors.textMuted, fontFamily: FONTS.mono }}>
           {prefetching ? '숫자 불러오는 중…' : 'j/k 이동 · space 선택'}
         </span>
+        <button className="di-btn" onClick={() => { writeLS(LS.key, ''); setAccess('need_key') }}
+          style={{
+            fontSize: 11.5, padding: '7px 10px', borderRadius: 9, border: 'none',
+            background: 'transparent', color: colors.textMuted,
+          }}>키 변경</button>
       </div>
 
       <div className="di-grid" style={{ '--di-hover': subtle }}>
