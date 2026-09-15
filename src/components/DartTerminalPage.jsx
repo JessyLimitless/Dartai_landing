@@ -68,7 +68,8 @@ const CSS = `
 .dtp header.bar{background:var(--surf);border-bottom:1px solid var(--line2);
  padding:6px 10px;display:flex;align-items:center;justify-content:space-between;
  gap:10px;flex:0 0 auto;flex-wrap:wrap}
-.dtp .brand{display:flex;align-items:center;gap:6px}
+.dtp .brand{display:flex;align-items:center;gap:6px;text-decoration:none;color:inherit}
+.dtp a.brand:hover .nm{text-decoration:underline}
 .dtp .brand .mk{width:24px;height:24px;background:var(--ink);color:var(--onink);display:flex;
  align-items:center;justify-content:center;font-weight:700;font-size:10px}
 .dtp .brand .nm{font-weight:700;font-size:13px;letter-spacing:-.02em}
@@ -598,13 +599,14 @@ export default function DartTerminalPage() {
       {/* 헤더 */}
       <header className="bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div className="brand">
+          {/* 앱 크롬을 숨기는 화면이라 돌아갈 길이 없으면 갇힌다 — 브랜드를 홈 링크로 쓴다. */}
+          <a className="brand" href="/" title="DART Insight 홈으로">
             <div className="mk">DT</div>
             <div>
               <div className="nm">DART Terminal</div>
               <div className="sub">DISCLOSURE WORKSPACE</div>
             </div>
-          </div>
+          </a>
           <div className="modetabs">
             <button className={mode === 'mezz' ? 'on' : ''} onClick={() => setMode('mezz')}>메자닌·오버행 원장</button>
             <button className={mode === 'flash' ? 'on' : ''} onClick={() => setMode('flash')}>공시 정량분해 피드</button>

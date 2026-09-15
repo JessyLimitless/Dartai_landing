@@ -107,7 +107,9 @@ export default function App() {
   const isPress = location.pathname.startsWith('/market-press')
   // DART Terminal — 고밀도 관제 워크스페이스. 뷰포트를 통째로 쓰므로 앱 크롬을 숨긴다.
   // 터미널 문법이 앱의 카드/박스 문법과 섞이면 둘 다 망가진다(2026-08-02 배당 사고).
+  // `/dartin` 도 같은 화면이므로 같은 취급 — 단 `/dartin-v1`(구 작업대)은 앱 크롬을 쓴다.
   const isTerminal = location.pathname.startsWith('/terminal')
+    || location.pathname === '/dartin'
   const bare = isPress || isTerminal
 
   return (
@@ -159,13 +161,15 @@ export default function App() {
               <Route path="/issues" element={<IssuePage />} />
               <Route path="/signal" element={<SignalPage />} /> {/* 관리자 전용 — 네비에서 숨김 */}
               <Route path="/global" element={<GlobalSignalPage />} />
-              {/* 다트인 — 공시 파싱 → 1페이지 리포트. `/admin/report`(관리자 전용
-                  수익률·게이트 점수)와 __이름이 겹치지 않게__ 둔다(DARTIN.md §6-2). */}
-              <Route path="/dartin" element={<DartInPage />} />
-              {/* DART Terminal — 다트인/다트M 을 한 워크스페이스로 묶은 관제 화면.
-                  `/dartin`(v1 작업대)은 __그대로 둔다__ — 라이브에서 돌고 있고,
-                  터미널의 메자닌 절반은 `/api/dartm/*` 가 프로덕션에 올라가야 채워진다. */}
+              {/* 다트인 = DART Terminal (2026-09-15 교체).
+                  v1 을 남겨뒀던 조건("메자닌 절반은 `/api/dartm/*` 가 프로덕션에
+                  올라가야 채워진다")이 해소됐다 — 원장 79회차가 라이브로 들어온다.
+                  터미널이 v1 의 공시 정량분해 피드를 모드로 품고 있어 상위집합이다. */}
+              <Route path="/dartin" element={<DartTerminalPage />} />
               <Route path="/terminal" element={<DartTerminalPage />} />
+              {/* v1 작업대 — 되돌릴 수 있게 남긴다. 터미널이 아직 못 옮긴 기능이
+                  여기 있다: 미확인 트래킹 · 중요순 정렬 · j/k 키보드 이동. */}
+              <Route path="/dartin-v1" element={<DartInPage />} />
               <Route path="/dart-view" element={<DartViewPage />} />
               <Route path="/dart-view/:stockCode" element={<DartViewDetailLazy />} />
               <Route path="/dart-event" element={<DartEventPage />} />
