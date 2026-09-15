@@ -409,7 +409,15 @@ export default function DartTerminalPage() {
       const floor = mv(r, '리픽싱 하한')
       const gap = mv(r, '하한까지')
       const face = mv(r, '권면총액')
-      const dday = r.issuance ? r.issuance.put_d_day : null
+      // 차기 풋 = 라우터가 주기를 굴려 낸 __오늘 이후 첫 날__(put_next). 최초일이 지났는데 주기를
+      // 모르면 null 이다 — 2년 전 날짜를 "차기" 로 보이던 것을 고쳤다(§27-8 #6).
+      const dday = r.issuance ? (r.issuance.put_next_d_day ?? null) : null
+      const putDate = r.issuance ? (r.issuance.put_next_date || null) : null
+      // 주가 기준 두 칸 — 하루 한 번(15:50 KST) 적립한 키움 현재가. as_of 는 조회시각이다.
+      const px = mv(r, '현재가')
+      const pxAsOf = mas(r, '현재가')
+      const pxFloor = mv(r, '주가/하한')      // 현재가÷하한×100 · 100 이하 = 리픽싱 한계 도달
+      const pxConv = mv(r, '주가/전환가')     // (현재가÷전환가액−1)×100 · 양수 = 전환 유인
       // 커버 = 회사 보유현금 ÷ 그 회사 사채잔액 합산. __라우터가 계산해 준다.__
       // 오버행에서 진짜 묻는 것은 "풋이 언제냐" 가 아니라 __"갚을 돈이 있느냐"__ 다.
       const cover = (r.company && r.company['현금 커버']) ? r.company['현금 커버'].value : null
@@ -418,8 +426,10 @@ export default function DartTerminalPage() {
       return {
         ...r,
         key: `${r.corp_code}:${r.bd_tm}`,
-        bal, price, rem, pct, floor, gap, face, dday, used, cover,
+        bal, price, rem, pct, floor, gap, face, dday, putDate, used, cover,
+        px, pxAsOf, pxFloor, pxConv,
         floorHit: gap !== null && gap <= 0,
+        pxHit: pxFloor !== null && pxFloor <= 100,
         mine: !!(r.stock_code && uni.has(r.stock_code)),
         alive: bal === null ? null : bal > 0,
       }
@@ -443,7 +453,8 @@ export default function DartTerminalPage() {
     const rows = (mez && mez.results) || []
     const enriched = rows.map(r => ({
       bal: mv(r, '미전환 잔액'), gap: mv(r, '하한까지'),
-      dday: r.issuance ? r.issuance.put_d_day : null,
+      pxFloor: mv(r, '주가/하한'),
+      dday: r.issuance ? (r.issuance.put_next_d_day ?? null) : null,
       cover: (r.company && r.company['현금 커버']) ? r.company['현금 커버'].value : null,
     }))
     const near = enriched.filter(r => r.dday !== null && r.dday >= 0 && r.dday <= 90)
@@ -451,6 +462,8 @@ export default function DartTerminalPage() {
       active: enriched.filter(r => r.bal === null || r.bal > 0).length,
       totalBal: enriched.reduce((a, r) => a + (r.bal || 0), 0),
       floorHit: enriched.filter(r => r.gap !== null && r.gap <= 0).length,
+      pxHit: enriched.filter(r => r.pxFloor !== null && r.pxFloor <= 100).length,
+      pxKnown: enriched.filter(r => r.pxFloor !== null).length,
       nearPut: near.length,
       nearExp: near.reduce((a, r) => a + (r.bal || 0), 0),
       noPut: enriched.filter(r => r.dday === null).length,
@@ -475,7 +488,9 @@ export default function DartTerminalPage() {
         `· 미전환 잔액: ${krw(r.bal) ?? MISSING} / 권면 ${krw(r.face) ?? MISSING}`,
         `· 현재 전환가액: ${int(r.price) ?? MISSING}원 · 리픽싱 하한 ${int(r.floor) ?? MISSING}원`,
         `· 잔여 전환가능주식: ${int(r.rem) ?? MISSING}주 (발행주식 대비 ${r.pct ?? MISSING}%)`,
-        `· 차기 풋: ${(r.issuance && r.issuance.put_first_date) || MISSING}` +
+        `· 주가: ${int(r.px) ?? MISSING}원 (하한 대비 ${r.pxFloor ?? MISSING}% · 전환가 대비 ${r.pxConv ?? MISSING}%)` +
+          (r.pxAsOf ? ` @${String(r.pxAsOf).slice(0, 16)}` : ''),
+        `· 차기 풋: ${r.putDate || MISSING}` +
           (r.dday !== null && r.dday !== undefined ? ` (D-${r.dday})` : '') +
           ` · 만기 ${(r.issuance && r.issuance.maturity_date) || MISSING}`,
         `· 검산(발행사 산술): ${r.cross_check || MISSING}`,
@@ -495,11 +510,13 @@ export default function DartTerminalPage() {
     if (mode === 'mezz') {
       csv += ['종목명', '종목코드', '고유번호', '시장', '회차', '종류', '권면총액', '미전환잔액',
         '전환가액', '리픽싱하한', '하한까지%', '잔여전환가능주식', '발행주식대비%',
-        '차기풋', '만기', '검산식', '기준일', '접수번호', '원문URL'].join(',') + '\n'
+        '현재가', '주가/하한%', '주가/전환가%', '주가기준시각',
+        '차기풋', '최초풋', '만기', '검산식', '기준일', '접수번호', '원문URL'].join(',') + '\n'
       for (const r of mezRows) {
         csv += [r.corp_name, r.stock_code, r.corp_code, r.market, r.bd_tm, r.sec_type,
           r.face, r.bal, r.price, r.floor, r.gap, r.rem, r.pct,
-          r.issuance && r.issuance.put_first_date, r.issuance && r.issuance.maturity_date,
+          r.px, r.pxFloor, r.pxConv, r.pxAsOf,
+          r.putDate, r.issuance && r.issuance.put_first_date, r.issuance && r.issuance.maturity_date,
           r.cross_check, r.anchor && r.anchor.as_of, r.anchor && r.anchor.rcept_no,
           r.anchor && r.anchor.dart_url].map(esc).join(',') + '\n'
       }
@@ -667,7 +684,7 @@ export default function DartTerminalPage() {
               v={mez ? mezKpi.active : '—'} u={`건 / 원장 ${mez ? (mez.counts && mez.counts['회차']) : '—'}`} />
             <Kpi t="var(--down)" k="리픽싱 하한 도달"
               v={mez ? mezKpi.floorHit : '—'}
-              u={`회차 · 하한 확보 ${mez ? (mez.counts && mez.counts['플로어 확보']) : '—'}건뿐`} />
+              u={mez ? `회차 · 주가≤하한 ${mezKpi.pxHit}/${mezKpi.pxKnown} · 하한 확보 ${mez.counts && mez.counts['플로어 확보']}건` : ''} />
             <Kpi t="var(--up)" k="조기상환 풋 D-90 이내" color="var(--up)"
               v={mez ? mezKpi.nearPut : '—'}
               u={mez ? `익스포저 ${krw(mezKpi.nearExp) ?? MISSING} · 풋일 미확보 ${mezKpi.noPut}` : ''} />
@@ -806,6 +823,7 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
           <th className="r">미전환 잔액</th>
           <th className="r">발행주식 대비</th>
           <th className="r">전환가액 (하한까지)</th>
+          <th className="r">주가 (하한 · 전환가 대비)</th>
           <th className="c">차기 풋</th>
           <th className="r">현금커버</th>
           <th className="c">검산</th>
@@ -848,6 +866,21 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
                       : <span className="mute">+{r.gap}%</span>}
                 </div>
               </td>
+              {/* 주가 — 하한 대비 100% 이하면 __더 못 내린다__(리픽싱 한계). 전환가 대비 양수면 전환 유인. */}
+              <td className="r">
+                <div><Val v={int(r.px)} suffix={r.px ? '원' : ''} /></div>
+                <div style={{ fontSize: 9 }}>
+                  {r.pxFloor === null
+                    ? <span className="miss">하한비 {MISSING}</span>
+                    : <b style={{ color: r.pxHit ? 'var(--down)' : undefined }}>하한비 {r.pxFloor}%</b>}
+                  {' · '}
+                  {r.pxConv === null
+                    ? <span className="miss">{MISSING}</span>
+                    : <span style={{ color: r.pxConv >= 0 ? 'var(--up)' : 'var(--mute)' }}>
+                        전환가비 {r.pxConv > 0 ? '+' : ''}{r.pxConv}%
+                      </span>}
+                </div>
+              </td>
               <td className="c">
                 {r.dday === null || r.dday === undefined
                   ? <Val v={null} />
@@ -855,7 +888,7 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
                     <b style={{ color: r.dday <= 90 && r.dday >= 0 ? 'var(--up)' : undefined }}>
                       {r.dday >= 0 ? `D-${r.dday}` : `D+${-r.dday}`}
                     </b>
-                    <div style={{ fontSize: 9, color: 'var(--mute)' }}>{r.issuance.put_first_date}</div>
+                    <div style={{ fontSize: 9, color: 'var(--mute)' }}>{r.putDate}</div>
                   </>}
               </td>
               {/* 현금커버 — 1배 미만이면 __현금으로 못 갚는다__ 는 뜻이라 붉게 찍는다.
@@ -1056,8 +1089,18 @@ function MezPanel({ row: r }) {
               </span>}
           </div>
           <div className="rowline" style={{ marginTop: 6 }}>
-            <span>풋 도래일 <b><Val v={iss && iss.put_first_date} /></b></span>
+            <span>차기 도래일 <b><Val v={r.putDate} /></b>
+              {iss && iss.put_next_source === '주기 산출' ? <span className="mute" style={{ fontSize: 9 }}> (최초 {iss.put_first_date} + 주기)</span> : null}
+              {iss && iss.put_next_source === '만기 경과' ? <span className="mute" style={{ fontSize: 9 }}> (만기 경과)</span> : null}
+              {iss && iss.put_next_source === '주기 미상' ? <span className="mute" style={{ fontSize: 9 }}> (최초 {iss.put_first_date} 경과 · 주기 미상)</span> : null}
+            </span>
             <span>만기 <b><Val v={iss && iss.maturity_date} /></b></span>
+          </div>
+          <div className="rowline">
+            <span>주가 <b><Val v={int(r.px)} suffix={r.px ? '원' : ''} /></b>
+              {r.pxAsOf ? <span className="mute" style={{ fontSize: 9 }}> @{String(r.pxAsOf).slice(5, 16)}</span> : null}</span>
+            <span>하한비 <b style={{ color: r.pxHit ? 'var(--down)' : undefined }}><Val v={r.pxFloor} suffix={r.pxFloor !== null ? '%' : ''} /></b>
+              {' · '}전환가비 <b><Val v={r.pxConv} suffix={r.pxConv !== null ? '%' : ''} /></b></span>
           </div>
           <div className="rowline">
             <span>행사주기 <Val v={iss && iss.put_interval_months} suffix={iss && iss.put_interval_months ? '개월' : ''} /></span>
