@@ -366,7 +366,7 @@ export default function LandingPage() {
                 다트인 열어보기 →
               </span>
               <span style={{ fontSize: 12, color: '#71717A', lineHeight: 1.6 }}>
-                로그인 없이 바로 씁니다. 공개된 DART 원문만 다룹니다.
+                접근 키를 발급받아 씁니다. 공개된 DART 원문만 다룹니다.
               </span>
             </div>
           </Reveal>

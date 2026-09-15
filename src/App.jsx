@@ -33,6 +33,7 @@ const MarketPressPage = lazy(() => import('./components/MarketPressPage'))
 const PatternPage = lazy(() => import('./components/PatternPage'))
 const DividendPage = lazy(() => import('./components/DividendPage'))
 const DartInPage = lazy(() => import('./components/DartInPage'))
+const DartTerminalPage = lazy(() => import('./components/DartTerminalPage'))
 const DartViewPage = lazy(() => import('./components/DartViewPage'))
 const DartViewDetailLazy = lazy(() => import('./components/DartViewPage').then(m => ({ default: m.DartViewDetail })))
 const AdminPage = lazy(() => import('./components/AdminPage'))
@@ -104,12 +105,16 @@ export default function App() {
   const isLanding = location.pathname === '/'
   // KOREA MARKET PRESS — 독립 신문 형태(앱 크롬 숨김)
   const isPress = location.pathname.startsWith('/market-press')
+  // DART Terminal — 고밀도 관제 워크스페이스. 뷰포트를 통째로 쓰므로 앱 크롬을 숨긴다.
+  // 터미널 문법이 앱의 카드/박스 문법과 섞이면 둘 다 망가진다(2026-08-02 배당 사고).
+  const isTerminal = location.pathname.startsWith('/terminal')
+  const bare = isPress || isTerminal
 
   return (
     <AuthProvider>
     <ErrorProvider addToast={addToast}>
       <div style={{ minHeight: '100vh', backgroundColor: isLanding ? '#FFFFFF' : colors.bgPrimary, fontFamily: FONTS.body }}>
-        {!isPress && (
+        {!bare && (
           <Header
             notifications={notifications}
             unreadCount={unreadCount}
@@ -120,7 +125,7 @@ export default function App() {
             hiddenTopBar={isLanding}
           />
         )}
-        {!isLanding && !isPress && (
+        {!isLanding && !bare && (
           <>
             <PwaInstallBanner />
           </>
@@ -157,6 +162,10 @@ export default function App() {
               {/* 다트인 — 공시 파싱 → 1페이지 리포트. `/admin/report`(관리자 전용
                   수익률·게이트 점수)와 __이름이 겹치지 않게__ 둔다(DARTIN.md §6-2). */}
               <Route path="/dartin" element={<DartInPage />} />
+              {/* DART Terminal — 다트인/다트M 을 한 워크스페이스로 묶은 관제 화면.
+                  `/dartin`(v1 작업대)은 __그대로 둔다__ — 라이브에서 돌고 있고,
+                  터미널의 메자닌 절반은 `/api/dartm/*` 가 프로덕션에 올라가야 채워진다. */}
+              <Route path="/terminal" element={<DartTerminalPage />} />
               <Route path="/dart-view" element={<DartViewPage />} />
               <Route path="/dart-view/:stockCode" element={<DartViewDetailLazy />} />
               <Route path="/dart-event" element={<DartEventPage />} />
