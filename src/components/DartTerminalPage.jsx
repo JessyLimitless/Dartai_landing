@@ -32,6 +32,13 @@ import { API } from '../lib/api'
  *
  * ⚠️ 게이트 점수·픽 종목·요인 분해는 여기 들어오지 않는다(CLAUDE.md 영업비밀).
  *    나가는 것은 DART 공개 원문과 그 정량 분해까지다.
+ *
+ * ## 톤 — 두 층 (DARTIN.md §36 · 2026-09-16 사용자 결정. 뒤집지 말 것)
+ *   · 데이터 층(그리드·검산 원장) = __증권사 터미널__ 규율. 밀도 유지 · 숫자 우측정렬 · 강조 1행 1개 ·
+ *     세로 괘선 없음 + hover · 헤더 고정 · 컬럼 삭제 없음(접기/2차 패널만).
+ *   · 프레이밍 층(헤더·리드 한 줄·KPI·리포트 머리) = __에디토리얼__. 여백·타이포 위계·짧은 문장.
+ *   · 색은 셋뿐 — 빨강 = 경보(하한 도달·풋 D-90·커버<1·검산 불일치) / 앰버 = 규모 막대 / 나머지 무채색.
+ *   · 밀도 자체는 의도다(증권사 HTS 톤). "덜 빡빡하게"가 아니라 "증권사급인데 더 세련되게".
  */
 
 /* ────────────────────────────────────────────────────────────────
@@ -42,18 +49,27 @@ const CSS = `
 .dtp{--bg:#f1f5f9;--surf:#fff;--surf2:#f8fafc;--line:#e2e8f0;--line2:#cbd5e1;
  --ink:#0f172a;--ink2:#334155;--sub:#64748b;--mute:#94a3b8;
  --up:#dc2626;--down:#2563eb;--warn:#ea580c;--ok:#059669;
+ --alert:#dc2626;--amber:#b45309;--amberBg:#fde68a;
  --onink:#fff;--chip:#f1f5f9;--zebra:#fafbfc;--hov:#eff6ff;--sel:#e0f2fe;
  --selline:#0284c7;--badge:#e2e8f0;--pin:#000;--btnA:#fff;--btnB:#f8fafc;
  --strip:#000;--stripFg:#fff;--stripInk:#e2e8f0;--stripLine:#1f2937;--stripSep:#475569;
  --tagFg:#475569;--okOnInk:#34d399;--badOnInk:#fca5a5;--noteBg:#fff7ed;--noteLine:#fed7aa;--g1:#fee2e2;--g2:#fef3c7;--g3:#e0f2fe;
  position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;
- background:var(--bg);color:var(--ink);font-size:11.5px;
+ background:var(--bg);color:var(--ink);font-size:12px;
  font-family:Pretendard,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
  -webkit-font-smoothing:antialiased;z-index:1}
 .dtp *{box-sizing:border-box}
 .dtp .num{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .dtp .mute{color:var(--mute)}
 .dtp .miss{color:var(--mute);font-style:normal}
+/* 색 어휘 — 세 가지뿐이다(§34-3 A안). 빨강 = 경보(하한 도달·풋 D-90·커버<1·검산 불일치),
+   앰버 = 규모(발행주식 대비 10%↑), 나머지는 무채색. 파랑은 링크에만 남긴다.
+   같은 빨강이 규모·경보·등락 세 뜻으로 쓰이던 것을 끊는다. */
+.dtp .alert{color:var(--alert);font-weight:700}
+.dtp .amb{color:var(--amber);font-weight:700}
+/* 빈 값 — 그리드에서는 흐린 대시. 채워진 값이 눈에 띄어야지 빈칸이 시끄러우면 안 된다.
+   \`0\` 과 헷갈리지 않게 hover 에 [미기재] 를 남기고, 사유는 우측 패널 "왜 비었나" 가 맡는다. */
+.dtp .dash{color:var(--mute);opacity:.75}
 
 /* 상단 상태 스트립 — 목업의 LED 티커 자리. 지수·유통잔액은 수집하지 않으므로
    지어내지 않고, 대신 __원장이 실제로 들고 있는 것__ 을 띄운다. */
@@ -66,14 +82,14 @@ const CSS = `
 .dtp .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
 
 .dtp header.bar{background:var(--surf);border-bottom:1px solid var(--line2);
- padding:6px 10px;display:flex;align-items:center;justify-content:space-between;
+ padding:8px 12px;display:flex;align-items:center;justify-content:space-between;
  gap:10px;flex:0 0 auto;flex-wrap:wrap}
 .dtp .brand{display:flex;align-items:center;gap:6px;text-decoration:none;color:inherit}
 .dtp a.brand:hover .nm{text-decoration:underline}
 .dtp .brand .mk{width:24px;height:24px;background:var(--ink);color:var(--onink);display:flex;
  align-items:center;justify-content:center;font-weight:700;font-size:10px}
-.dtp .brand .nm{font-weight:700;font-size:13px;letter-spacing:-.02em}
-.dtp .brand .sub{font-size:9px;color:var(--mute);margin-top:1px}
+.dtp .brand .nm{font-weight:700;font-size:14px;letter-spacing:-.02em}
+.dtp .brand .sub{font-size:9.5px;color:var(--mute);margin-top:1px;letter-spacing:.04em}
 
 .dtp .modetabs{display:flex;background:var(--chip);border:1px solid var(--line2);padding:2px}
 .dtp .modetabs button{border:0;background:transparent;color:var(--sub);font-weight:700;
@@ -92,89 +108,107 @@ const CSS = `
 .dtp input.fld:focus{border-color:var(--ink2);background:var(--surf)}
 
 /* KPI */
-.dtp .kpis{display:flex;background:var(--chip);border-bottom:1px solid var(--line2);flex:0 0 auto}
-.dtp .kpi{flex:1;padding:6px 9px;background:var(--surf);border-right:1px solid var(--line2);
+/* KPI 띠 = 프레이밍 층(에디토리얼). 회색 바닥 위 흰 카드에 여백을 주고, 리드 한 줄로 "무엇을 봐야 하나"를
+   표 위에서 먼저 말한다. 아래 흰 그리드(데이터 층)와는 바닥 톤 하나로 경계가 갈린다. 참고 design/dartm_report_v2.html */
+.dtp .frame{background:var(--bg);border-bottom:1px solid var(--line2);flex:0 0 auto;padding:8px 12px 10px}
+.dtp .lead{font-size:13px;color:var(--ink2);line-height:1.5;margin:0 0 8px;letter-spacing:-.01em}
+.dtp .lead b{color:var(--ink);font-weight:700}
+.dtp .lead .ov{font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-right:8px}
+.dtp .kpis{display:flex;gap:8px}
+.dtp .kpi{flex:1;padding:8px 13px 10px;background:var(--surf);border:1px solid var(--line2);
  border-top:2px solid var(--line2);min-width:0}
-.dtp .kpi:last-child{border-right:0}
-.dtp .kpi .k{font-size:9.5px;font-weight:700;color:var(--sub);text-transform:uppercase;
- letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dtp .kpi .v{font-size:16px;font-weight:700;margin-top:2px}
-.dtp .kpi .u{font-size:10px;color:var(--sub);font-weight:400;margin-left:3px}
+.dtp .kpi .k{font-size:10.5px;font-weight:600;color:var(--sub);letter-spacing:.02em;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtp .kpi .v{font-size:20px;font-weight:700;margin-top:5px;line-height:1.1;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtp .kpi .u{font-size:10.5px;color:var(--sub);font-weight:400;margin-left:5px;letter-spacing:0}
 
 .dtp main.work{flex:1;display:flex;min-height:0}
-.dtp .left{width:56%;display:flex;flex-direction:column;background:var(--surf);
+.dtp .left{width:60%;display:flex;flex-direction:column;background:var(--surf);
  border-right:1px solid var(--line2);min-width:0}
-.dtp .right{width:44%;display:flex;flex-direction:column;background:var(--surf2);
+.dtp .right{width:40%;display:flex;flex-direction:column;background:var(--surf2);
  overflow-y:auto;min-width:0}
-.dtp .tbar{padding:4px 8px;background:var(--chip);border-bottom:1px solid var(--line2);
+.dtp .tbar{padding:5px 10px;background:var(--chip);border-bottom:1px solid var(--line2);
  display:flex;justify-content:space-between;align-items:center;gap:8px;flex:0 0 auto;flex-wrap:wrap}
-.dtp .tbar .ttl{font-size:11px;font-weight:700}
-.dtp .badge{font-size:9px;background:var(--badge);color:var(--ink2);padding:1px 4px;
+.dtp .tbar .ttl{font-size:12px;font-weight:700}
+.dtp .badge{font-size:10px;background:var(--badge);color:var(--ink2);padding:1px 5px;
  border:1px solid var(--line2);font-variant-numeric:tabular-nums}
 .dtp .scroll{flex:1;overflow:auto;min-height:0}
-.dtp .foot{background:var(--surf2);border-top:1px solid var(--line2);padding:3px 8px;
- font-size:10px;color:var(--sub);display:flex;justify-content:space-between;gap:8px;flex:0 0 auto}
+.dtp .foot{background:var(--surf2);border-top:1px solid var(--line2);padding:4px 10px;
+ font-size:10.5px;color:var(--sub);display:flex;justify-content:space-between;gap:10px;flex:0 0 auto;flex-wrap:wrap}
+.dtp .foot .sw{display:inline-block;width:8px;height:8px;vertical-align:-1px;margin:0 3px 0 6px}
 
-/* 그리드 */
+/* 그리드 — 한 셀 한 줄. 부기(코드·시장·기준일·부제)는 hover title 과 우측 패널 몫이다.
+   세로 괘선을 없애고 가로선만 남긴다 — 같은 12px 로도 숨이 트인다(§34-3). 얼룩말 무늬 대신 hover. */
 .dtp table.grid{border-collapse:collapse;width:100%}
-.dtp table.grid th{background:var(--surf2);border:1px solid var(--line2);
- border-top:2px solid var(--ink);padding:4px 7px;font-size:10.5px;font-weight:700;
+.dtp table.grid th{background:var(--surf2);border:0;border-bottom:1px solid var(--line2);
+ border-top:2px solid var(--ink);padding:6px 6px;font-size:11px;font-weight:700;
  color:var(--ink2);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;
  position:sticky;top:0;z-index:2}
-.dtp table.grid td{border:1px solid var(--line);padding:4px 7px;font-size:11px;
- white-space:nowrap;vertical-align:middle}
-.dtp table.grid tbody tr:nth-child(even){background:var(--zebra)}
+.dtp table.grid th.sub{font-weight:600;color:var(--sub)}
+.dtp table.grid td{border:0;border-bottom:1px solid var(--line);padding:6px 6px;font-size:12px;
+ line-height:1.4;white-space:nowrap;vertical-align:middle}
 .dtp table.grid tbody tr:hover{background:var(--hov)}
-.dtp table.grid tbody tr.sel{background:var(--sel);outline:1px solid var(--selline);outline-offset:-1px}
+.dtp table.grid tbody tr.sel{background:var(--sel);box-shadow:inset 3px 0 0 var(--ink)}
 .dtp table.grid tbody tr{cursor:pointer}
 .dtp .r{text-align:right}
 .dtp .c{text-align:center}
-.dtp .tag{font-size:9px;font-weight:700;padding:0 4px;border:1px solid currentColor;
- display:inline-block;line-height:15px}
-.dtp .spark{width:48px;height:3px;background:var(--line);margin-left:auto;margin-top:2px}
-.dtp .spark i{display:block;height:100%}
+.dtp .tag{font-size:10px;font-weight:700;padding:0 4px;border:1px solid currentColor;
+ display:inline-block;line-height:16px}
+.dtp .rnd{font-size:11px;font-weight:600;color:var(--ink2);margin-left:5px}
+.dtp td.nm{max-width:200px}
+.dtp td.nm .row{display:flex;align-items:center;min-width:0}
+.dtp td.nm .row b{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.dtp td.nm .row .code,.dtp td.nm .row .rnd,.dtp td.nm .row .tag{flex-shrink:0}
+.dtp .code{font-size:11px;color:var(--mute);margin-left:5px}
+/* 규모 데이터바 — 셀 배경에 얕게 깐다. 값은 글자, 크기는 바. 한 줄이다. */
+.dtp td.bar{position:relative}
+.dtp td.bar i{position:absolute;right:0;top:4px;bottom:4px;background:var(--amberBg);opacity:.45;z-index:0}
+.dtp td.bar span{position:relative;z-index:1}
 
 /* 우측 패널 */
 .dtp .panel{background:var(--surf);border:1px solid var(--line2)}
-.dtp .head{margin:8px 8px 4px;padding:8px 10px;border-left:3px solid var(--ink)}
-.dtp .head h2{margin:0;font-size:15px;font-weight:700;letter-spacing:-.02em;display:inline}
-.dtp .viz{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:0 8px 6px}
-.dtp .viz .panel{padding:7px 8px;display:flex;flex-direction:column;min-height:74px}
+.dtp .head{margin:10px 10px 8px;padding:12px 14px 12px;border-left:3px solid var(--ink)}
+.dtp .head .ov{font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}
+.dtp .head h2{margin:2px 0 0;font-size:18px;font-weight:700;letter-spacing:-.025em;display:inline;line-height:1.25}
+.dtp .head .meta{margin-top:7px;font-size:12px;color:var(--ink2);line-height:1.55;letter-spacing:-.005em}
+.dtp .head .meta b{color:var(--ink)}
+.dtp .viz{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 10px 10px}
+.dtp .viz .panel{padding:9px 11px;display:flex;flex-direction:column;min-height:78px}
 .dtp .viz .vh{display:flex;justify-content:space-between;align-items:center;gap:6px;
- border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:5px}
-.dtp .viz .vh span:first-child{font-size:10px;font-weight:700;color:var(--ink2)}
-.dtp .pill{font-size:9px;font-weight:700;padding:0 4px;line-height:15px;white-space:nowrap}
+ border-bottom:1px solid var(--line);padding-bottom:5px;margin-bottom:7px}
+.dtp .viz .vh span:first-child{font-size:11px;font-weight:700;color:var(--ink2)}
+.dtp .pill{font-size:10px;font-weight:700;padding:0 5px;line-height:17px;white-space:nowrap}
 .dtp .gauge{position:relative;height:11px;border:1px solid var(--line2);overflow:hidden;
  background:linear-gradient(90deg,var(--g1) 0%,var(--g2) 40%,var(--g3) 100%)}
-.dtp .gauge .floor{position:absolute;top:0;bottom:0;width:2px;background:var(--up);z-index:1}
+.dtp .gauge .floor{position:absolute;top:0;bottom:0;width:2px;background:var(--alert);z-index:1}
 .dtp .gauge .pin{position:absolute;top:0;bottom:0;width:5px;background:var(--pin);z-index:2;
  transform:translateX(-50%)}
-.dtp .stack{display:flex;height:12px;border:1px solid var(--line2);font-size:8px;
- color:var(--stripFg);line-height:12px;text-align:center;overflow:hidden}
-.dtp .rowline{display:flex;justify-content:space-between;gap:8px;font-size:9.5px;
- color:var(--sub);margin-top:3px}
-.dtp .kv{display:flex;justify-content:space-between;gap:10px;font-size:10px;padding:2px 0}
+.dtp .stack{display:flex;height:13px;border:1px solid var(--line2);font-size:9px;
+ color:var(--stripFg);line-height:13px;text-align:center;overflow:hidden}
+.dtp .rowline{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;
+ color:var(--sub);margin-top:4px;line-height:1.45}
+.dtp .kv{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:3px 0;line-height:1.45}
 .dtp .kv .k{color:var(--sub)}
 .dtp .kv .v{font-weight:700;font-variant-numeric:tabular-nums}
 
-.dtp .audit{margin:0 8px 8px}
-.dtp .audit .ah{background:var(--ink);color:var(--onink);padding:4px 8px;font-size:10.5px;
+.dtp .audit{margin:0 10px 10px}
+.dtp .audit .ah{background:var(--ink);color:var(--onink);padding:6px 10px;font-size:11px;
  font-weight:700;display:flex;justify-content:space-between;gap:8px;align-items:center}
-.dtp .audit .abody{display:flex;border:1px solid var(--line2);border-top:0}
-.dtp .audit .col{width:50%;padding:8px;min-width:0}
-.dtp .audit .col+.col{border-left:1px solid var(--line2);background:var(--zebra)}
-.dtp .audit .ct{font-size:9.5px;font-weight:700;color:var(--sub);text-transform:uppercase;
- letter-spacing:.03em;border-bottom:1px solid var(--line);padding-bottom:3px;margin-bottom:6px;
+.dtp .audit .abody{display:flex;border:1px solid var(--line2);border-top:0;background:var(--surf)}
+.dtp .audit .col{width:50%;padding:10px;min-width:0}
+.dtp .audit .col+.col{border-left:1px solid var(--line2);background:var(--surf2)}
+.dtp .audit .ct{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;
+ letter-spacing:.03em;border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:7px;
  display:flex;justify-content:space-between;gap:6px}
-.dtp .calc{background:var(--surf2);border:1px solid var(--line2);padding:6px;
- font-size:9.5px;font-variant-numeric:tabular-nums;word-break:break-all;line-height:1.5}
+.dtp .calc{background:var(--surf2);border:1px solid var(--line2);padding:7px 8px;
+ font-size:10.5px;font-variant-numeric:tabular-nums;word-break:break-all;line-height:1.55}
 .dtp table.raw{border-collapse:collapse;width:100%;border:1px solid var(--sub)}
 .dtp table.raw th,.dtp table.raw td{border:1px solid var(--mute);padding:4px 6px;font-size:10.5px}
 .dtp table.raw th{background:var(--badge);font-weight:600;text-align:left;width:50%}
 .dtp table.raw td{text-align:right;font-variant-numeric:tabular-nums}
 
-.dtp .note{font-size:10px;color:var(--warn);background:var(--noteBg);border:1px solid var(--noteLine);
- padding:5px 7px;margin-top:6px;line-height:1.55}
+.dtp .note{font-size:11px;color:var(--warn);background:var(--noteBg);border:1px solid var(--noteLine);
+ padding:6px 9px;margin-top:8px;line-height:1.55}
 .dtp .empty{padding:28px 18px;text-align:center;color:var(--sub);font-size:12px;line-height:1.7}
 .dtp .gate{max-width:560px;margin:40px auto;background:var(--surf);border:1px solid var(--line2);padding:20px}
 .dtp .gate h3{margin:0 0 8px;font-size:15px}
@@ -187,6 +221,13 @@ const CSS = `
 .dtp ::-webkit-scrollbar-track{background:var(--chip)}
 .dtp ::-webkit-scrollbar-thumb{background:var(--mute)}
 
+/* 1024~1200: 13열 그리드가 우선이다. 우측 패널을 좁히고 viz 를 1열로 세운다. */
+@media (max-width:1200px){
+ .dtp .left{width:64%}
+ .dtp .right{width:36%}
+ .dtp .viz{grid-template-columns:1fr}
+ .dtp table.grid th,.dtp table.grid td{padding:6px 5px}
+}
 @media (max-width:900px){
  .dtp main.work{flex-direction:column}
  .dtp .left,.dtp .right{width:100%}
@@ -194,6 +235,7 @@ const CSS = `
  .dtp .right{flex:1 1 55%}
  .dtp .kpis{overflow-x:auto}
  .dtp .kpi{min-width:150px}
+ .dtp .lead{font-size:12px}
 }
 
 /* 앱 테마를 따른다. ThemeContext 가 <html data-theme="dark"> 를 찍는다.
@@ -203,6 +245,7 @@ const CSS = `
  --bg:#0b1220;--surf:#111a2b;--surf2:#0e1726;--line:#1e2b41;--line2:#2b3b55;
  --ink:#e6edf7;--ink2:#c2cfe2;--sub:#93a6c2;--mute:#6b7d99;
  --up:#f87171;--down:#60a5fa;--warn:#fb923c;--ok:#34d399;
+ --alert:#f87171;--amber:#fbbf24;--amberBg:#78350f;
  --onink:#0b1220;--chip:#0e1726;--zebra:#0d1626;--hov:#152238;--sel:#17304d;
  --selline:#38bdf8;--badge:#1e2b41;--pin:#e6edf7;--btnA:#18233a;--btnB:#131c2e;
  --strip:#000;--stripFg:#fff;--stripInk:#cbd5e1;--stripLine:#1f2937;--stripSep:#64748b;
@@ -237,6 +280,15 @@ const shares = (v) => {
 function Val({ v, suffix = '', cls = '' }) {
   if (v === null || v === undefined || v === '') return <span className="miss">{MISSING}</span>
   return <span className={cls}>{v}{suffix}</span>
+}
+
+/** 그리드 전용 빈 값 — 흐린 대시. `[미기재]` 라벨 35개가 채워진 값보다 시끄럽던 것을
+ *  고친다(§34-3 #1). 뜻은 같다: hover 에 [미기재] 를 남기고, 사유는 우측 패널 "왜 비었나".
+ *  `0` 은 여전히 `0` 으로 찍히므로 대시가 0 으로 읽힐 일은 없다. */
+const DASH_TITLE = `${MISSING} — 원문에 값이 없거나 아직 연결되지 않았습니다. 사유는 우측 패널 "왜 비었나"`
+function Cell({ v, suffix = '', cls = '', title }) {
+  if (v === null || v === undefined || v === '') return <span className="dash" title={DASH_TITLE}>–</span>
+  return <span className={cls} title={title}>{v}{suffix}</span>
 }
 
 const mv = (row, key) => (row && row.metrics && row.metrics[key] ? row.metrics[key].value : null)
@@ -676,22 +728,50 @@ export default function DartTerminalPage() {
         </div>
       )}
 
-      {/* KPI */}
+      {/* 프레이밍 층 — 리드 한 줄 + KPI. 전부 아래 KPI 와 같은 숫자에서 나온다(두 번째 진실 없음).
+          문장은 "경보 우선순위"만 말한다 — 표를 읽기 전에 3초 안에 어디부터 볼지 잡게 하는 역할. */}
+      <div className="frame">
+        {mode === 'mezz' ? (
+          <p className="lead">
+            <span className="ov">오늘 볼 것</span>
+            {mez ? (
+              <>
+                원장 <b>{mez.counts && mez.counts['회차']}</b>회차 중 활성 <b>{mezKpi.active}</b> —
+                주가가 하한 밑인 회차 <b>{mezKpi.pxHit}</b>, 90일 내 풋 <b>{mezKpi.nearPut}</b>
+                {mezKpi.nearExp ? <> (익스포저 {krw(mezKpi.nearExp)})</> : null},
+                현금커버 1배 미만 <b>{mezKpi.thinCover}</b>. 「플로어·풋 경보」로 좁혀 보세요.
+              </>
+            ) : (mezLoading ? '원장을 불러오는 중…' : '원장을 아직 불러오지 못했습니다.')}
+          </p>
+        ) : (
+          <p className="lead">
+            <span className="ov">오늘 볼 것</span>
+            {feed ? (
+              <>
+                {days === 1 ? '오늘' : `최근 ${days}일`} 창 안 공시 <b>{feed.matched}</b>건
+                {universe.length ? <> · 내 유니버스 적중 <b>{feed.universe_hit}</b>건</> : null}
+                {feed.window_capped ? <> — <b>스캔 창 포화</b>, 집계가 실제보다 적습니다</> : null}.
+              </>
+            ) : (flashLoading ? '피드를 불러오는 중…' : '피드를 아직 불러오지 못했습니다.')}
+          </p>
+        )}
       <div className="kpis">
         {mode === 'mezz' ? (
           <>
-            <Kpi t="#0f172a" k="활성 회차 (잔액 앵커 보유)"
+            {/* 숫자는 전부 잉크색. 경보 계열은 상단 2px 선으로만 구분한다 — 큰 빨간 숫자 셋이
+                그리드의 빨강과 합쳐져 "경보가 경보로 안 읽히던" 것을 끊는다(§34-3 #2). */}
+            <Kpi t="var(--ink)" k="활성 회차 (잔액 앵커 보유)"
               v={mez ? mezKpi.active : '—'} u={`건 / 원장 ${mez ? (mez.counts && mez.counts['회차']) : '—'}`} />
-            <Kpi t="var(--down)" k="리픽싱 하한 도달"
+            <Kpi t="var(--alert)" k="리픽싱 하한 도달"
               v={mez ? mezKpi.floorHit : '—'}
               u={mez ? `회차 · 주가≤하한 ${mezKpi.pxHit}/${mezKpi.pxKnown} · 하한 확보 ${mez.counts && mez.counts['플로어 확보']}건` : ''} />
-            <Kpi t="var(--up)" k="조기상환 풋 D-90 이내" color="var(--up)"
+            <Kpi t="var(--alert)" k="조기상환 풋 D-90 이내"
               v={mez ? mezKpi.nearPut : '—'}
               u={mez ? `익스포저 ${krw(mezKpi.nearExp) ?? MISSING} · 풋일 미확보 ${mezKpi.noPut}` : ''} />
-            <Kpi t="var(--up)" k="현금커버 1배 미만" color="var(--up)"
+            <Kpi t="var(--alert)" k="현금커버 1배 미만"
               v={mez ? mezKpi.thinCover : '—'}
               u={mez ? `회차 · 커버 산출 ${mezKpi.coverKnown}건` : ''} />
-            <Kpi t="var(--sub)" k="미전환 잔액 합계"
+            <Kpi t="var(--line2)" k="미전환 잔액 합계"
               v={mez ? (krw(mezKpi.totalBal) ?? MISSING) : '—'} u="원 (원장 창 내)" />
           </>
         ) : (
@@ -701,6 +781,7 @@ export default function DartTerminalPage() {
               u={`건 (${days === 1 ? '오늘' : `최근 ${days}일`})`} />
           ))
         )}
+      </div>
       </div>
 
       {/* 워크스페이스 */}
@@ -738,7 +819,18 @@ export default function DartTerminalPage() {
                   ? `스캔 ${feed.scanned} / 창 ${feed.scan_limit} · 창 안 ${feed.matched}건${feed.truncated ? ' (표시 잘림)' : ''}`
                   : ''}
             </span>
-            <span className="mute">{mode === 'mezz' ? (mez && mez.engine) || '' : '11계열 정량분해'}</span>
+            {/* 색 어휘 범례 — 색이 세 가지뿐이라 한 줄로 끝난다. 블룸버그처럼 색마다 뜻이 고정돼야
+                사용자가 색을 읽는다. */}
+            <span className="mute">
+              {mode === 'mezz' ? (
+                <>
+                  <span className="dash">–</span> 미기재
+                  <span className="sw" style={{ background: 'var(--alert)' }} />경보 (하한 도달 · 풋 D-90 · 커버&lt;1 · 검산 불일치)
+                  <span className="sw" style={{ background: 'var(--amberBg)', border: '1px solid var(--amber)' }} />규모 (막대 = 발행주식 대비, 50%에서 가득)
+                  <span style={{ marginLeft: 8 }}>{(mez && mez.engine) || ''}</span>
+                </>
+              ) : '11계열 정량분해'}
+            </span>
           </div>
         </div>
 
@@ -813,103 +905,99 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
       </div>
     )
   }
+  // 한 셀 한 줄 — 옛 "전환가액 (하한까지)" · "주가 (하한·전환가 대비)" 두 칸이 각각 두 줄이었다.
+  // 10~11px 부기가 전 셀에 붙어 행은 높고 정보는 흐렸다(§34-3 #3). 부기를 __컬럼으로 승격__하고
+  // 코드·시장·기준일은 hover title + 우측 패널로 보낸다. 정보는 하나도 버리지 않는다(CSV 도 그대로).
   return (
     <table className="grid">
       <thead>
         <tr>
-          <th style={{ width: 24 }} className="c">#</th>
-          <th>종목 / 회차</th>
-          <th className="r">권면총액</th>
+          <th style={{ width: 26 }} className="c">#</th>
+          <th>종목 · 회차</th>
+          <th className="r">권면</th>
           <th className="r">미전환 잔액</th>
           <th className="r">발행주식 대비</th>
-          <th className="r">전환가액 (하한까지)</th>
-          <th className="r">주가 (하한 · 전환가 대비)</th>
+          <th className="r">전환가액</th>
+          <th className="r sub" title="현재 전환가액이 리픽싱 하한까지 남은 폭. 0 = 하한 도달(더 못 내린다)">하한까지</th>
+          <th className="r">주가</th>
+          <th className="r sub" title="현재가 ÷ 리픽싱 하한 × 100. 100% 이하 = 주가가 하한 밑">주가/하한</th>
+          <th className="r sub" title="(현재가 ÷ 전환가액 − 1) × 100. 양수 = 전환 유인">주가/전환가</th>
           <th className="c">차기 풋</th>
           <th className="r">현금커버</th>
-          <th className="c">검산</th>
+          <th className="c" title="발행사 자신의 산술(잔액÷전환가액=잔여주식) 대조">검산</th>
         </tr>
       </thead>
       <tbody className="num">
         {rows.map((r, i) => {
-          const ok = typeof r.cross_check === 'string' && r.cross_check.includes('✓')
           const w = r.pct === null ? 0 : Math.min(100, r.pct * 2)
+          const rowTitle = `${r.stock_code || r.corp_code} · ${r.market || '시장미상'} · 기준일 ${(r.anchor && r.anchor.as_of) || MISSING}`
           return (
             <tr key={r.key} className={r.key === sel ? 'sel' : ''} onClick={() => onSel(r.key)}>
               <td className="c mute">{i + 1}</td>
-              <td>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <td className="nm" title={rowTitle}>
+                <div className="row">
                   <b>{r.corp_name}</b>
-                  <span className="tag" style={{ color: 'var(--tagFg)' }}>제{r.bd_tm}회 {r.sec_type || '?'}</span>
-                  {r.mine ? <span className="tag" style={{ color: 'var(--ok)' }}>MY</span> : null}
-                </div>
-                <div style={{ fontSize: 9, color: 'var(--mute)' }}>
-                  {r.stock_code || r.corp_code} · {r.market || '시장미상'} · {(r.anchor && r.anchor.as_of) || ''}
+                  <span className="code num">{r.stock_code || r.corp_code}</span>
+                  <span className="rnd">{r.bd_tm}회 {r.sec_type || '?'}</span>
+                  {r.mine ? <span className="tag" style={{ color: 'var(--ink2)', marginLeft: 5 }}>MY</span> : null}
                 </div>
               </td>
-              <td className="r"><Val v={krw(r.face)} /></td>
-              <td className="r"><b><Val v={krw(r.bal)} /></b></td>
-              <td className="r">
-                {r.pct === null ? <Val v={null} /> : (
-                  <>
-                    <b style={{ color: r.pct >= 10 ? 'var(--up)' : undefined }}>{r.pct}%</b>
-                    <div className="spark"><i style={{ width: `${w}%`, background: r.pct >= 10 ? 'var(--up)' : 'var(--sub)' }} /></div>
-                  </>
-                )}
+              <td className="r"><Cell v={krw(r.face)} /></td>
+              <td className="r"><b><Cell v={krw(r.bal)} /></b></td>
+              {/* 규모 — 글자는 잉크, 크기는 앰버 막대. 21% 와 105% 가 같은 빨강이던 것을 막대 길이로 가른다. */}
+              <td className="r bar">
+                {r.pct !== null ? <i style={{ width: `${w}%` }} /> : null}
+                <Cell v={r.pct === null ? null : `${r.pct}%`} cls="" title="막대 = 발행주식 대비 (50% 에서 가득)" />
               </td>
+              <td className="r"><Cell v={int(r.price)} /></td>
               <td className="r">
-                <div><Val v={int(r.price)} suffix={r.price ? '원' : ''} /></div>
-                <div style={{ fontSize: 9 }}>
-                  {r.floor === null
-                    ? <span className="miss">하한 {MISSING}</span>
-                    : r.floorHit
-                      ? <b style={{ color: 'var(--down)' }}>하한 도달</b>
-                      : <span className="mute">+{r.gap}%</span>}
-                </div>
+                {r.floor === null
+                  ? <Cell v={null} />
+                  : r.floorHit
+                    ? <span className="alert" title={`리픽싱 하한 ${int(r.floor)}원 = 현재 전환가액`}>도달</span>
+                    : <span title={`리픽싱 하한 ${int(r.floor)}원`}>+{r.gap}%</span>}
               </td>
-              {/* 주가 — 하한 대비 100% 이하면 __더 못 내린다__(리픽싱 한계). 전환가 대비 양수면 전환 유인. */}
+              <td className="r"><Cell v={int(r.px)} title={r.pxAsOf ? `키움 현재가 @${String(r.pxAsOf).slice(0, 16)}` : undefined} /></td>
+              {/* 주가/하한 — 100% 이하면 __더 못 내린다__(리픽싱 한계). 경보다. */}
               <td className="r">
-                <div><Val v={int(r.px)} suffix={r.px ? '원' : ''} /></div>
-                <div style={{ fontSize: 9 }}>
-                  {r.pxFloor === null
-                    ? <span className="miss">하한비 {MISSING}</span>
-                    : <b style={{ color: r.pxHit ? 'var(--down)' : undefined }}>하한비 {r.pxFloor}%</b>}
-                  {' · '}
-                  {r.pxConv === null
-                    ? <span className="miss">{MISSING}</span>
-                    : <span style={{ color: r.pxConv >= 0 ? 'var(--up)' : 'var(--mute)' }}>
-                        전환가비 {r.pxConv > 0 ? '+' : ''}{r.pxConv}%
-                      </span>}
-                </div>
+                {r.pxFloor === null
+                  ? <Cell v={null} />
+                  : <span className={r.pxHit ? 'alert' : ''}>{r.pxFloor}%</span>}
+              </td>
+              {/* 주가/전환가 — 양수 = 전환 유인(내재가치 있음). 방향이지 경보가 아니라 무채색. */}
+              <td className="r">
+                {r.pxConv === null
+                  ? <Cell v={null} />
+                  : <span className={r.pxConv >= 0 ? '' : 'mute'} style={r.pxConv >= 0 ? { fontWeight: 700 } : undefined}>
+                      {r.pxConv > 0 ? '+' : ''}{r.pxConv}%
+                    </span>}
               </td>
               <td className="c">
                 {r.dday === null || r.dday === undefined
-                  ? <Val v={null} />
-                  : <>
-                    <b style={{ color: r.dday <= 90 && r.dday >= 0 ? 'var(--up)' : undefined }}>
+                  ? <Cell v={null} />
+                  : <span className={r.dday <= 90 && r.dday >= 0 ? 'alert' : ''} title={`차기 도래일 ${r.putDate || MISSING}`}>
                       {r.dday >= 0 ? `D-${r.dday}` : `D+${-r.dday}`}
-                    </b>
-                    <div style={{ fontSize: 9, color: 'var(--mute)' }}>{r.putDate}</div>
-                  </>}
+                    </span>}
               </td>
-              {/* 현금커버 — 1배 미만이면 __현금으로 못 갚는다__ 는 뜻이라 붉게 찍는다.
-                  재무가 없는 회사가 약 37% 라 그때는 [미기재] 로 둔다(0 이 아니다). */}
+              {/* 현금커버 — 1배 미만이면 __현금으로 못 갚는다__ 는 뜻이라 경보색. 1배 이상은 무채색
+                  (초록을 빼 색을 셋으로 줄였다). 재무가 없는 회사 약 37% 는 대시(0 이 아니다). */}
               <td className="r">
                 {r.cover === null || r.cover === undefined
-                  ? <Val v={null} />
-                  : <b style={{ color: r.cover < 1 ? 'var(--up)' : 'var(--ok)' }}>
+                  ? <Cell v={null} />
+                  : <span className={r.cover < 1 ? 'alert' : ''} style={{ fontWeight: 700 }}>
                       {r.cover < 10 ? r.cover.toFixed(2) : Math.round(r.cover)}x
-                    </b>}
+                    </span>}
               </td>
               <td className="c">
                 {(() => {
                   // ok = 삼각이 닫혔다 · partial = __짝이 없어 못 쟀다__ · inconsistent/failed = 틀렸다
                   const ps = r.parse_status
-                  if (ps === 'ok') return <span style={{ color: 'var(--ok)', fontWeight: 700 }}>✓</span>
+                  if (ps === 'ok') return <span style={{ color: 'var(--ink2)', fontWeight: 700 }} title="검산 일치">✓</span>
                   if (ps === 'inconsistent' || ps === 'failed')
-                    return <span style={{ color: 'var(--up)', fontWeight: 700 }}>✗</span>
+                    return <span className="alert" title="검산 불일치">✗</span>
                   if (ps === 'partial')
-                    return <span className="mute" title="검산 짝이 없어 판정하지 못했습니다">–</span>
-                  return <span className="mute">·</span>
+                    return <span className="dash" title="검산 짝이 없어 판정하지 못했습니다">–</span>
+                  return <span className="dash">·</span>
                 })()}
               </td>
             </tr>
@@ -960,10 +1048,10 @@ function FlashGrid({ rows, reports, sel, onSel, loading, days, feed }) {
           return (
             <tr key={r.rcept_no} className={r.rcept_no === sel ? 'sel' : ''} onClick={() => onSel(r.rcept_no)}>
               <td className="c mute">{i + 1}</td>
-              <td className="mute" style={{ fontSize: 10 }}>{r.rcept_day}</td>
+              <td className="mute" style={{ fontSize: 11 }}>{r.rcept_day}</td>
               <td>
                 <b>{r.corp_name}</b>
-                <span className="mute" style={{ fontSize: 9 }}> {r.stock_code || ''}</span>
+                <span className="code num">{r.stock_code || ''}</span>
               </td>
               <td>
                 <span className="tag" style={{ color: CAT_C[r.category] }}>{r.category_label}</span>
@@ -976,7 +1064,7 @@ function FlashGrid({ rows, reports, sel, onSel, loading, days, feed }) {
                 {rep ? (rep.takeaway || <Val v={null} />) : (r.parsable ? <span className="mute">…</span> : <span className="mute">분해 대상 아님</span>)}
               </td>
               <td className="c">
-                {st ? <span style={{ color: st[1], fontWeight: 700, fontSize: 9 }}>{st[0]}</span> : <span className="mute">·</span>}
+                {st ? <span style={{ color: st[1], fontWeight: 700, fontSize: 10.5 }}>{st[0]}</span> : <span className="dash">·</span>}
               </td>
             </tr>
           )
@@ -1002,28 +1090,34 @@ function MezPanel({ row: r }) {
 
   return (
     <>
+      {/* 1페이지 리포트 머리 = 프레이밍 층(에디토리얼). 오버라인 → 제목 → 한 줄 요약.
+          요약은 그리드와 같은 값을 문장으로 옮긴 것이고, 빈 값은 여기서는 [미기재] 로 명시한다
+          (그리드의 대시가 뜻을 잃지 않도록 한 곳에서는 글자로 말한다). */}
       <div className="panel head">
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
-          <div>
+          <div style={{ minWidth: 0 }}>
+            <div className="ov">
+              제{r.bd_tm}회 {r.sec_type || '?'} · {r.market || '시장미상'} · <span className="num">{r.stock_code || r.corp_code}</span>
+              <span className="mute" style={{ marginLeft: 8, fontWeight: 400, letterSpacing: 0, textTransform: 'none' }}>
+                종류 출처 {r.sec_type_source || '미상'}
+              </span>
+            </div>
             <h2>{r.corp_name}</h2>
-            <span className="num" style={{ marginLeft: 6, fontSize: 12, fontWeight: 700, color: 'var(--sub)' }}>
-              {r.stock_code || r.corp_code}
-            </span>
-            <span className="tag" style={{ marginLeft: 6, color: 'var(--sub)' }}>{r.market || '시장미상'}</span>
-            <div style={{ marginTop: 5 }}>
-              <span className="tag" style={{ background: 'var(--ink)', color: '#fff', borderColor: 'var(--ink)' }}>
-                제{r.bd_tm}회 {r.sec_type || '?'}
-              </span>
-              <span className="mute" style={{ marginLeft: 6, fontSize: 9.5 }}>
-                종류 출처: {r.sec_type_source || '미상'}
-              </span>
+            <div className="meta num">
+              미전환 <b><Val v={krw(r.bal)} /></b>
+              {r.pct !== null ? <> (발행주식 대비 <b className={r.pct >= 10 ? 'amb' : ''}>{r.pct}%</b>)</> : null}
+              {' · '}전환가 <b><Val v={int(r.price)} suffix={r.price ? '원' : ''} /></b>
+              {r.floor === null ? <> (하한 {MISSING})</> : r.floorHit ? <> (<b className="alert">하한 도달</b>)</> : <> (하한까지 +{r.gap}%)</>}
+              {' · '}주가/하한 {r.pxFloor === null ? MISSING : <b className={r.pxHit ? 'alert' : ''}>{r.pxFloor}%</b>}
+              {' · '}차기 풋 {r.dday === null || r.dday === undefined ? MISSING : <b className={r.dday <= 90 && r.dday >= 0 ? 'alert' : ''}>D-{r.dday}</b>}
+              {' · '}커버 {cover === null || cover === undefined ? MISSING : <b className={cover < 1 ? 'alert' : ''}>{cover}x</b>}
             </div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div className="mute" style={{ fontSize: 9 }}>ANCHOR RCEPT_NO</div>
-            <a className="num" style={{ fontWeight: 700, fontSize: 11 }} target="_blank" rel="noreferrer"
+            <div className="mute" style={{ fontSize: 10 }}>ANCHOR RCEPT_NO</div>
+            <a className="num" style={{ fontWeight: 700, fontSize: 12 }} target="_blank" rel="noreferrer"
               href={r.anchor && r.anchor.dart_url}>{r.anchor && r.anchor.rcept_no} ↗</a>
-            <div className="mute" style={{ fontSize: 9, marginTop: 2 }}>기준일 {r.anchor && r.anchor.as_of}</div>
+            <div className="mute" style={{ fontSize: 10.5, marginTop: 2 }}>기준일 {r.anchor && r.anchor.as_of}</div>
           </div>
         </div>
       </div>
@@ -1035,7 +1129,7 @@ function MezPanel({ row: r }) {
             <span>리픽싱 플로어 위치</span>
             {r.floor === null
               ? <span className="pill miss">{MISSING}</span>
-              : <span className="pill" style={{ background: r.floorHit ? 'var(--down)' : '#fff', color: r.floorHit ? '#fff' : 'var(--ink2)', border: '1px solid var(--line2)' }}>
+              : <span className="pill" style={{ background: r.floorHit ? 'var(--alert)' : 'var(--surf)', color: r.floorHit ? '#fff' : 'var(--ink2)', border: '1px solid var(--line2)' }}>
                 {r.floorHit ? '하한 도달' : `+${r.gap}%`}
               </span>}
           </div>
@@ -1044,11 +1138,11 @@ function MezPanel({ row: r }) {
             {gaugeLeft !== null ? <div className="pin" style={{ left: `${gaugeLeft}%` }} /> : null}
           </div>
           <div className="rowline">
-            <span>하한 <b style={{ color: 'var(--up)' }}><Val v={int(r.floor)} /></b></span>
-            <span>전환가액 <b style={{ color: 'var(--down)' }}><Val v={int(r.price)} /></b></span>
+            <span>하한 <b><Val v={int(r.floor)} /></b></span>
+            <span>전환가액 <b><Val v={int(r.price)} /></b></span>
           </div>
           {r.floor === null
-            ? <div className="mute" style={{ fontSize: 9, marginTop: 3 }}>발행결정 원문 미확보 — 핀을 찍지 않습니다</div>
+            ? <div className="mute" style={{ fontSize: 10, marginTop: 4 }}>발행결정 원문 미확보 — 핀을 찍지 않습니다</div>
             : null}
         </div>
 
@@ -1061,20 +1155,20 @@ function MezPanel({ row: r }) {
             </span>
           </div>
           {r.used === null ? (
-            <div className="miss" style={{ fontSize: 10, padding: '6px 0' }}>
+            <div className="miss" style={{ fontSize: 11, padding: '6px 0' }}>
               권면총액 또는 잔액 미확보 — 소진율 {MISSING}
             </div>
           ) : (
             <div className="stack">
               <div style={{ width: `${r.used}%`, background: 'var(--sub)' }}>{r.used >= 14 ? `소진 ${r.used}%` : ''}</div>
-              <div style={{ width: `${100 - r.used}%`, background: '#d97706', fontWeight: 700 }}>
+              <div style={{ width: `${100 - r.used}%`, background: 'var(--amber)', fontWeight: 700 }}>
                 {100 - r.used >= 14 ? `잔여 ${100 - r.used}%` : ''}
               </div>
             </div>
           )}
           <div className="rowline">
             <span>권면 <b><Val v={krw(r.face)} /></b></span>
-            <span>출회대기 <b style={{ color: '#b45309' }}><Val v={shares(r.rem)} /></b></span>
+            <span>출회대기 <b style={{ color: 'var(--amber)' }}><Val v={shares(r.rem)} /></b></span>
           </div>
         </div>
 
@@ -1084,7 +1178,7 @@ function MezPanel({ row: r }) {
             <span>차기 조기상환 풋</span>
             {r.dday === null || r.dday === undefined
               ? <span className="pill miss">{MISSING}</span>
-              : <span className="pill" style={{ background: r.dday <= 90 ? 'var(--up)' : 'var(--sub)', color: '#fff' }}>
+              : <span className="pill" style={{ background: r.dday <= 90 && r.dday >= 0 ? 'var(--alert)' : 'var(--sub)', color: '#fff' }}>
                 {r.dday >= 0 ? `D-${r.dday}` : `D+${-r.dday}`}
               </span>}
           </div>
@@ -1098,8 +1192,8 @@ function MezPanel({ row: r }) {
           </div>
           <div className="rowline">
             <span>주가 <b><Val v={int(r.px)} suffix={r.px ? '원' : ''} /></b>
-              {r.pxAsOf ? <span className="mute" style={{ fontSize: 9 }}> @{String(r.pxAsOf).slice(5, 16)}</span> : null}</span>
-            <span>하한비 <b style={{ color: r.pxHit ? 'var(--down)' : undefined }}><Val v={r.pxFloor} suffix={r.pxFloor !== null ? '%' : ''} /></b>
+              {r.pxAsOf ? <span className="mute" style={{ fontSize: 10 }}> @{String(r.pxAsOf).slice(5, 10)}</span> : null}</span>
+            <span>하한비 <b className={r.pxHit ? 'alert' : ''}><Val v={r.pxFloor} suffix={r.pxFloor !== null ? '%' : ''} /></b>
               {' · '}전환가비 <b><Val v={r.pxConv} suffix={r.pxConv !== null ? '%' : ''} /></b></span>
           </div>
           <div className="rowline">
@@ -1118,7 +1212,7 @@ function MezPanel({ row: r }) {
             <span className="pill" style={{
               border: '1px solid var(--line2)',
               color: cover === null || cover === undefined ? 'var(--sub)'
-                : (cover < 1 ? 'var(--up)' : 'var(--ok)'),
+                : (cover < 1 ? 'var(--alert)' : 'var(--ink2)'),
             }}>
               {cover === null || cover === undefined ? '커버 [미기재]' : `커버 ${cover}x`}
             </span>
@@ -1158,7 +1252,7 @@ function MezPanel({ row: r }) {
       <div className="audit">
         <div className="ah">
           <span>DART 원문 대조 · 검산 원장</span>
-          <span style={{ color: ok ? 'var(--okOnInk)' : 'var(--badOnInk)', fontSize: 9.5 }}>
+          <span style={{ color: ok ? 'var(--stripInk)' : 'var(--badOnInk)', fontSize: 10.5 }}>
             {r.cross_check ? (ok ? '검산 일치' : '검산 불일치') : '검산 미판정'}
             {r.confidence === null || r.confidence === undefined ? null : (
               <span style={{ marginLeft: 6, opacity: .85 }}
@@ -1179,7 +1273,7 @@ function MezPanel({ row: r }) {
           </div>
           <div className="col">
             <div className="ct"><span>발행사 자신의 산술</span>
-              <span className="mute" style={{ fontSize: 8.5 }}>cross_check</span></div>
+              <span className="mute" style={{ fontSize: 9.5 }}>cross_check</span></div>
             <div className="calc">
               {r.cross_check
                 ? <>{r.cross_check}<div className="mute" style={{ marginTop: 4, fontStyle: 'normal' }}>
@@ -1188,7 +1282,7 @@ function MezPanel({ row: r }) {
                 </div></>
                 : <span className="miss">{MISSING} — 검산 짝(잔액·전환가액·주식수) 부족</span>}
             </div>
-            <div style={{ marginTop: 6, fontSize: 9.5 }} className="mute">
+            <div style={{ marginTop: 8, fontSize: 10.5, lineHeight: 1.6 }} className="mute">
               출처 DART 원문 · 접수번호 {r.anchor && r.anchor.rcept_no} · 추출 {r.anchor && r.anchor.as_of}
               <br />
               <a target="_blank" rel="noreferrer" href={r.anchor && r.anchor.dart_url}>원문 열기 ↗</a>
@@ -1223,14 +1317,14 @@ function FlashPanel({ row, rep }) {
     <>
       <div className="panel head">
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
-          <div>
+          <div style={{ minWidth: 0 }}>
+            <div className="ov">
+              <span style={{ color: CAT_C[row.category] }}>{row.category_label}</span> · <span className="num">{row.stock_code || row.corp_code}</span> · {row.rcept_day}
+            </div>
             <h2>{row.corp_name}</h2>
-            <span className="num" style={{ marginLeft: 6, fontSize: 12, fontWeight: 700, color: 'var(--sub)' }}>
-              {row.stock_code || row.corp_code}
-            </span>
-            <div style={{ marginTop: 5 }}>
-              <span className="tag" style={{ color: CAT_C[row.category] }}>{row.category_label}</span>
-              <span style={{ marginLeft: 6, fontSize: 10.5, color: 'var(--ink2)' }}>{row.report_nm}</span>
+            <div className="meta">
+              {row.is_correction ? <span className="tag" style={{ color: 'var(--warn)', marginRight: 5 }}>정정</span> : null}
+              {row.report_nm}
             </div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
