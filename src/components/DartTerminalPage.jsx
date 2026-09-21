@@ -268,6 +268,10 @@ const CSS = `
 
 /* ── 표기 헬퍼 ────────────────────────────────────────────────── */
 const MISSING = '[미기재]'
+// 소화 일수 경보 기준 (2026-09-22 사용자 결정 — "우리 기준을 만들고 가이드를 넣어 내보낸다").
+// 분모가 20거래일 평균이므로 20일 = __출회 물량이 한 달치 거래량과 같다__ 는 뜻이라 말로 설명된다.
+// 실측 110행: 중앙 8.9일 · 상위 25% 38일 → 20일이 자연스러운 경계. 운용사 기준이 오면 이 상수 하나만 바꾼다.
+const DTC_ALERT_DAYS = 20
 
 function krw(v) {
   if (v === null || v === undefined || v === '') return null
@@ -511,7 +515,7 @@ export default function DartTerminalPage() {
         alive: bal === null ? null : bal > 0,
       }
     }).filter(r => {
-      if (scope === 'warn') return r.floorHit || (r.dday !== null && r.dday <= 90 && r.dday >= 0)
+      if (scope === 'warn') return r.floorHit || (r.dday !== null && r.dday <= 90 && r.dday >= 0) || (r.dtc !== null && r.dtc >= DTC_ALERT_DAYS)
       if (scope === 'my') return r.mine
       return true
     }).filter(r => {
@@ -533,6 +537,7 @@ export default function DartTerminalPage() {
       pxFloor: mv(r, '주가/하한'),
       dday: r.issuance ? (r.issuance.put_next_d_day ?? null) : null,
       cover: (r.company && r.company['현금 커버']) ? r.company['현금 커버'].value : null,
+      dtc: mv(r, '소화 일수'),
     }))
     const near = enriched.filter(r => r.dday !== null && r.dday >= 0 && r.dday <= 90)
     return {
@@ -547,6 +552,8 @@ export default function DartTerminalPage() {
       // 커버는 __산출된 것만__ 센다. 미기재를 0 으로 세면 경보가 부풀려진다.
       coverKnown: enriched.filter(r => r.cover !== null && r.cover !== undefined).length,
       thinCover: enriched.filter(r => r.cover !== null && r.cover !== undefined && r.cover < 1).length,
+      dtcKnown: enriched.filter(r => r.dtc !== null).length,
+      dtcOver: enriched.filter(r => r.dtc !== null && r.dtc >= DTC_ALERT_DAYS).length,
     }
   }, [mez])
 
@@ -776,7 +783,7 @@ export default function DartTerminalPage() {
                 원장 <b>{mez.counts && mez.counts['회차']}</b>회차 중 활성 <b>{mezKpi.active}</b> —
                 주가가 하한 밑인 회차 <b>{mezKpi.pxHit}</b>, 90일 내 풋 <b>{mezKpi.nearPut}</b>
                 {mezKpi.nearExp ? <> (익스포저 {krw(mezKpi.nearExp)})</> : null},
-                현금커버 1배 미만 <b>{mezKpi.thinCover}</b>. 「플로어·풋 경보」로 좁혀 보세요.
+                현금커버 1배 미만 <b>{mezKpi.thinCover}</b>, 소화 {DTC_ALERT_DAYS}일 이상 <b>{mezKpi.dtcOver}</b>. 「플로어·풋 경보」로 좁혀 보세요.
               </>
             ) : (mezLoading ? '원장을 불러오는 중…' : '원장을 아직 불러오지 못했습니다.')}
           </p>
@@ -808,6 +815,9 @@ export default function DartTerminalPage() {
             <Kpi t="var(--alert)" k="현금커버 1배 미만"
               v={mez ? mezKpi.thinCover : '—'}
               u={mez ? `회차 · 커버 산출 ${mezKpi.coverKnown}건` : ''} />
+            <Kpi t="var(--alert)" k={`소화 일수 ${DTC_ALERT_DAYS}일 이상`}
+              v={mez ? mezKpi.dtcOver : '—'}
+              u={mez ? `회차 · 출회 물량 > 한 달치 거래량 · 산출 ${mezKpi.dtcKnown}건` : ''} />
             <Kpi t="var(--line2)" k="미전환 잔액 합계"
               v={mez ? (krw(mezKpi.totalBal) ?? MISSING) : '—'} u="원 (원장 창 내)" />
           </>
@@ -863,7 +873,7 @@ export default function DartTerminalPage() {
               {mode === 'mezz' ? (
                 <>
                   <span className="dash">–</span> 미기재
-                  <span className="sw" style={{ background: 'var(--alert)' }} />경보 (하한 도달 · 풋 D-90 · 커버&lt;1 · 검산 불일치)
+                  <span className="sw" style={{ background: 'var(--alert)' }} />경보 (하한 도달 · 풋 D-90 · 커버&lt;1 · 검산 불일치 · 소화≥{DTC_ALERT_DAYS}일=출회 물량&gt;한 달치 거래량)
                   <span className="sw" style={{ background: 'var(--amberBg)', border: '1px solid var(--amber)' }} />규모 (막대 = 발행주식 대비, 50%에서 가득)
                   <span className="st on" style={{ marginLeft: 8 }}>전환가능</span><span className="st">락업 D-n</span> 오늘 vs 전환청구 시작일
                   <span style={{ marginLeft: 8 }}>{(mez && mez.engine) || ''}</span>
@@ -989,7 +999,12 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
                   {r.mine ? <span className="tag" style={{ color: 'var(--ink2)', marginLeft: 5 }}>MY</span> : null}
                 </div>
               </td>
-              <td className="r"><Cell v={krw(r.face)} title={r.faceSrc ? `출처 ${r.faceSrc}` : undefined} /></td>
+              {/* 발행결정이 안 붙은 행은 대시 대신 __왜 없는지__ 를 적는다 — 대시만 있으면 파싱 실패로 읽힌다(2026-09-22 사용자 지적) */}
+              <td className="r">
+                {r.face === null && r.issuance_gap
+                  ? <span className="mute" style={{ fontSize: 10 }} title={r.issuance_gap.detail}>발행결정 {r.issuance_gap.reason}</span>
+                  : <Cell v={krw(r.face)} title={r.faceSrc ? `출처 ${r.faceSrc}` : undefined} />}
+              </td>
               <td className="r"><b><Cell v={krw(r.bal)} /></b></td>
               <td className="r"><Cell v={r.used === null ? null : `${r.used}%`} /></td>
               {/* 규모 — 글자는 잉크, 크기는 앰버 막대. 21% 와 105% 가 같은 빨강이던 것을 막대 길이로 가른다. */}
@@ -1030,7 +1045,8 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
               <td className="r">
                 {r.dtc === null
                   ? <Cell v={null} />
-                  : <span style={r.dtc >= 20 ? { fontWeight: 700 } : undefined} title={`20일 평균 거래량 ${int(r.avgVol)}주`}>{r.dtc}일</span>}
+                  : <span className={r.dtc >= DTC_ALERT_DAYS ? 'alert' : ''} style={r.dtc >= 5 ? { fontWeight: 700 } : undefined}
+                      title={`20일 평균 거래량 ${int(r.avgVol)}주 · ${DTC_ALERT_DAYS}일 이상 = 출회 물량이 한 달치 거래량 초과`}>{r.dtc}일</span>}
               </td>
               {/* 차기 리픽싱 — 마지막 조정 적용일+주기. 주기를 모르면 비운다 */}
               <td className="c">
@@ -1190,6 +1206,22 @@ function MezPanel({ row: r }) {
             <div className="mute" style={{ fontSize: 10.5, marginTop: 2 }}>기준일 {r.anchor && r.anchor.as_of}</div>
           </div>
         </div>
+        {/* 근거 공시 두 줄 — 잔액·전환가는 앵커 공시에서, 권면·조항·풋·락업은 발행결정에서 온다. 어느 공시인지 제목으로 밝힌다.
+            발행결정이 없으면 대시 대신 __왜 없는지__(미개봉/회차 없음/목록 없음)를 같은 자리에 적는다. */}
+        <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px dashed var(--line2)', fontSize: 10.5, lineHeight: 1.7 }} className="mute">
+          <div><span style={{ fontWeight: 700, color: 'var(--ink2)' }}>잔액·전환가 근거</span>{' '}
+            <a target="_blank" rel="noreferrer" href={r.anchor && r.anchor.dart_url} style={{ color: 'inherit' }}>
+              {(r.anchor && r.anchor.report_nm) || '공시명 미상'}</a>
+            {' '}<span className="num">({r.anchor && r.anchor.as_of})</span></div>
+          <div><span style={{ fontWeight: 700, color: 'var(--ink2)' }}>권면·조항·풋 근거</span>{' '}
+            {iss
+              ? <><a target="_blank" rel="noreferrer" href={iss.dart_url} style={{ color: 'inherit' }}>{iss.report_nm || '주요사항보고서(발행결정)'}</a>
+                  {' '}<span className="num">({iss.as_of})</span></>
+              : <span className="miss" title={r.issuance_gap ? r.issuance_gap.detail : undefined}>
+                  발행결정 미연결{r.issuance_gap ? ` — ${r.issuance_gap.reason}: ${r.issuance_gap.detail}` : ''}
+                </span>}
+          </div>
+        </div>
       </div>
 
       <div className="viz">
@@ -1295,7 +1327,10 @@ function MezPanel({ row: r }) {
             <span>실질 오버행 · 소화 일수</span>
             {r.dtc === null
               ? <span className="pill miss">{MISSING}</span>
-              : <span className="pill" style={{ border: '1px solid var(--line2)', color: 'var(--ink2)', fontWeight: r.dtc >= 20 ? 700 : 400 }}>{r.dtc}일</span>}
+              : <span className="pill" style={r.dtc >= DTC_ALERT_DAYS
+                  ? { background: 'var(--alert)', color: '#fff' }
+                  : { border: '1px solid var(--line2)', color: 'var(--ink2)' }}
+                  title={`${DTC_ALERT_DAYS}일 이상 = 출회 물량이 20거래일 평균 거래량의 ${DTC_ALERT_DAYS}배(한 달치) 초과`}>{r.dtc}일{r.dtc >= DTC_ALERT_DAYS ? ' · 경보' : ''}</span>}
           </div>
           <div className="kv"><span className="k">잔여 전환가능주식</span><span className="v"><Val v={int(r.rem)} suffix={r.rem !== null ? ' 주' : ''} /></span></div>
           <div className="kv"><span className="k">− 콜 방어 물량 {iss && iss.call_cap_pct ? `(권면×${iss.call_cap_pct}%÷전환가)` : ''}</span>
@@ -1308,6 +1343,11 @@ function MezPanel({ row: r }) {
               {r.metrics && r.metrics['20일 평균 거래량'] && r.metrics['20일 평균 거래량'].as_of
                 ? <span className="mute"> ({r.metrics['20일 평균 거래량'].as_of})</span> : null}</span></div>
           {r.real === null && r.realSrc ? <div className="mute" style={{ fontSize: 10, marginTop: 4 }}>실질 오버행 {MISSING} — {r.realSrc}{r.dtc !== null ? ' · 소화 일수는 콜 차감 전 잔여주식 기준' : ''}</div> : null}
+          {/* 경보 기준 가이드 — 화면 안에 둔다. 별도 문서 없이 색의 뜻이 읽히도록 */}
+          <div className="mute" style={{ fontSize: 9.5, marginTop: 4, lineHeight: 1.5 }}>
+            기준: &lt;5일 소화 가능 · 5~{DTC_ALERT_DAYS}일 한 달 안 · <b>≥{DTC_ALERT_DAYS}일 경보</b>(출회 물량이 한 달치 거래량 초과).
+            콜 방어 물량은 조항 상한이라 실질 오버행은 하한값.
+          </div>
         </div>
 
         {/* VIZ 4 — 사채잔액 대비 현금 커버 + 분모·조달조건.
