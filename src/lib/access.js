@@ -17,7 +17,9 @@ export const PREMIUM_PRICE_LABEL = '월 9,900원'
 // 대가를 받고 불특정 다수에게 투자판단 정보를 제공하면 __유사투자자문업 신고 대상__이
 // 된다(무료일 때는 안 걸리던 문제다). 확인 전까지 false 로 둔다 —
 // 아래 PAID 경계는 확정돼 있고, 이 한 줄만 true 로 바꾸면 즉시 유료화된다.
-export const PAYWALL_ENABLED = false
+// 2026-09-22 사용자 지시: 자산운용사 납품 전까지 콘텐츠 __전부__ 잠근다. API 도 같은 경계로
+// 막았다(`api.py` CONTENT_PAYWALL_ENABLED) — 둘을 __같이__ 바꾼다.
+export const PAYWALL_ENABLED = true
 
 // 무료/유료 경계 (2026-08-22 확정)
 // ⚠️ __오늘의 공시는 무료로 둔다.__ 자동 파이프라인이라 사람 손이 안 들어가고
@@ -25,9 +27,10 @@ export const PAYWALL_ENABLED = false
 //    "무료로 되던 게 막혔다"는 인상만 남고 전환에는 거의 기여하지 않는다.
 //    대신 무료 유입 채널로 쓰고, 사람이 원문을 검증하는 둘만 판다.
 export const PAID = {
-  today: false,      // 오늘의 공시 — __무료 유입 채널__
+  today: true,       // 오늘의 공시 — 2026-09-22 "다 돌려서" 지시로 잠금 (원래 무료 유입 채널. 되돌리려면 false)
   briefing: true,    // 일일 브리핑 — 원문 검증이 들어간다
   usMarket: true,    // 미국장 브리핑 — 인과 매핑이 들어간다
+  marketPress: true, // 코리아 마켓 프레스 — 2026-09-22 추가. API 는 리드(헤드라인·데크)만 준다
 }
 
 // 비구독자에게 보여주는 미리보기 분량

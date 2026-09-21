@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS } from '../constants/theme'
-import { API } from '../lib/api'
+import { API, secretHeaders } from '../lib/api'
 import { MarkdownBody } from './BriefingPage'
 import { canView, previewMarkdown } from '../lib/access'
 import PremiumLock from './PremiumLock'
@@ -13,7 +13,7 @@ export default function USBeneficiaryPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`${API}/api/us-beneficiary/cards`)
+    fetch(`${API}/api/us-beneficiary/cards`, { headers: secretHeaders() })
       .then(r => r.json())
       .then(d => {
         const list = d.cards || []

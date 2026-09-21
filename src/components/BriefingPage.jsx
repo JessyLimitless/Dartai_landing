@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FONTS, PREMIUM } from '../constants/theme'
-import { API, saveAuth } from '../lib/api'
+import { API, saveAuth, secretHeaders } from '../lib/api'
 import { canView, previewMarkdown } from '../lib/access'
 import PremiumLock from './PremiumLock'
 
@@ -12,7 +12,7 @@ export default function BriefingPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`${API}/api/briefings`)
+    fetch(`${API}/api/briefings`, { headers: secretHeaders() })
       .then(r => r.json())
       .then(d => {
         const list = d.briefings || []

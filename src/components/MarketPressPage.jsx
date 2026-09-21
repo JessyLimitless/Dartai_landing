@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { API } from '../lib/api'
+import { API, secretHeaders } from '../lib/api'
+import { canView } from '../lib/access'
+import PremiumLock from './PremiumLock'
 
 // KOREA MARKET PRESS — 외국인 투자자 대상 영문 데일리 (독립 신문 형태)
 // 에디토리얼 프레임(마스트헤드 + 헤어라인 룰 + 멀티컬럼 + 드롭캡)은 유지하되
@@ -20,7 +22,7 @@ export default function MarketPressPage() {
     const url = routeDate
       ? `${API}/api/market-press/date/${routeDate}`
       : `${API}/api/market-press/today`
-    fetch(url)
+    fetch(url, { headers: secretHeaders() })
       .then(r => r.json())
       .then(d => setIssue(d && (d.lead || d.date) ? d : null))
       .catch(() => setIssue(null))
@@ -278,6 +280,14 @@ export default function MarketPressPage() {
                 </div>
               )}
               <hr className="kmp-rule-thin" style={{ margin: '18px 0' }} />
+              {/* 페이월 — API 가 리드만 준 잠금판(issue.locked)이거나 프론트 경계가 잠겼으면 본문 대신 전환 카드.
+                  본문·박스는 __서버가 안 보낸다__ — 화면에서 가리는 게 아니다(2026-09-22). */}
+              {(issue.locked || !canView('marketPress')) ? (
+                <div style={{ maxWidth: 760 }}>
+                  <PremiumLock compact title="KOREA MARKET PRESS 전문은 구독자에게만 발행됩니다"
+                    benefits={['삼성전자·SK하이닉스 마감 인과 분석 (What · Why · What is next)', '외국인·기관 수급과 레버리지 ETF 표', '발행 아카이브 전권']} />
+                </div>
+              ) : null}
               <div className="kmp-lead-cols">
                 {(issue.lead.body || []).map((p, i) => (
                   <Para

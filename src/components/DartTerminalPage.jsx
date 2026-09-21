@@ -139,7 +139,14 @@ const CSS = `
 
 /* 그리드 — 한 셀 한 줄. 부기(코드·시장·기준일·부제)는 hover title 과 우측 패널 몫이다.
    세로 괘선을 없애고 가로선만 남긴다 — 같은 12px 로도 숨이 트인다(§34-3). 얼룩말 무늬 대신 hover. */
-.dtp table.grid{border-collapse:collapse;width:100%}
+/* 고도화_0921 로 컬럼이 13→17. 60% 폭(1440 에서 864px)에 다 넣으면 종목명이 "한올소…" 로 뭉개진다.
+   그래서 표는 __가로로 넘치게__ 두고(.scroll 이 양방향 스크롤) 종목명·# 만 왼쪽에 고정한다 — 스크롤해도 어느 회차인지 보인다. */
+.dtp table.grid{border-collapse:collapse;width:100%;min-width:1280px}
+.dtp table.grid th:first-child,.dtp table.grid td:first-child{position:sticky;left:0;z-index:3;background:var(--surf)}
+.dtp table.grid th:nth-child(2),.dtp table.grid td.nm{position:sticky;left:26px;z-index:3;background:var(--surf);box-shadow:1px 0 0 var(--line2)}
+.dtp table.grid thead th:first-child,.dtp table.grid thead th:nth-child(2){background:var(--surf2);z-index:4}
+.dtp table.grid tbody tr:hover td:first-child,.dtp table.grid tbody tr:hover td.nm{background:var(--hov)}
+.dtp table.grid tbody tr.sel td:first-child,.dtp table.grid tbody tr.sel td.nm{background:var(--sel)}
 .dtp table.grid th{background:var(--surf2);border:0;border-bottom:1px solid var(--line2);
  border-top:2px solid var(--ink);padding:6px 6px;font-size:11px;font-weight:700;
  color:var(--ink2);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;
@@ -155,7 +162,12 @@ const CSS = `
 .dtp .tag{font-size:10px;font-weight:700;padding:0 4px;border:1px solid currentColor;
  display:inline-block;line-height:16px}
 .dtp .rnd{font-size:11px;font-weight:600;color:var(--ink2);margin-left:5px}
-.dtp td.nm{max-width:200px}
+/* 전환가능 상태 — 색 어휘를 늘리지 않는다. 전환가능=잉크(테두리) · 락업=무채 · 종료=흐림. 경보색(빨강)은 안 쓴다 —
+   "지금 나올 수 있는 물량" 은 사실이지 경보가 아니다. 경보는 하한·풋·커버·검산 넷뿐이다. */
+.dtp .st{font-size:9.5px;font-weight:700;padding:0 4px;line-height:15px;margin-left:5px;white-space:nowrap;border:1px solid var(--line2);color:var(--sub);flex-shrink:0}
+.dtp .st.on{color:var(--onink);background:var(--ink);border-color:var(--ink)}
+.dtp .st.off{opacity:.55}
+.dtp td.nm{min-width:230px;max-width:260px}
 .dtp td.nm .row{display:flex;align-items:center;min-width:0}
 .dtp td.nm .row b{overflow:hidden;text-overflow:ellipsis;min-width:0}
 .dtp td.nm .row .code,.dtp td.nm .row .rnd,.dtp td.nm .row .tag{flex-shrink:0}
@@ -473,12 +485,25 @@ export default function DartTerminalPage() {
       // 커버 = 회사 보유현금 ÷ 그 회사 사채잔액 합산. __라우터가 계산해 준다.__
       // 오버행에서 진짜 묻는 것은 "풋이 언제냐" 가 아니라 __"갚을 돈이 있느냐"__ 다.
       const cover = (r.company && r.company['현금 커버']) ? r.company['현금 커버'].value : null
-      const used = (face && bal !== null && face > 0)
-        ? Math.max(0, Math.min(100, Math.round((1 - bal / face) * 100))) : null
+      // 고도화_0921 — 전부 __라우터가 계산한 값__ 이다. 화면에서 다시 나누지 않는다(두 군데서 계산하면 반드시 갈린다).
+      const used = mv(r, '소진율')                    // (권면−잔액)÷권면 · 권면은 발행결정에서 소급 복사됐을 수 있다(faceSrc)
+      const faceSrc = (r.metrics && r.metrics['권면총액'] && r.metrics['권면총액'].source) || null
+      const exitVal = mv(r, '엑시트 평가액')            // 잔여주식×현재가
+      const exitGain = mv(r, '평가 차익')               // 엑시트 평가액−잔액(원금)
+      const real = mv(r, '실질 오버행')                 // 잔여주식−콜 방어 물량
+      const realPct = mv(r, '실질 오버행 비율')
+      const realSrc = (r.metrics && r.metrics['실질 오버행'] && r.metrics['실질 오버행'].source) || null
+      const callShares = mv(r, '콜 방어 물량')
+      const avgVol = mv(r, '20일 평균 거래량')
+      const dtc = mv(r, '소화 일수')                    // 출회 물량÷20일 평균 거래량
+      const cs = r.conv_status || { state: null }       // convertible | lockup(d_day) | expired | null
+      const rfx = r.refix || {}                         // next_date · next_d_day · interval_months
+      const rfxD = rfx.next_d_day ?? null
       return {
         ...r,
         key: `${r.corp_code}:${r.bd_tm}`,
         bal, price, rem, pct, floor, gap, face, dday, putDate, used, cover,
+        faceSrc, exitVal, exitGain, real, realPct, realSrc, callShares, avgVol, dtc, cs, rfx, rfxD,
         px, pxAsOf, pxFloor, pxConv,
         floorHit: gap !== null && gap <= 0,
         pxHit: pxFloor !== null && pxFloor <= 100,
@@ -537,9 +562,16 @@ export default function DartTerminalPage() {
       const r = mezSel
       t = [
         `[DART TERMINAL] ${r.corp_name}(${r.stock_code || r.corp_code}) 제${r.bd_tm}회 ${r.sec_type || ''}`.trim(),
-        `· 미전환 잔액: ${krw(r.bal) ?? MISSING} / 권면 ${krw(r.face) ?? MISSING}`,
+        `· 상태: ${r.cs.label || MISSING}` + (r.cs.conv_start ? ` (전환청구 시작 ${r.cs.conv_start})` : ''),
+        `· 미전환 잔액: ${krw(r.bal) ?? MISSING} / 권면 ${krw(r.face) ?? MISSING}` +
+          (r.used !== null ? ` · 소진율 ${r.used}%` : '') + (r.faceSrc === '발행결정 소급' ? ' (권면은 발행결정에서)' : ''),
         `· 현재 전환가액: ${int(r.price) ?? MISSING}원 · 리픽싱 하한 ${int(r.floor) ?? MISSING}원`,
         `· 잔여 전환가능주식: ${int(r.rem) ?? MISSING}주 (발행주식 대비 ${r.pct ?? MISSING}%)`,
+        `· 실질 오버행(콜 차감): ${int(r.real) ?? MISSING}주` + (r.realPct !== null ? ` (${r.realPct}%)` : '') +
+          ` · 소화 일수 ${r.dtc ?? MISSING}일` + (r.avgVol ? ` (20일 평균 ${int(r.avgVol)}주)` : ''),
+        `· 엑시트 평가액: ${krw(r.exitVal) ?? MISSING} · 평가 차익 ${r.exitGain === null ? MISSING : (r.exitGain > 0 ? '+' : '') + krw(r.exitGain)}`,
+        `· 차기 리픽싱: ${r.rfx.next_date || MISSING}` + (r.rfxD !== null ? ` (D-${r.rfxD})` : '') +
+          (r.rfx.interval_months ? ` · 주기 ${r.rfx.interval_months}개월` : ''),
         `· 주가: ${int(r.px) ?? MISSING}원 (하한 대비 ${r.pxFloor ?? MISSING}% · 전환가 대비 ${r.pxConv ?? MISSING}%)` +
           (r.pxAsOf ? ` @${String(r.pxAsOf).slice(0, 16)}` : ''),
         `· 차기 풋: ${r.putDate || MISSING}` +
@@ -560,15 +592,20 @@ export default function DartTerminalPage() {
     const esc = v => `"${String(v === null || v === undefined ? '' : v).replace(/"/g, '""')}"`
     let csv = '﻿'
     if (mode === 'mezz') {
-      csv += ['종목명', '종목코드', '고유번호', '시장', '회차', '종류', '권면총액', '미전환잔액',
+      csv += ['종목명', '종목코드', '고유번호', '시장', '회차', '종류', '상태', '전환청구시작일', '권면총액', '권면출처', '소진율%', '미전환잔액',
         '전환가액', '리픽싱하한', '하한까지%', '잔여전환가능주식', '발행주식대비%',
-        '현재가', '주가/하한%', '주가/전환가%', '주가기준시각',
-        '차기풋', '최초풋', '만기', '검산식', '기준일', '접수번호', '원문URL'].join(',') + '\n'
+        '콜방어물량', '실질오버행', '실질오버행%', '20일평균거래량', '소화일수',
+        '현재가', '주가/하한%', '주가/전환가%', '주가기준시각', '엑시트평가액', '평가차익',
+        '차기리픽싱', '리픽싱주기(개월)', '마지막조정적용일',
+        '차기풋', '최초풋', '만기', '표면이자율', '만기이자율', '검산식', '기준일', '접수번호', '원문URL'].join(',') + '\n'
       for (const r of mezRows) {
-        csv += [r.corp_name, r.stock_code, r.corp_code, r.market, r.bd_tm, r.sec_type,
-          r.face, r.bal, r.price, r.floor, r.gap, r.rem, r.pct,
-          r.px, r.pxFloor, r.pxConv, r.pxAsOf,
+        csv += [r.corp_name, r.stock_code, r.corp_code, r.market, r.bd_tm, r.sec_type, r.cs.label, r.cs.conv_start,
+          r.face, r.faceSrc, r.used, r.bal, r.price, r.floor, r.gap, r.rem, r.pct,
+          r.callShares, r.real, r.realPct, r.avgVol, r.dtc,
+          r.px, r.pxFloor, r.pxConv, r.pxAsOf, r.exitVal, r.exitGain,
+          r.rfx.next_date, r.rfx.interval_months, r.rfx.last_apply_date,
           r.putDate, r.issuance && r.issuance.put_first_date, r.issuance && r.issuance.maturity_date,
+          r.issuance && r.issuance.coupon_rate, r.issuance && r.issuance.ytm,
           r.cross_check, r.anchor && r.anchor.as_of, r.anchor && r.anchor.rcept_no,
           r.anchor && r.anchor.dart_url].map(esc).join(',') + '\n'
       }
@@ -794,7 +831,8 @@ export default function DartTerminalPage() {
             </div>
             <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               {mode === 'mezz'
-                ? [['overhang', '희석률순'], ['cover', '커버낮은순'], ['floor', '플로어순'], ['recent', '최신공시순']].map(([k, l]) => (
+                ? [['overhang', '희석률순'], ['real', '실질오버행순'], ['days_to_cover', '소화일수순'], ['refix', '리픽싱임박순'],
+                   ['cover', '커버낮은순'], ['floor', '플로어순'], ['recent', '최신공시순']].map(([k, l]) => (
                   <button key={k} className={`btn ${sort === k ? 'on' : ''}`} onClick={() => setSort(k)}>{l}</button>
                 ))
                 : CATS.map(c => (
@@ -814,7 +852,7 @@ export default function DartTerminalPage() {
           <div className="foot">
             <span>
               {mode === 'mezz' && mez && mez.counts
-                ? `회차 ${mez.counts['회차']} · 발행결정 연결 ${mez.counts['발행결정 연결']} · 플로어 ${mez.counts['플로어 확보']} · 풋일 ${mez.counts['풋 도래일 확보']} · 비율 불가 ${mez.counts['비율 산출 불가']}`
+                ? `회차 ${mez.counts['회차']} · 발행결정 연결 ${mez.counts['발행결정 연결']} · 권면 ${mez.counts['권면 확보(소급 포함)'] ?? '–'} · 락업판정 ${mez.counts['락업 판정'] ?? '–'} · 차기리픽싱 ${mez.counts['차기 리픽싱 산출'] ?? '–'} · 실질오버행 ${mez.counts['실질 오버행 산출'] ?? '–'} · 소화일수 ${mez.counts['소화 일수 산출'] ?? '–'} · 비율 불가 ${mez.counts['비율 산출 불가']}`
                 : mode === 'flash' && feed
                   ? `스캔 ${feed.scanned} / 창 ${feed.scan_limit} · 창 안 ${feed.matched}건${feed.truncated ? ' (표시 잘림)' : ''}`
                   : ''}
@@ -827,6 +865,7 @@ export default function DartTerminalPage() {
                   <span className="dash">–</span> 미기재
                   <span className="sw" style={{ background: 'var(--alert)' }} />경보 (하한 도달 · 풋 D-90 · 커버&lt;1 · 검산 불일치)
                   <span className="sw" style={{ background: 'var(--amberBg)', border: '1px solid var(--amber)' }} />규모 (막대 = 발행주식 대비, 50%에서 가득)
+                  <span className="st on" style={{ marginLeft: 8 }}>전환가능</span><span className="st">락업 D-n</span> 오늘 vs 전환청구 시작일
                   <span style={{ marginLeft: 8 }}>{(mez && mez.engine) || ''}</span>
                 </>
               ) : '11계열 정량분해'}
@@ -916,12 +955,16 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
           <th>종목 · 회차</th>
           <th className="r">권면</th>
           <th className="r">미전환 잔액</th>
+          <th className="r sub" title="(권면총액 − 미전환 잔액) ÷ 권면총액. 얼마나 이미 전환·상환됐나">소진율</th>
           <th className="r">발행주식 대비</th>
+          <th className="r sub" title="잔여 전환가능주식 − 대주주 콜옵션 방어 물량(권면×콜한도%÷전환가액). 진짜 튀어나올 물량">실질 오버행</th>
           <th className="r">전환가액</th>
           <th className="r sub" title="현재 전환가액이 리픽싱 하한까지 남은 폭. 0 = 하한 도달(더 못 내린다)">하한까지</th>
           <th className="r">주가</th>
           <th className="r sub" title="현재가 ÷ 리픽싱 하한 × 100. 100% 이하 = 주가가 하한 밑">주가/하한</th>
           <th className="r sub" title="(현재가 ÷ 전환가액 − 1) × 100. 양수 = 전환 유인">주가/전환가</th>
+          <th className="r sub" title="출회 물량(실질 오버행, 없으면 잔여주식) ÷ 최근 20거래일 일평균 거래량. 며칠이면 다 팔리나">소화일수</th>
+          <th className="c sub" title="차기 전환가액 조정일 = 마지막 조정 적용일 + 주기(1M/3M). 하한 도달이면 더 못 내린다">차기 리픽싱</th>
           <th className="c">차기 풋</th>
           <th className="r">현금커버</th>
           <th className="c" title="발행사 자신의 산술(잔액÷전환가액=잔여주식) 대조">검산</th>
@@ -939,15 +982,26 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
                   <b>{r.corp_name}</b>
                   <span className="code num">{r.stock_code || r.corp_code}</span>
                   <span className="rnd">{r.bd_tm}회 {r.sec_type || '?'}</span>
+                  {/* 전환가능 상태 — 오늘 vs 전환청구 시작일. 시작일을 못 읽었으면 뱃지를 안 그린다(없는 판정을 그리지 않는다) */}
+                  {r.cs.state === 'convertible' ? <span className="st on" title={`전환청구 시작일 ${r.cs.conv_start}`}>전환가능</span> : null}
+                  {r.cs.state === 'lockup' ? <span className="st" title={`전환청구 시작일 ${r.cs.conv_start} 까지`}>락업 D-{r.cs.d_day}</span> : null}
+                  {r.cs.state === 'expired' ? <span className="st off" title={`청구기간 종료 ${r.cs.conv_end}`}>종료</span> : null}
                   {r.mine ? <span className="tag" style={{ color: 'var(--ink2)', marginLeft: 5 }}>MY</span> : null}
                 </div>
               </td>
-              <td className="r"><Cell v={krw(r.face)} /></td>
+              <td className="r"><Cell v={krw(r.face)} title={r.faceSrc ? `출처 ${r.faceSrc}` : undefined} /></td>
               <td className="r"><b><Cell v={krw(r.bal)} /></b></td>
+              <td className="r"><Cell v={r.used === null ? null : `${r.used}%`} /></td>
               {/* 규모 — 글자는 잉크, 크기는 앰버 막대. 21% 와 105% 가 같은 빨강이던 것을 막대 길이로 가른다. */}
               <td className="r bar">
                 {r.pct !== null ? <i style={{ width: `${w}%` }} /> : null}
                 <Cell v={r.pct === null ? null : `${r.pct}%`} cls="" title="막대 = 발행주식 대비 (50% 에서 가득)" />
+              </td>
+              {/* 실질 오버행 — 콜 조항을 모르면(발행결정 미연결) 비운다. 0 으로 두면 물량이 없어 보인다 */}
+              <td className="r">
+                {r.real === null
+                  ? <Cell v={null} title={r.realSrc || undefined} />
+                  : <span title={`${int(r.real)}주 · ${r.realSrc || ''}`}>{r.realPct === null ? int(r.real) : `${r.realPct}%`}</span>}
               </td>
               <td className="r"><Cell v={int(r.price)} /></td>
               <td className="r">
@@ -970,6 +1024,21 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
                   ? <Cell v={null} />
                   : <span className={r.pxConv >= 0 ? '' : 'mute'} style={r.pxConv >= 0 ? { fontWeight: 700 } : undefined}>
                       {r.pxConv > 0 ? '+' : ''}{r.pxConv}%
+                    </span>}
+              </td>
+              {/* 소화 일수 — 길수록 시장이 못 받는다. 방향이지 경보가 아니라 무채색. 20일이 넘으면 굵게 */}
+              <td className="r">
+                {r.dtc === null
+                  ? <Cell v={null} />
+                  : <span style={r.dtc >= 20 ? { fontWeight: 700 } : undefined} title={`20일 평균 거래량 ${int(r.avgVol)}주`}>{r.dtc}일</span>}
+              </td>
+              {/* 차기 리픽싱 — 마지막 조정 적용일+주기. 주기를 모르면 비운다 */}
+              <td className="c">
+                {r.rfxD === null
+                  ? <Cell v={null} />
+                  : <span title={`${r.rfx.next_date} · ${r.rfx.next_source || ''} · 주기 ${r.rfx.interval_months || '?'}개월`}
+                      className={r.floorHit ? 'mute' : ''}>
+                      {r.rfxD >= 0 ? `D-${r.rfxD}` : `D+${-r.rfxD}`}
                     </span>}
               </td>
               <td className="c">
@@ -1104,7 +1173,8 @@ function MezPanel({ row: r }) {
             </div>
             <h2>{r.corp_name}</h2>
             <div className="meta num">
-              미전환 <b><Val v={krw(r.bal)} /></b>
+              {r.cs.state === 'convertible' ? <b>전환가능</b> : r.cs.state === 'lockup' ? <b>락업중 D-{r.cs.d_day}</b> : r.cs.state === 'expired' ? <b className="mute">청구기간 종료</b> : <>상태 {MISSING}</>}
+              {' · '}미전환 <b><Val v={krw(r.bal)} /></b>
               {r.pct !== null ? <> (발행주식 대비 <b className={r.pct >= 10 ? 'amb' : ''}>{r.pct}%</b>)</> : null}
               {' · '}전환가 <b><Val v={int(r.price)} suffix={r.price ? '원' : ''} /></b>
               {r.floor === null ? <> (하한 {MISSING})</> : r.floorHit ? <> (<b className="alert">하한 도달</b>)</> : <> (하한까지 +{r.gap}%)</>}
@@ -1161,14 +1231,21 @@ function MezPanel({ row: r }) {
           ) : (
             <div className="stack">
               <div style={{ width: `${r.used}%`, background: 'var(--sub)' }}>{r.used >= 14 ? `소진 ${r.used}%` : ''}</div>
-              <div style={{ width: `${100 - r.used}%`, background: 'var(--amber)', fontWeight: 700 }}>
-                {100 - r.used >= 14 ? `잔여 ${100 - r.used}%` : ''}
+              <div style={{ width: `${Math.round((100 - r.used) * 10) / 10}%`, background: 'var(--amber)', fontWeight: 700 }}>
+                {100 - r.used >= 14 ? `잔여 ${Math.round((100 - r.used) * 10) / 10}%` : ''}
               </div>
             </div>
           )}
           <div className="rowline">
-            <span>권면 <b><Val v={krw(r.face)} /></b></span>
+            <span>권면 <b><Val v={krw(r.face)} /></b>
+              {r.faceSrc === '발행결정 소급' ? <span className="mute" style={{ fontSize: 9 }}> (발행결정에서 복사)</span> : null}</span>
             <span>출회대기 <b style={{ color: 'var(--amber)' }}><Val v={shares(r.rem)} /></b></span>
+          </div>
+          {/* 엑시트 평가액 = 잔여주식 × 현재가. 지금 다 전환해 팔면 시장에 나오는 금액. 차익은 원금(잔액) 대비 */}
+          <div className="rowline">
+            <span>엑시트 평가액 <b><Val v={krw(r.exitVal)} /></b></span>
+            <span>평가 차익 <b className={r.exitGain !== null && r.exitGain > 0 ? '' : 'mute'}>
+              {r.exitGain === null ? MISSING : `${r.exitGain > 0 ? '+' : ''}${krw(r.exitGain)}`}</b></span>
           </div>
         </div>
 
@@ -1200,6 +1277,37 @@ function MezPanel({ row: r }) {
             <span>행사주기 <Val v={iss && iss.put_interval_months} suffix={iss && iss.put_interval_months ? '개월' : ''} /></span>
             <span>콜 상한 <Val v={iss && iss.call_cap_pct} suffix={iss && iss.call_cap_pct ? '%' : ''} /></span>
           </div>
+          {/* 차기 리픽싱 — 마지막 조정 적용일(리픽싱 공시가 스스로 적음) + 주기(발행결정 조항). 하한 도달이면 날짜는 와도 단가는 안 깎인다 */}
+          <div className="rowline" style={{ borderTop: '1px dashed var(--line2)', paddingTop: 4, marginTop: 4 }}>
+            <span>차기 리픽싱 <b><Val v={r.rfx.next_date} /></b>
+              {r.rfxD !== null ? <b style={{ marginLeft: 4 }}>{r.rfxD >= 0 ? `D-${r.rfxD}` : `D+${-r.rfxD}`}</b> : null}
+              {r.rfx.next_source ? <span className="mute" style={{ fontSize: 9 }}> ({r.rfx.next_source})</span> : null}</span>
+            <span>주기 <Val v={r.rfx.interval_months} suffix={r.rfx.interval_months ? '개월' : ''} />
+              {r.rfx.last_apply_date ? <span className="mute" style={{ fontSize: 9 }}> · 마지막 적용 {r.rfx.last_apply_date}</span> : null}</span>
+          </div>
+        </div>
+
+        {/* VIZ 3b — 실질 오버행 · 소화 일수 (고도화_0921 §4.2·§4.3)
+            전환가능 물량에서 대주주 콜옵션 방어 물량을 뺀 것이 __진짜 튀어나올 물량__ 이다. 그것을 20일 평균
+            거래량으로 나누면 며칠이면 시장이 다 받는지가 나온다. 콜 조항 유무를 모르면 둘 다 비운다. */}
+        <div className="panel">
+          <div className="vh">
+            <span>실질 오버행 · 소화 일수</span>
+            {r.dtc === null
+              ? <span className="pill miss">{MISSING}</span>
+              : <span className="pill" style={{ border: '1px solid var(--line2)', color: 'var(--ink2)', fontWeight: r.dtc >= 20 ? 700 : 400 }}>{r.dtc}일</span>}
+          </div>
+          <div className="kv"><span className="k">잔여 전환가능주식</span><span className="v"><Val v={int(r.rem)} suffix={r.rem !== null ? ' 주' : ''} /></span></div>
+          <div className="kv"><span className="k">− 콜 방어 물량 {iss && iss.call_cap_pct ? `(권면×${iss.call_cap_pct}%÷전환가)` : ''}</span>
+            <span className="v"><Val v={int(r.callShares)} suffix={r.callShares !== null ? ' 주' : ''} /></span></div>
+          <div className="kv"><span className="k">= 실질 오버행</span>
+            <span className="v"><b><Val v={int(r.real)} suffix={r.real !== null ? ' 주' : ''} /></b>
+              {r.realPct !== null ? <span className="mute"> (발행주식 대비 {r.realPct}%)</span> : null}</span></div>
+          <div className="kv"><span className="k">÷ 20일 평균 거래량</span>
+            <span className="v"><Val v={int(r.avgVol)} suffix={r.avgVol !== null ? ' 주' : ''} />
+              {r.metrics && r.metrics['20일 평균 거래량'] && r.metrics['20일 평균 거래량'].as_of
+                ? <span className="mute"> ({r.metrics['20일 평균 거래량'].as_of})</span> : null}</span></div>
+          {r.real === null && r.realSrc ? <div className="mute" style={{ fontSize: 10, marginTop: 4 }}>실질 오버행 {MISSING} — {r.realSrc}{r.dtc !== null ? ' · 소화 일수는 콜 차감 전 잔여주식 기준' : ''}</div> : null}
         </div>
 
         {/* VIZ 4 — 사채잔액 대비 현금 커버 + 분모·조달조건.
@@ -1279,6 +1387,8 @@ function MezPanel({ row: r }) {
                 ? <>{r.cross_check}<div className="mute" style={{ marginTop: 4, fontStyle: 'normal' }}>
                   미전환 잔액 ÷ 전환가액 == 잔여 전환가능주식. 세 숫자 모두 공시 원문에 있고,
                   이 식은 우리 계산이 아니라 발행사가 스스로 적은 것입니다.
+                  닫는 규칙은 셋 — ±1주(절사·절상) · 원미만 반올림 가액(±0.5원) · 단수주 절사(보유자별 단수 버림, 1bp 이내).
+                  어느 규칙으로 닫았는지 식 뒤에 적힙니다.
                 </div></>
                 : <span className="miss">{MISSING} — 검산 짝(잔액·전환가액·주식수) 부족</span>}
             </div>
