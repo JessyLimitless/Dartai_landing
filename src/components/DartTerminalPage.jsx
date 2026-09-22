@@ -526,9 +526,14 @@ export default function DartTerminalPage() {
       const rfx = r.refix || {}                         // next_date · next_d_day · interval_months
       const rfxD = rfx.next_d_day ?? null
       const ttl = titleOf(r.anchor && r.anchor.report_nm)   // 앵커 공시 제목 → {text, corr, full}
+      // 예탁결제원(KSD) 기준일 잔액 — 원장 잔액의 __외부 대조값__(§43). 기준일이 달라 어긋남≠오류다.
+      //   일치 / KSD가 적다(앵커 뒤 추가 전환·상환 — KSD 가 새 값) / KSD가 많다(⚠️ 원문 확인) / KSD 없음(why)
+      const ksd = r.ksd || null
+      const ksdBal = ksd ? ksd.balance : null
+      const ksdV = ksd ? ksd.verdict : null
       return {
         ...r,
-        ttl,
+        ttl, ksd, ksdBal, ksdV,
         key: `${r.corp_code}:${r.bd_tm}`,
         bal, price, rem, pct, floor, gap, face, dday, putDate, used, cover,
         faceSrc, exitVal, exitGain, real, realPct, realSrc, callShares, avgVol, dtc, cs, rfx, rfxD,
@@ -623,7 +628,7 @@ export default function DartTerminalPage() {
     const esc = v => `"${String(v === null || v === undefined ? '' : v).replace(/"/g, '""')}"`
     let csv = '﻿'
     if (mode === 'mezz') {
-      csv += ['종목명', '종목코드', '고유번호', '시장', '회차', '종류', '상태', '전환청구시작일', '권면총액', '권면출처', '소진율%', '미전환잔액',
+      csv += ['종목명', '종목코드', '고유번호', '시장', '회차', '종류', '상태', '전환청구시작일', '권면총액', '권면출처', '소진율%', '미전환잔액', 'KSD잔액', 'KSD기준일', 'KSD대조', 'KSD_ISIN',
         '전환가액', '리픽싱하한', '하한까지%', '잔여전환가능주식', '발행주식대비%',
         '콜방어물량', '실질오버행', '실질오버행%', '20일평균거래량', '소화일수',
         '현재가', '주가/하한%', '주가/전환가%', '주가기준시각', '엑시트평가액', '평가차익',
@@ -631,7 +636,8 @@ export default function DartTerminalPage() {
         '차기풋', '최초풋', '만기', '표면이자율', '만기이자율', '검산식', '기준일', '접수번호', '원문URL'].join(',') + '\n'
       for (const r of mezRows) {
         csv += [r.corp_name, r.stock_code, r.corp_code, r.market, r.bd_tm, r.sec_type, r.cs.label, r.cs.conv_start,
-          r.face, r.faceSrc, r.used, r.bal, r.price, r.floor, r.gap, r.rem, r.pct,
+          r.face, r.faceSrc, r.used, r.bal, r.ksdBal, r.ksd && r.ksd.bas_dt, r.ksdV || (r.ksd && r.ksd.why), r.ksd && r.ksd.isins ? r.ksd.isins.join(' ') : '',
+          r.price, r.floor, r.gap, r.rem, r.pct,
           r.callShares, r.real, r.realPct, r.avgVol, r.dtc,
           r.px, r.pxFloor, r.pxConv, r.pxAsOf, r.exitVal, r.exitGain,
           r.rfx.next_date, r.rfx.interval_months, r.rfx.last_apply_date,
@@ -711,7 +717,12 @@ export default function DartTerminalPage() {
               <span className="sep">|</span>
               <span>적립 창 <b>{cov && cov.filings ? (cov.filings.window || []).join(' ~ ') : '—'}</b></span>
               <span className="sep">|</span>
-              <span className="mute">지수·CB 유통잔액·신주 상장예정 = 미연동 (채권 API 연동 예정)</span>
+              {mez && mez.ksd && mez.ksd.bas_dt
+                ? <span title={`예탁결제원 전자등록 기준일 ${mez.ksd.bas_dt} · CB ${mez.ksd.by_type.CB ? krw(mez.ksd.by_type.CB.balance) : '—'} · BW ${mez.ksd.by_type.BW ? krw(mez.ksd.by_type.BW.balance) : '—'} · EB ${mez.ksd.by_type.EB ? krw(mez.ksd.by_type.EB.balance) : '—'} · ${mez.ksd.license}`}>
+                    시장 CB·BW·EB 잔액 <b>{krw(mez.ksd.balance) ?? MISSING}</b>
+                    <span className="mute"> ({mez.ksd.outstanding}/{mez.ksd.count}회차 · KSD {mez.ksd.bas_dt})</span>
+                  </span>
+                : <span className="mute">시장 CB·BW·EB 잔액 = 미적립 (KSD 스냅샷 크론 대기) · 지수·신주 상장예정 = 미연동</span>}
             </>
           ) : (
             <>
@@ -989,6 +1000,7 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
           <th>종목 · 회차</th>
           <th className="r">권면</th>
           <th className="r">미전환 잔액</th>
+          <th className="r sub" title="예탁결제원 전자등록 기준일 잔액(금융위 채권기본정보). 원장 잔액은 공시 시점, 이 칸은 기준일 — 기준일이 달라 어긋남이 곧 오류는 아니다. ✓ 일치 · ↓ KSD가 적다(앵커 뒤 추가 전환) · ✗ KSD가 많다(원문 확인)">KSD 잔액</th>
           <th className="r sub" title="(권면총액 − 미전환 잔액) ÷ 권면총액. 얼마나 이미 전환·상환됐나">소진율</th>
           <th className="r">발행주식 대비</th>
           <th className="r sub" title="잔여 전환가능주식 − 대주주 콜옵션 방어 물량(권면×콜한도%÷전환가액). 진짜 튀어나올 물량">실질 오버행</th>
@@ -1032,6 +1044,19 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
                   : <Cell v={krw(r.face)} title={r.faceSrc ? `출처 ${r.faceSrc}` : undefined} />}
               </td>
               <td className="r"><b><Cell v={krw(r.bal)} /></b></td>
+              {/* KSD 잔액 — 마커는 셋뿐. ✗(KSD가 많다)만 경보색. 없음은 사유를 title 로 */}
+              <td className="r">
+                {r.ksd === null
+                  ? <Cell v={null} title="KSD 스냅샷 미적립" />
+                  : r.ksdBal === null
+                    ? <span className="dash" title={r.ksd.why || 'KSD 없음'}>–</span>
+                    : <span title={`KSD ${r.ksd.bas_dt} · ${r.ksdV}${r.ksd.diff ? ` (${r.ksd.diff > 0 ? '+' : ''}${int(r.ksd.diff)}원)` : ''} · ${(r.ksd.names || []).join(', ')}`}>
+                        {krw(r.ksdBal)}
+                        {r.ksdV === '일치' ? <span style={{ color: 'var(--ink2)', fontWeight: 700 }}> ✓</span> : null}
+                        {r.ksdV === 'KSD가 적다' ? <span className="mute"> ↓</span> : null}
+                        {r.ksdV === 'KSD가 많다' ? <span className="alert"> ✗</span> : null}
+                      </span>}
+              </td>
               <td className="r"><Cell v={r.used === null ? null : `${r.used}%`} /></td>
               {/* 규모 — 글자는 잉크, 크기는 앰버 막대. 21% 와 105% 가 같은 빨강이던 것을 막대 길이로 가른다. */}
               <td className="r bar">
@@ -1445,6 +1470,16 @@ function MezPanel({ row: r }) {
           <div className="col">
             <div className="ct"><span>정량 분해 산출값</span><span>{r.parse_status || ''}</span></div>
             <div className="kv"><span className="k">미전환 잔액</span><span className="v"><Val v={int(r.bal)} suffix={r.bal !== null ? ' 원' : ''} /></span></div>
+            {/* §43 예탁결제원 기준일 잔액 — 원장(공시 시점)과 나란히. 판정과 사유를 그대로 적는다 */}
+            <div className="kv"><span className="k">KSD 잔액{r.ksd && r.ksd.bas_dt ? <span className="mute"> {r.ksd.bas_dt}</span> : null}</span>
+              <span className="v">
+                {r.ksd === null ? <span className="miss">{MISSING} 미적립</span>
+                  : r.ksdBal === null ? <span className="miss" title={r.ksd.why || ''}>{MISSING} {r.ksd.why || 'KSD 없음'}</span>
+                  : <><Val v={int(r.ksdBal)} suffix=" 원" />
+                      <span className={r.ksdV === 'KSD가 많다' ? 'alert' : 'mute'} style={{ marginLeft: 6 }}>
+                        {r.ksdV}{r.ksd.diff ? ` (${r.ksd.diff > 0 ? '+' : ''}${int(r.ksd.diff)}원)` : ''}
+                      </span></>}
+              </span></div>
             <div className="kv"><span className="k">적용 전환가액</span><span className="v"><Val v={int(r.price)} suffix={r.price ? ' 원' : ''} /></span></div>
             <div className="kv"><span className="k">잔여 전환가능주식</span><span className="v"><Val v={int(r.rem)} suffix={r.rem !== null ? ' 주' : ''} /></span></div>
             <div className="kv"><span className="k">하한 도달 시 주식수</span><span className="v"><Val v={int(mv(r, '하한 도달 시 주식수'))} suffix={mv(r, '하한 도달 시 주식수') ? ' 주' : ''} /></span></div>
