@@ -1054,6 +1054,8 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
                         {krw(r.ksdBal)}
                         {r.ksdV === '일치' ? <span style={{ color: 'var(--ink2)', fontWeight: 700 }}> ✓</span> : null}
                         {r.ksdV === 'KSD가 적다' ? <span className="mute"> ↓</span> : null}
+                        {r.ksdV === '자기사채(말소 전)' ? <span className="mute" title="만기전취득 뒤 말소 전 자기사채 — 오류 아님"> ▣</span> : null}
+                        {r.ksd && r.ksd.default_names ? <span className="alert" title={`KSD 지급거절 분리등록: ${r.ksd.default_names.join(', ')}`}> 부도</span> : null}
                         {r.ksdV === 'KSD가 많다' ? <span className="alert"> ✗</span> : null}
                       </span>}
               </td>
