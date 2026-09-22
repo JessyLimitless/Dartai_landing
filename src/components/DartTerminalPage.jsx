@@ -115,8 +115,8 @@ const CSS = `
 .dtp .lead b{color:var(--ink);font-weight:700}
 .dtp .lead .ov{font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-right:8px}
 .dtp .kpis{display:flex;gap:8px}
-.dtp .kpi{flex:1;padding:8px 13px 10px;background:var(--surf);border:1px solid var(--line2);
- border-top:2px solid var(--line2);min-width:0}
+.dtp .kpi{flex:1;padding:8px 13px 10px;background:var(--surf);border:1px solid var(--line2);min-width:0}
+.dtp .kpi .k .sw{display:inline-block;width:7px;height:7px;vertical-align:0;margin-right:6px;background:var(--alert)}
 .dtp .kpi .k{font-size:10.5px;font-weight:600;color:var(--sub);letter-spacing:.02em;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dtp .kpi .v{font-size:20px;font-weight:700;margin-top:5px;line-height:1.1;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -167,9 +167,13 @@ const CSS = `
 .dtp .st{font-size:9.5px;font-weight:700;padding:0 4px;line-height:15px;margin-left:5px;white-space:nowrap;border:1px solid var(--line2);color:var(--sub);flex-shrink:0}
 .dtp .st.on{color:var(--onink);background:var(--ink);border-color:var(--ink)}
 .dtp .st.off{opacity:.55}
-.dtp td.nm{min-width:230px;max-width:260px}
+.dtp td.nm{min-width:230px;max-width:340px}
+/* 앵커 공시 제목 — 최신공시순으로 훑을 때 행마다 클릭하지 않아도 무슨 공시인지 읽힌다(2026-09-22 사용자 지적).
+   [기재정정] 접두사는 칩으로 떼어 붙이고 제목 본문만 남긴다. 넘치면 말줄임, 전문은 title. */
+.dtp td.nm .row .ttl{font-size:10.5px;color:var(--sub);margin-left:7px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
+.dtp .st.corr{color:var(--ink2);border-color:var(--ink2)}
 .dtp td.nm .row{display:flex;align-items:center;min-width:0}
-.dtp td.nm .row b{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.dtp td.nm .row b{flex-shrink:0;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dtp td.nm .row .code,.dtp td.nm .row .rnd,.dtp td.nm .row .tag{flex-shrink:0}
 .dtp .code{font-size:11px;color:var(--mute);margin-left:5px}
 /* 규모 데이터바 — 셀 배경에 얕게 깐다. 값은 글자, 크기는 바. 한 줄이다. */
@@ -179,26 +183,34 @@ const CSS = `
 
 /* 우측 패널 */
 .dtp .panel{background:var(--surf);border:1px solid var(--line2)}
-.dtp .head{margin:10px 10px 8px;padding:12px 14px 12px;border-left:3px solid var(--ink)}
+.dtp .head{margin:10px 10px 8px;padding:6px 2px 10px;border-bottom:1px solid var(--line2)}
 .dtp .head .ov{font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}
 .dtp .head h2{margin:2px 0 0;font-size:18px;font-weight:700;letter-spacing:-.025em;display:inline;line-height:1.25}
 .dtp .head .meta{margin-top:7px;font-size:12px;color:var(--ink2);line-height:1.55;letter-spacing:-.005em}
 .dtp .head .meta b{color:var(--ink)}
-.dtp .viz{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 10px 10px}
-.dtp .viz .panel{padding:9px 11px;display:flex;flex-direction:column;min-height:78px}
+/* 시각화 두 판 — 2026-09-22 사용자: "좋은데 왜소하다" → 판·막대·숫자를 한 단계씩 키웠다.
+   구조는 그대로(게이지 = 하한 30% 고정선 + 주가 핀 · 스택 = 소진|잔여). 색 어휘도 그대로. */
+.dtp .viz{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin:0 10px 10px}
+.dtp .viz .panel{padding:12px 14px 13px;display:flex;flex-direction:column;min-height:124px;min-width:0;overflow:hidden}
 .dtp .viz .vh{display:flex;justify-content:space-between;align-items:center;gap:6px;
- border-bottom:1px solid var(--line);padding-bottom:5px;margin-bottom:7px}
-.dtp .viz .vh span:first-child{font-size:11px;font-weight:700;color:var(--ink2)}
-.dtp .pill{font-size:10px;font-weight:700;padding:0 5px;line-height:17px;white-space:nowrap}
-.dtp .gauge{position:relative;height:11px;border:1px solid var(--line2);overflow:hidden;
+ border-bottom:1px solid var(--line);padding-bottom:7px;margin-bottom:11px}
+.dtp .viz .vh span:first-child{font-size:12px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.dtp .pill{font-size:11px;font-weight:700;padding:0 7px;line-height:20px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.dtp .gauge{position:relative;height:22px;border:1px solid var(--line2);overflow:hidden;
  background:linear-gradient(90deg,var(--g1) 0%,var(--g2) 40%,var(--g3) 100%)}
 .dtp .gauge .floor{position:absolute;top:0;bottom:0;width:2px;background:var(--alert);z-index:1}
-.dtp .gauge .pin{position:absolute;top:0;bottom:0;width:5px;background:var(--pin);z-index:2;
+.dtp .gauge .pin{position:absolute;top:0;bottom:0;width:4px;background:var(--pin);z-index:2;
  transform:translateX(-50%)}
-.dtp .stack{display:flex;height:13px;border:1px solid var(--line2);font-size:9px;
- color:var(--stripFg);line-height:13px;text-align:center;overflow:hidden}
-.dtp .rowline{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;
- color:var(--sub);margin-top:4px;line-height:1.45}
+.dtp .gauge .pinlbl{position:absolute;top:0;bottom:0;display:flex;align-items:center;z-index:2;
+ font-size:10.5px;font-weight:700;color:var(--ink);padding:0 6px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.dtp .stack{display:flex;height:24px;border:1px solid var(--line2);font-size:10.5px;font-weight:600;
+ color:var(--stripFg);line-height:24px;text-align:center;overflow:hidden}
+.dtp .stack div+div{border-left:1px solid var(--surf)}
+.dtp .rowline{display:flex;justify-content:space-between;gap:8px;font-size:11px;
+ color:var(--sub);margin-top:7px;line-height:1.5}
+/* 한 줄 고정은 앞의 두 판(게이지·스택)만 — 풋·오버행 판은 문장이 길어 줄바꿈이 맞다 */
+.dtp .viz .panel:nth-child(-n+2) .rowline>span{white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.dtp .rowline b{color:var(--ink);font-size:12px}
 .dtp .kv{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:3px 0;line-height:1.45}
 .dtp .kv .k{color:var(--sub)}
 .dtp .kv .v{font-weight:700;font-variant-numeric:tabular-nums}
@@ -314,6 +326,16 @@ const LS = { key: 'dartin.key', universe: 'dartin.universe', mode: 'terminal.mod
 const readLS = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v } catch { return d } }
 const writeLS = (k, v) => { try { localStorage.setItem(k, v) } catch { /* 프라이빗 모드 */ } }
 const parseCodes = (t) => [...new Set(String(t || '').match(/\d{6}/g) || [])].slice(0, 400)
+/* 공시 제목을 행에 붙일 꼴로. "[기재정정]전환가액의조정   " → {text:'전환가액의조정', corr:true, full:원문}.
+   DART 는 정정을 제목 접두사([기재정정]·[정정]·[첨부정정]·[첨부추가])로만 적는다 — 원문 머리의 "정정신고(보고)" 와 같은 정보다. */
+const titleOf = (nm) => {
+  const full = String(nm || '').replace(/\s+/g, ' ').trim()
+  if (!full) return { text: '', corr: false, full: '' }
+  let text = full, corr = false
+  const m = text.match(/^(\[[^\]]*정정[^\]]*\]|\[첨부추가\])\s*/)
+  if (m) { corr = true; text = text.slice(m[0].length) }
+  return { text, corr, full }
+}
 
 class AccessError extends Error {
   constructor(status, detail) { super(detail || `HTTP ${status}`); this.status = status; this.detail = detail }
@@ -503,8 +525,10 @@ export default function DartTerminalPage() {
       const cs = r.conv_status || { state: null }       // convertible | lockup(d_day) | expired | null
       const rfx = r.refix || {}                         // next_date · next_d_day · interval_months
       const rfxD = rfx.next_d_day ?? null
+      const ttl = titleOf(r.anchor && r.anchor.report_nm)   // 앵커 공시 제목 → {text, corr, full}
       return {
         ...r,
+        ttl,
         key: `${r.corp_code}:${r.bd_tm}`,
         bal, price, rem, pct, floor, gap, face, dday, putDate, used, cover,
         faceSrc, exitVal, exitGain, real, realPct, realSrc, callShares, avgVol, dtc, cs, rfx, rfxD,
@@ -802,28 +826,28 @@ export default function DartTerminalPage() {
       <div className="kpis">
         {mode === 'mezz' ? (
           <>
-            {/* 숫자는 전부 잉크색. 경보 계열은 상단 2px 선으로만 구분한다 — 큰 빨간 숫자 셋이
-                그리드의 빨강과 합쳐져 "경보가 경보로 안 읽히던" 것을 끊는다(§34-3 #2). */}
-            <Kpi t="var(--ink)" k="활성 회차 (잔액 앵커 보유)"
+            {/* 숫자는 전부 잉크색. 경보 계열은 라벨 앞 ■ 스와치로만 구분한다 — 푸터 범례의 "■ 경보" 와 같은 어휘.
+                (상단 2px 색선은 2026-09-22 사용자 반려 — "테두리 한쪽 면에 색 넣는 건 AI 생성물 티가 난다") */}
+            <Kpi k="활성 회차 (잔액 앵커 보유)"
               v={mez ? mezKpi.active : '—'} u={`건 / 원장 ${mez ? (mez.counts && mez.counts['회차']) : '—'}`} />
-            <Kpi t="var(--alert)" k="리픽싱 하한 도달"
+            <Kpi alert k="리픽싱 하한 도달"
               v={mez ? mezKpi.floorHit : '—'}
               u={mez ? `회차 · 주가≤하한 ${mezKpi.pxHit}/${mezKpi.pxKnown} · 하한 확보 ${mez.counts && mez.counts['플로어 확보']}건` : ''} />
-            <Kpi t="var(--alert)" k="조기상환 풋 D-90 이내"
+            <Kpi alert k="조기상환 풋 D-90 이내"
               v={mez ? mezKpi.nearPut : '—'}
               u={mez ? `익스포저 ${krw(mezKpi.nearExp) ?? MISSING} · 풋일 미확보 ${mezKpi.noPut}` : ''} />
-            <Kpi t="var(--alert)" k="현금커버 1배 미만"
+            <Kpi alert k="현금커버 1배 미만"
               v={mez ? mezKpi.thinCover : '—'}
               u={mez ? `회차 · 커버 산출 ${mezKpi.coverKnown}건` : ''} />
-            <Kpi t="var(--alert)" k={`소화 일수 ${DTC_ALERT_DAYS}일 이상`}
+            <Kpi alert k={`소화 일수 ${DTC_ALERT_DAYS}일 이상`}
               v={mez ? mezKpi.dtcOver : '—'}
               u={mez ? `회차 · 출회 물량 > 한 달치 거래량 · 산출 ${mezKpi.dtcKnown}건` : ''} />
-            <Kpi t="var(--line2)" k="미전환 잔액 합계"
+            <Kpi k="미전환 잔액 합계"
               v={mez ? (krw(mezKpi.totalBal) ?? MISSING) : '—'} u="원 (원장 창 내)" />
           </>
         ) : (
           CATS.filter(c => ['GROWTH', 'EARNINGS', 'CAPITAL', 'GOVERNANCE'].includes(c.k)).map(c => (
-            <Kpi key={c.k} t={c.c} k={c.label} color={c.c}
+            <Kpi key={c.k} k={c.label} color={c.c}
               v={feed && feed.counts ? (feed.counts[c.k] || 0) : '—'}
               u={`건 (${days === 1 ? '오늘' : `최근 ${days}일`})`} />
           ))
@@ -898,10 +922,10 @@ export default function DartTerminalPage() {
 }
 
 /* ── 소단위 ───────────────────────────────────────────────────── */
-function Kpi({ k, v, u, t, color }) {
+function Kpi({ k, v, u, alert, color }) {
   return (
-    <div className="kpi" style={{ borderTopColor: t }}>
-      <div className="k">{k}</div>
+    <div className="kpi">
+      <div className="k">{alert ? <i className="sw" /> : null}{k}</div>
       <div className="v num" style={color ? { color } : undefined}>
         {v}{u ? <span className="u">{u}</span> : null}
       </div>
@@ -997,6 +1021,8 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
                   {r.cs.state === 'lockup' ? <span className="st" title={`전환청구 시작일 ${r.cs.conv_start} 까지`}>락업 D-{r.cs.d_day}</span> : null}
                   {r.cs.state === 'expired' ? <span className="st off" title={`청구기간 종료 ${r.cs.conv_end}`}>종료</span> : null}
                   {r.mine ? <span className="tag" style={{ color: 'var(--ink2)', marginLeft: 5 }}>MY</span> : null}
+                  {r.ttl.corr ? <span className="st corr" title={r.ttl.full}>정정</span> : null}
+                  {r.ttl.text ? <span className="ttl" title={r.ttl.full}>{r.ttl.text}</span> : null}
                 </div>
               </td>
               {/* 발행결정이 안 붙은 행은 대시 대신 __왜 없는지__ 를 적는다 — 대시만 있으면 파싱 실패로 읽힌다(2026-09-22 사용자 지적) */}
@@ -1238,6 +1264,11 @@ function MezPanel({ row: r }) {
           <div className="gauge">
             <div className="floor" style={{ left: '30%' }} />
             {gaugeLeft !== null ? <div className="pin" style={{ left: `${gaugeLeft}%` }} /> : null}
+            {/* 핀 = 전환가액이 하한(30% 고정선) 위 어디에 있나. 라벨을 핀 옆에 붙여 게이지 안에서 값이 읽히게 */}
+            {gaugeLeft !== null && r.price ? (
+              <div className="pinlbl" style={gaugeLeft > 62 ? { right: `${100 - gaugeLeft}%` } : { left: `${gaugeLeft}%` }}>
+                전환가 {int(r.price)}
+              </div>) : null}
           </div>
           <div className="rowline">
             <span>하한 <b><Val v={int(r.floor)} /></b></span>
@@ -1269,8 +1300,8 @@ function MezPanel({ row: r }) {
             </div>
           )}
           <div className="rowline">
-            <span>권면 <b><Val v={krw(r.face)} /></b>
-              {r.faceSrc === '발행결정 소급' ? <span className="mute" style={{ fontSize: 9 }}> (발행결정에서 복사)</span> : null}</span>
+            <span title={r.faceSrc ? `출처 ${r.faceSrc}` : undefined}>권면 <b><Val v={krw(r.face)} /></b>
+              {r.faceSrc === '발행결정 소급' ? <span className="mute" style={{ fontSize: 9.5 }}> ·발행결정</span> : null}</span>
             <span>출회대기 <b style={{ color: 'var(--amber)' }}><Val v={shares(r.rem)} /></b></span>
           </div>
           {/* 엑시트 평가액 = 잔여주식 × 현재가. 지금 다 전환해 팔면 시장에 나오는 금액. 차익은 원금(잔액) 대비 */}
