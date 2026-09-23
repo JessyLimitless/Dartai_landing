@@ -908,6 +908,11 @@ export default function DartTerminalPage() {
                 <>
                   「{qDeb}」 {periodLabel(effDays)} 공시 <b>{feed.matched}</b>건
                   {feed.matched_from ? <span className="mute"> ({feed.matched_from} ~ {feed.matched_to})</span> : null}
+                  {/* 수집 창 이전은 DART 회사별 목록에서 당겨온다(§55). 어디까지 봤는지를 숨기지 않는다. */}
+                  {feed.search_scope === 'company_history'
+                    ? <span className="mute"> · DART 과거 목록 포함{feed.history_from ? ` (전 유형 ${feed.history_from}~` : ''}{feed.history_from && feed.history_major_from ? ` · 주요사항 ${feed.history_major_from}~)` : (feed.history_from ? ')' : '')}</span>
+                    : null}
+                  {feed.truncated ? <span className="mute"> · 최신 {(feed.disclosures || []).length}건만 표시</span> : null}
                   {feed.window_capped ? <> — <b>스캔 창 포화</b>, 집계가 실제보다 적습니다</> : null}
                   <span className="qx">메자닌 원장 {qMez
                     ? (qMez.n
