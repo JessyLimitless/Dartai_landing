@@ -172,6 +172,11 @@ const CSS = `
    [기재정정] 접두사는 칩으로 떼어 붙이고 제목 본문만 남긴다. 넘치면 말줄임, 전문은 title. */
 .dtp td.nm .row .ttl{font-size:10.5px;color:var(--sub);margin-left:7px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
 .dtp .st.corr{color:var(--ink2);border-color:var(--ink2)}
+/* 어제 대비 변경(§50-7 A) — 경보가 아니라 '사건' 이다. 경보색(빨강)은 쓰지 않고 호박색 테두리로만 구분한다. */
+.dtp .st.chg{color:var(--amber);border-color:var(--amber)}
+.dtp .chgbox{margin-top:8px;padding:6px 8px;border:1px solid var(--amber);font-size:11px;line-height:1.7}
+.dtp .chgbox .ch{font-weight:700;color:var(--amber);font-size:10.5px}
+.dtp .chgbox .k{display:inline-block;min-width:92px;color:var(--ink2);font-weight:700}
 .dtp td.nm .row{display:flex;align-items:center;min-width:0}
 .dtp td.nm .row b{flex-shrink:0;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dtp td.nm .row .code,.dtp td.nm .row .rnd,.dtp td.nm .row .tag{flex-shrink:0}
@@ -303,6 +308,17 @@ const shares = (v) => {
   const n = Number(v)
   return n >= 1e4 ? (n / 1e4).toFixed(n >= 1e6 ? 0 : 1) + '만 주' : n.toLocaleString('ko-KR') + ' 주'
 }
+
+/** 변경 항목 값 하나를 사람이 읽는 글자로 (§50-7 A). None 은 [미기재] — 빈칸이 채워진 것도 사건이다. */
+const chgVal = (kind, v) => {
+  if (v === null || v === undefined || v === '') return MISSING
+  if (kind === 'won') return (int(v) || String(v)) + '원'
+  if (kind === 'shares') return shares(v) || String(v)
+  return String(v)
+}
+const chgTitle = (c) => !c ? '' : c.new
+  ? `${c.since} 스냅샷에 없던 회차(신규 등장)`
+  : `${c.since} 대비\n` + c.items.map(it => `${it.label}: ${chgVal(it.kind, it.from)} → ${chgVal(it.kind, it.to)}`).join('\n')
 
 /** 값이 없으면 __[미기재]__ 를 낸다. `-`·`0` 으로 뭉개지 않는다(HARD RULE). */
 function Val({ v, suffix = '', cls = '' }) {
@@ -531,9 +547,11 @@ export default function DartTerminalPage() {
       const ksd = r.ksd || null
       const ksdBal = ksd ? ksd.balance : null
       const ksdV = ksd ? ksd.verdict : null
+      // 어제 대비 변경 (§50-7 A) — {since, new, items:[{field,label,kind,from,to}]} 또는 null
+      const chg = r.changes || null
       return {
         ...r,
-        ttl, ksd, ksdBal, ksdV,
+        ttl, ksd, ksdBal, ksdV, chg,
         key: `${r.corp_code}:${r.bd_tm}`,
         bal, price, rem, pct, floor, gap, face, dday, putDate, used, cover,
         faceSrc, exitVal, exitGain, real, realPct, realSrc, callShares, avgVol, dtc, cs, rfx, rfxD,
@@ -545,6 +563,7 @@ export default function DartTerminalPage() {
       }
     }).filter(r => {
       if (scope === 'warn') return r.floorHit || (r.dday !== null && r.dday <= 90 && r.dday >= 0) || (r.dtc !== null && r.dtc >= DTC_ALERT_DAYS)
+      if (scope === 'changed') return !!r.chg          // 어제 대비 바뀐 회차(신규 포함)
       if (scope === 'my') return r.mine
       return true
     }).filter(r => {
@@ -553,6 +572,11 @@ export default function DartTerminalPage() {
       return (r.corp_name || '').toLowerCase().includes(s) || (r.stock_code || '').includes(s)
     })
   }, [mez, scope, universe, q])
+
+  // 어제 대비 변경 건수 — __필터 전__ 전체 기준이어야 버튼 숫자가 흔들리지 않는다(§50-7 A)
+  const changedCount = useMemo(
+    () => ((mez && mez.results) || []).filter(r => r.changes).length,
+    [mez])
 
   const mezSel = useMemo(
     () => mezRows.find(r => r.key === selMez) || mezRows[0] || null, [mezRows, selMez])
@@ -768,6 +792,12 @@ export default function DartTerminalPage() {
               <button className={`btn ${scope === 'warn' ? 'on' : ''}`} onClick={() => setScope('warn')}
                 style={{ color: scope === 'warn' ? '#fff' : 'var(--up)' }}>
                 플로어·풋 경보
+              </button>
+            )}
+            {mode === 'mezz' && changedCount > 0 && (
+              <button className={`btn ${scope === 'changed' ? 'on' : ''}`} onClick={() => setScope('changed')}
+                title={mez && mez.changes_since ? `${mez.changes_since} 스냅샷과 대조` : ''}>
+                어제 대비 변경 ({changedCount})
               </button>
             )}
             <button className="btn" onClick={() => { setUnivDraft(universe.join(' ')); setEditUniv(v => !v) }}>
@@ -1033,6 +1063,7 @@ function MezGrid({ rows, sel, onSel, loading, scope, counts }) {
                   {r.cs.state === 'lockup' ? <span className="st" title={`전환청구 시작일 ${r.cs.conv_start} 까지`}>락업 D-{r.cs.d_day}</span> : null}
                   {r.cs.state === 'expired' ? <span className="st off" title={`청구기간 종료 ${r.cs.conv_end}`}>종료</span> : null}
                   {r.mine ? <span className="tag" style={{ color: 'var(--ink2)', marginLeft: 5 }}>MY</span> : null}
+                  {r.chg ? <span className="st chg" title={chgTitle(r.chg)}>{r.chg.new ? '신규' : `변경 ${r.chg.items.length}`}</span> : null}
                   {r.ttl.corr ? <span className="st corr" title={r.ttl.full}>정정</span> : null}
                   {r.ttl.text ? <span className="ttl" title={r.ttl.full}>{r.ttl.text}</span> : null}
                 </div>
@@ -1259,6 +1290,22 @@ function MezPanel({ row: r }) {
             <div className="mute" style={{ fontSize: 10.5, marginTop: 2 }}>기준일 {r.anchor && r.anchor.as_of}</div>
           </div>
         </div>
+        {/* 어제 대비 변경(§50-7 A) — 무엇이 어떻게 바뀌었는지 from → to. 근거 공시가 바뀌었으면 새 공시로 링크한다 */}
+        {r.chg ? (
+          <div className="chgbox">
+            <div className="ch">{r.chg.new ? `신규 회차 — ${r.chg.since} 스냅샷에 없었다` : `${r.chg.since} 대비 변경 ${r.chg.items.length}건`}</div>
+            {r.chg.items.map(it => (
+              <div key={it.field} className="num">
+                <span className="k">{it.label}</span>
+                {it.kind === 'rcept'
+                  ? <>{chgVal(it.kind, it.from)} → {it.to
+                      ? <a target="_blank" rel="noreferrer" href={`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${it.to}`}>{it.to} ↗</a>
+                      : MISSING}</>
+                  : <><span className="mute">{chgVal(it.kind, it.from)}</span> → <b>{chgVal(it.kind, it.to)}</b></>}
+              </div>
+            ))}
+          </div>
+        ) : null}
         {/* 근거 공시 두 줄 — 잔액·전환가는 앵커 공시에서, 권면·조항·풋·락업은 발행결정에서 온다. 어느 공시인지 제목으로 밝힌다.
             발행결정이 없으면 대시 대신 __왜 없는지__(미개봉/회차 없음/목록 없음)를 같은 자리에 적는다. */}
         <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px dashed var(--line2)', fontSize: 10.5, lineHeight: 1.7 }} className="mute">
