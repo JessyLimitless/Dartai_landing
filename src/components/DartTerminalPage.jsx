@@ -663,7 +663,7 @@ export default function DartTerminalPage() {
     if (mode === 'mezz' && mezSel) {
       const r = mezSel
       t = [
-        `[DART TERMINAL] ${r.corp_name}(${r.stock_code || r.corp_code}) 제${r.bd_tm}회 ${r.sec_type || ''}`.trim(),
+        `[DART IN] ${r.corp_name}(${r.stock_code || r.corp_code}) 제${r.bd_tm}회 ${r.sec_type || ''}`.trim(),
         `· 상태: ${r.cs.label || MISSING}` + (r.cs.conv_start ? ` (전환청구 시작 ${r.cs.conv_start})` : ''),
         `· 미전환 잔액: ${krw(r.bal) ?? MISSING} / 권면 ${krw(r.face) ?? MISSING}` +
           (r.used !== null ? ` · 소진율 ${r.used}%` : '') + (r.faceSrc === '발행결정 소급' ? ' (권면은 발행결정에서)' : ''),
@@ -736,7 +736,7 @@ export default function DartTerminalPage() {
       <div className="dtp">
         <style>{CSS}</style>
         <div className="gate">
-          <h3>DART Terminal — 접근 키가 필요합니다</h3>
+          <h3>DART IN — 접근 키가 필요합니다</h3>
           <p>
             모든 데이터 호출은 <code>x-dartin-key</code> 를 달고 나갑니다. 키가 없거나 틀리면
             서버가 401 을 돌려줍니다 — 화면이 가리는 것이 아니라 <b>서버가 잠급니다</b>.
@@ -772,7 +772,7 @@ export default function DartTerminalPage() {
         <div className="grp">
           <span style={{ color: '#facc15', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
             <span className="dot" style={{ background: unwired ? '#ef4444' : '#10b981' }} />
-            DART TERMINAL
+            DART IN
           </span>
           <span className="sep">|</span>
           {mode === 'mezz' ? (
@@ -815,9 +815,9 @@ export default function DartTerminalPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           {/* 앱 크롬을 숨기는 화면이라 돌아갈 길이 없으면 갇힌다 — 브랜드를 홈 링크로 쓴다. */}
           <a className="brand" href="/" title="DART Insight 홈으로">
-            <div className="mk">DT</div>
+            <div className="mk">IN</div>
             <div>
-              <div className="nm">DART Terminal</div>
+              <div className="nm">DART IN</div>
               <div className="sub">DISCLOSURE WORKSPACE</div>
             </div>
           </a>
