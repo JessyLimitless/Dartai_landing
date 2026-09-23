@@ -191,7 +191,7 @@ const CSS = `
 
 /* 우측 패널 */
 .dtp .panel{background:var(--surf);border:1px solid var(--line2)}
-.dtp .head{margin:10px 10px 8px;padding:6px 2px 10px;border-bottom:1px solid var(--line2)}
+.dtp .head{margin:10px 10px 8px;padding:12px 14px 12px}
 .dtp .head .ov{font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}
 .dtp .head h2{margin:2px 0 0;font-size:18px;font-weight:700;letter-spacing:-.025em;display:inline;line-height:1.25}
 .dtp .head .meta{margin-top:7px;font-size:12px;color:var(--ink2);line-height:1.55;letter-spacing:-.005em}
