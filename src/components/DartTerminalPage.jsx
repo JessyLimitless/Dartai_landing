@@ -113,6 +113,9 @@ const CSS = `
 .dtp .frame{background:var(--bg);border-bottom:1px solid var(--line2);flex:0 0 auto;padding:8px 12px 10px}
 .dtp .lead{font-size:13px;color:var(--ink2);line-height:1.5;margin:0 0 8px;letter-spacing:-.01em}
 .dtp .lead b{color:var(--ink);font-weight:700}
+.dtp .lead .qx{margin-left:8px;white-space:nowrap}
+.dtp .lead .qx::before{content:'·';margin-right:8px;color:var(--mute)}
+.dtp .lead .qx .btn{margin-left:6px;vertical-align:1px}
 .dtp .lead .ov{font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-right:8px}
 .dtp .kpis{display:flex;gap:8px}
 .dtp .kpi{flex:1;padding:8px 13px 10px;background:var(--surf);border:1px solid var(--line2);min-width:0}
@@ -341,6 +344,8 @@ const mas = (row, key) => (row && row.metrics && row.metrics[key] ? row.metrics[
 const LS = { key: 'dartin.key', universe: 'dartin.universe', mode: 'terminal.mode' }
 const readLS = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v } catch { return d } }
 const writeLS = (k, v) => { try { localStorage.setItem(k, v) } catch { /* 프라이빗 모드 */ } }
+// 기간 라벨. 0 = 기간 미지정(종목 검색 중의 "전체") — 수집 시작일 이전은 원래 없다.
+const periodLabel = (d) => (!d ? '전체 수집 창' : d === 1 ? '오늘' : `최근 ${d}일`)
 const parseCodes = (t) => [...new Set(String(t || '').match(/\d{6}/g) || [])].slice(0, 400)
 /* 공시 제목을 행에 붙일 꼴로. "[기재정정]전환가액의조정   " → {text:'전환가액의조정', corr:true, full:원문}.
    DART 는 정정을 제목 접두사([기재정정]·[정정]·[첨부정정]·[첨부추가])로만 적는다 — 원문 머리의 "정정신고(보고)" 와 같은 정보다. */
@@ -421,6 +426,19 @@ export default function DartTerminalPage() {
   // 오히려 창을 좁히던 사고가 정확히 이 지점이다).
   const [days, setDays] = useState(3)
   const [q, setQ] = useState('')
+  // 종목 검색 중의 기간은 __따로__ 둔다. 기본은 0 = 전체 수집 창.
+  // 종목 하나의 공시는 하루 몇 건이라 창이 넘치지 않는데, 피드 기본값(3일)을 그대로 쓰면
+  // 삼성전자처럼 수집 창엔 112건이 있는 종목이 "0건"으로 보였다(2026-09-23 라이브 실측).
+  const [qDays, setQDays] = useState(0)
+  // 타이핑마다 API 를 치지 않는다 — "삼성전자" 네 글자가 요청 네 번이었다.
+  const [qDeb, setQDeb] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setQDeb(q.trim()), 350)
+    return () => clearTimeout(t)
+  }, [q])
+  const searching = !!qDeb
+  const effDays = searching ? qDays : days
+  const setEffDays = searching ? setQDays : setDays
   const [toast, setToast] = useState('')
 
   // 메자닌
@@ -466,15 +484,23 @@ export default function DartTerminalPage() {
   }, [apiKey, sort, scope, universe])
 
   /* ── 플래시 로드 ───────────────────────────────────────────── */
+  // 늦게 도착한 옛 응답이 새 응답을 덮지 않게 한다 — 검색어를 바꾸면 이전 요청(기간 3일·검색 없음)이
+  // 나중에 도착해 「삼성전자」 머리 아래 전 종목 목록이 깔리는 것을 캡처에서 봤다(2026-09-23).
+  const flashSeq = useRef(0)
   const loadFlash = useCallback(async () => {
     if (!apiKey) return
+    const my = ++flashSeq.current
+    const stale = () => my !== flashSeq.current
     setFlashLoading(true); setFlashErr(null)
     try {
-      const p = new URLSearchParams({ limit: '120', days: String(days), sort: 'important' })
+      // 종목 검색은 접수 최신순 — "이 종목에 무슨 일이 있었나"는 시간순으로 읽는다.
+      const p = new URLSearchParams({ limit: searching ? '300' : '120', sort: searching ? 'recent' : 'important' })
+      if (effDays) p.set('days', String(effDays))     // 0 = 기간 미지정(전체 수집 창) — 검색 중에만 고를 수 있다
       if (cat !== 'ALL') p.set('category', cat)
       if (scope === 'my' && universe.length) p.set('codes', universe.join(','))
-      if (q.trim()) p.set('search', q.trim())
+      if (qDeb) p.set('search', qDeb)
       const d = await call(`/api/flash/disclosures?${p}`, apiKey)
+      if (stale()) return
       setFeed(d)
       const list = d.disclosures || []
       if (list.length) setSelRc(s => (list.some(x => x.rcept_no === s) ? s : list[0].rcept_no))
@@ -483,15 +509,19 @@ export default function DartTerminalPage() {
       const want = list.filter(x => x.parsable).slice(0, 20).map(x => x.rcept_no)
       if (want.length) {
         const rr = await call(`/api/flash/reports?rcept_nos=${want.join(',')}`, apiKey)
+        if (stale()) return
         const m = {}
         for (const r of (rr.reports || [])) if (r && r.rcept_no) m[r.rcept_no] = r
         setReports(prev => ({ ...prev, ...m }))
       }
-    } catch (e) { setFlashErr(e); setFeed(null) } finally { setFlashLoading(false) }
-  }, [apiKey, cat, scope, universe, q, days])
+    } catch (e) { if (!stale()) { setFlashErr(e); setFeed(null) } } finally { if (!stale()) setFlashLoading(false) }
+  }, [apiKey, cat, scope, universe, qDeb, searching, effDays])
 
   useEffect(() => { if (mode === 'mezz') loadMez() }, [mode, loadMez])
   useEffect(() => { if (mode === 'flash') loadFlash() }, [mode, loadFlash])
+  // 피드에서 종목을 검색하면 메자닌 회차도 같이 보여 준다 — 원장이 아직 없으면 한 번 받는다.
+  useEffect(() => { if (mode === 'flash' && searching && !mez && !mezLoading && !mezErr) loadMez() },
+    [mode, searching, mez, mezLoading, mezErr, loadMez])
 
   // 선택한 플래시 건의 상세 — 목록 프리페치에 없었으면 단건으로 연다.
   useEffect(() => {
@@ -572,6 +602,18 @@ export default function DartTerminalPage() {
       return (r.corp_name || '').toLowerCase().includes(s) || (r.stock_code || '').includes(s)
     })
   }, [mez, scope, universe, q])
+
+  // 검색어에 걸린 메자닌 회차 — 경보·유니버스 필터와 무관하게 __원장 전체__ 에서 센다.
+  const qMez = useMemo(() => {
+    const s = qDeb.toLowerCase()
+    if (!s || !mez || !mez.results) return null
+    const hit = mez.results.filter(r => (r.corp_name || '').toLowerCase().includes(s) || (r.stock_code || '').includes(s))
+    return {
+      n: hit.length,
+      corps: [...new Set(hit.map(r => r.corp_name))],
+      bal: hit.reduce((a, r) => a + (mv(r, '미전환 잔액') || 0), 0),
+    }
+  }, [qDeb, mez])
 
   // 어제 대비 변경 건수 — __필터 전__ 전체 기준이어야 버튼 숫자가 흔들리지 않는다(§50-7 A)
   const changedCount = useMemo(
@@ -807,8 +849,10 @@ export default function DartTerminalPage() {
           {mode === 'flash' && (
             <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <span className="mute" style={{ fontSize: 9.5 }}>기간</span>
-              {[[1, '오늘'], [3, '3일'], [7, '7일'], [14, '14일']].map(([d, l]) => (
-                <button key={d} className={`btn ${days === d ? 'on' : ''}`} onClick={() => setDays(d)}>{l}</button>
+              {/* "전체" 는 종목 검색 중에만 — 필터 없는 전체는 창이 넘쳐 오히려 좁아진다(DARTIN §5-7). */}
+              {[[1, '오늘'], [3, '3일'], [7, '7일'], [14, '14일'], ...(searching ? [[0, '전체']] : [])].map(([d, l]) => (
+                <button key={d} className={`btn ${effDays === d ? 'on' : ''}`} onClick={() => setEffDays(d)}
+                  title={d === 0 ? '수집을 시작한 날부터 — 수집 시작 이전 공시는 없습니다' : undefined}>{l}</button>
               ))}
             </div>
           )}
@@ -849,6 +893,10 @@ export default function DartTerminalPage() {
                 주가가 하한 밑인 회차 <b>{mezKpi.pxHit}</b>, 90일 내 풋 <b>{mezKpi.nearPut}</b>
                 {mezKpi.nearExp ? <> (익스포저 {krw(mezKpi.nearExp)})</> : null},
                 현금커버 1배 미만 <b>{mezKpi.thinCover}</b>, 소화 {DTC_ALERT_DAYS}일 이상 <b>{mezKpi.dtcOver}</b>. 「플로어·풋 경보」로 좁혀 보세요.
+                {searching ? (
+                  <> <span className="qx">「{qDeb}」 회차 <b>{mezRows.length}</b>건
+                    <button className="btn" onClick={() => setMode('flash')}>이 종목 공시 보기 →</button></span></>
+                ) : null}
               </>
             ) : (mezLoading ? '원장을 불러오는 중…' : '원장을 아직 불러오지 못했습니다.')}
           </p>
@@ -856,11 +904,25 @@ export default function DartTerminalPage() {
           <p className="lead">
             <span className="ov">오늘 볼 것</span>
             {feed ? (
+              searching ? (flashLoading ? <>「{qDeb}」 공시를 불러오는 중…</> : (
+                <>
+                  「{qDeb}」 {periodLabel(effDays)} 공시 <b>{feed.matched}</b>건
+                  {feed.matched_from ? <span className="mute"> ({feed.matched_from} ~ {feed.matched_to})</span> : null}
+                  {feed.window_capped ? <> — <b>스캔 창 포화</b>, 집계가 실제보다 적습니다</> : null}
+                  <span className="qx">메자닌 원장 {qMez
+                    ? (qMez.n
+                      ? <><b>{qMez.n}</b>회차 · 미전환 잔액 {krw(qMez.bal) ?? MISSING}
+                          <button className="btn" onClick={() => setMode('mezz')}>원장에서 보기 →</button></>
+                      : '해당 회차 없음')
+                    : (mezErr ? '불러오지 못함' : '…')}</span>
+                </>
+              )) : (
               <>
-                {days === 1 ? '오늘' : `최근 ${days}일`} 창 안 공시 <b>{feed.matched}</b>건
+                {periodLabel(days)} 창 안 공시 <b>{feed.matched}</b>건
                 {universe.length ? <> · 내 유니버스 적중 <b>{feed.universe_hit}</b>건</> : null}
                 {feed.window_capped ? <> — <b>스캔 창 포화</b>, 집계가 실제보다 적습니다</> : null}.
               </>
+              )
             ) : (flashLoading ? '피드를 불러오는 중…' : '피드를 아직 불러오지 못했습니다.')}
           </p>
         )}
@@ -890,7 +952,7 @@ export default function DartTerminalPage() {
           CATS.filter(c => ['GROWTH', 'EARNINGS', 'CAPITAL', 'GOVERNANCE'].includes(c.k)).map(c => (
             <Kpi key={c.k} k={c.label} color={c.c}
               v={feed && feed.counts ? (feed.counts[c.k] || 0) : '—'}
-              u={`건 (${days === 1 ? '오늘' : `최근 ${days}일`})`} />
+              u={`건 (${periodLabel(effDays)})`} />
           ))
         )}
       </div>
@@ -921,7 +983,7 @@ export default function DartTerminalPage() {
           <div className="scroll">
             {unwired ? <Unwired mode={mode} /> : null}
             {!unwired && mode === 'mezz' && <MezGrid rows={mezRows} sel={selMez} onSel={setSelMez} loading={mezLoading} scope={scope} counts={mez && mez.counts} />}
-            {!unwired && mode === 'flash' && <FlashGrid rows={feedRows} reports={reports} sel={selRc} onSel={setSelRc} loading={flashLoading} days={days} feed={feed} />}
+            {!unwired && mode === 'flash' && <FlashGrid rows={feedRows} reports={reports} sel={selRc} onSel={setSelRc} loading={flashLoading} days={effDays} feed={feed} />}
           </div>
 
           <div className="foot">
@@ -1185,7 +1247,7 @@ function FlashGrid({ rows, reports, sel, onSel, loading, days, feed }) {
       <div className="empty">
         {loading ? '불러오는 중…' : (
           <>
-            {days === 1 ? '오늘' : `최근 ${days}일`} 창에 해당 조건의 공시가 없습니다.
+            {periodLabel(days)}{days ? ' 창' : ''}에 해당 조건의 공시가 없습니다.
             {feed ? (
               <div className="mute" style={{ fontSize: 10.5, marginTop: 8 }}>
                 스캔 {feed.scanned}건 · 창 안 {feed.matched}건 · 기준일(KST) {feed.today_kst}
